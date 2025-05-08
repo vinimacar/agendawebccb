@@ -97,7 +97,7 @@
       "Chico Mendes", "Capinópolis - Central", "Santa Vitória - Central", "Gurinhatã",
       "Flor de Minas", "Recanto das Acácias", "Ipiaçu", "Alvorada", "Chaveslândia",
       "Dom Alexandre", "Cachoeira Dourada"
-    ];
+    ].sort(); // Ordena as congregações em ordem alfabética
 
     let agendamentos = [];
     let congregacaoAtual = "";
@@ -203,7 +203,7 @@
 
     carregarAgendamentos();
 
-    // Gerar botões das congregações
+    // Gerar botões das congregações em ordem alfabética
     const container = document.getElementById("congregacoes");
     congregacoes.forEach(c => {
       const col = document.createElement("div");
