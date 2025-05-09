@@ -184,7 +184,7 @@
         const dataFormatada = dataObj.toLocaleDateString("pt-BR");
         const futura = dataObj >= new Date(hoje.toDateString());
 
-        const linha = 
+        const linha = `
           <tr class="${futura ? 'agendamento-futuro' : ''}">
             <td>${a.congregacao}</td>
             <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
@@ -198,7 +198,7 @@
               </button>
             </td>
           </tr>
-        ;
+        `;
         corpo.innerHTML += linha;
       });
     }
@@ -229,67 +229,68 @@
       const col = document.createElement("div");
       const botao = document.createElement("button");
       botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-      botao.innerHTML = ${c} <span class="text-success"><i class="bi bi-check-circle"></i></span>;
+      botao.innerHTML = `${c} <span class="text-success"><i class="bi bi-check-circle"></i></span>`;
       botao.onclick = () => abrirFormulario(c);
       col.appendChild(botao);
       container.appendChild(col);
     });
+
     // Exportar como PDF
-document.getElementById("btnExportPDF").addEventListener("click", async () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+    document.getElementById("btnExportPDF").addEventListener("click", async () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
 
-  doc.text("Agenda de Coletas - CCB", 10, 10);
+      doc.text("Agenda de Coletas - CCB", 10, 10);
 
-  let y = 20;
-  agendamentos.forEach((a, index) => {
-    const dataObj = new Date(a.data + "T00:00");
-    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+      let y = 20;
+      agendamentos.forEach((a, index) => {
+        const dataObj = new Date(a.data + "T00:00");
+        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-    const linha = ${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao};
-    doc.text(linha, 10, y);
-    y += 7;
+        const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao}`;
+        doc.text(linha, 10, y);
+        y += 7;
 
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
-  });
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
 
-  doc.save("agendamentos.pdf");
-});
+      doc.save("agendamentos.pdf");
+    });
 
-// Exportar como XLS
-document.getElementById("btnExportXLS").addEventListener("click", () => {
-  const dados = agendamentos.map(a => {
-    const dataObj = new Date(a.data + "T00:00");
-    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+    // Exportar como XLS
+    document.getElementById("btnExportXLS").addEventListener("click", () => {
+      const dados = agendamentos.map(a => {
+        const dataObj = new Date(a.data + "T00:00");
+        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-    return {
-      Congregação: a.congregacao,
-      Data: ${diaAbrev} - ${dataFormatada},
-      Irmão: a.irmao
-    };
-  });
+        return {
+          Congregação: a.congregacao,
+          Data: `${diaAbrev} - ${dataFormatada}`,
+          Irmão: a.irmao
+        };
+      });
 
-  const ws = XLSX.utils.json_to_sheet(dados);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+      const ws = XLSX.utils.json_to_sheet(dados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
 
-  XLSX.writeFile(wb, "agendamentos.xlsx");
-});
+      XLSX.writeFile(wb, "agendamentos.xlsx");
+    });
 
-// Exportar como PNG
-document.getElementById("btnExportPNG").addEventListener("click", () => {
-  html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "agendamentos.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  });
-});
+    // Exportar como PNG
+    document.getElementById("btnExportPNG").addEventListener("click", () => {
+      html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "agendamentos.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
 
   </script>
 
