@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-
     <style>
         .botao-congregacao {
             white-space: normal;
@@ -96,8 +95,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
+        // IMPORTANTE: A sua API Key e outras configurações do Firebase estão visíveis no código do cliente.
+        // Isso é comum para aplicações web que acessam o Firebase Realtime Database diretamente.
+        // CERTIFIQUE-SE de que suas REGRAS DE SEGURANÇA do Firebase (Firebase Rules)
+        // estão configuradas corretamente no console do Firebase para proteger seus dados contra acesso não autorizado.
         const firebaseConfig = {
-            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
+            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M", // Considere usar variáveis de ambiente ou um backend para maior segurança se necessário.
             authDomain: "agendawebccb.firebaseapp.com",
             databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
             projectId: "agendawebccb",
@@ -132,13 +135,12 @@
             document.getElementById("irmaoNome").value = "";
             document.getElementById("tipoAgendamento").value = ""; // Reset do campo
 
-            if (index !== null) {
+            if (index !== null && agendamentos[index]) { // Adicionada verificação se agendamentos[index] existe
                 const ag = agendamentos[index];
                 document.getElementById("dataColeta").value = ag.data;
                 document.getElementById("irmaoNome").value = ag.irmao;
                 document.getElementById("tipoAgendamento").value = ag.tipo; // Carrega o tipo
             }
-
             modal.show();
         }
 
@@ -146,7 +148,7 @@
             e.preventDefault();
             const data = document.getElementById("dataColeta").value;
             const irmao = document.getElementById("irmaoNome").value;
-            const tipo = document.getElementById("tipoAgendamento").value; // Novo campo
+            const tipo = document.getElementById("tipoAgendamento").value;
             const hoje = new Date().toISOString().split("T")[0];
 
             if (!tipo) {
@@ -159,7 +161,6 @@
                 return;
             }
 
-            // Verificar se já existe agendamento no mesmo mês e tipo
             const duplicado = agendamentos.some((a, i) => {
                 const dataAgendamento = new Date(a.data);
                 const dataSelecionada = new Date(data);
@@ -167,7 +168,7 @@
                     a.congregacao === congregacaoAtual &&
                     dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
                     dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
-                    a.tipo === tipo && // Verifica o tipo também
+                    a.tipo === tipo &&
                     i !== indexEdicao
                 );
             });
@@ -177,90 +178,122 @@
                 return;
             }
 
-            const novo = { congregacao: congregacaoAtual, data, irmao, tipo }; // Inclui o tipo
+            const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
 
-            if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-                const id = agendamentos[indexEdicao].id;
-                await set(ref(db, "agendamentos/" + id), novo);
-            } else {
-                await push(ref(db, "agendamentos"), novo);
+            try {
+                if (indexEdicao !== null && agendamentos[indexEdicao] && agendamentos[indexEdicao].id) {
+                    const id = agendamentos[indexEdicao].id;
+                    await set(ref(db, "agendamentos/" + id), novo);
+                } else {
+                    await push(ref(db, "agendamentos"), novo);
+                }
+                modal.hide();
+                mostrarAlerta("Agendamento salvo com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao salvar agendamento:", error);
+                mostrarAlerta("Erro ao salvar agendamento. Tente novamente.", "danger");
             }
-
-            modal.hide();
-            mostrarAlerta("Agendamento salvo com sucesso!", "success");
+            // Limpar campos após salvar, mesmo que seja edição, para o próximo agendamento
+            document.getElementById("formAgendamento").reset();
+            congregacaoAtual = "";
+            indexEdicao = null;
         });
 
-       function atualizarTabela() {
-        const corpo = document.getElementById("lista-agendamentos");
-        corpo.innerHTML = "";
-        const hoje = new Date();
+        function atualizarTabela() {
+            const corpo = document.getElementById("lista-agendamentos");
+            corpo.innerHTML = ""; // Para listas grandes, considere usar DocumentFragment para melhor performance.
+            const hoje = new Date();
 
-        agendamentos.forEach((a, index) => {
-            const dataObj = new Date(a.data + "T00:00");
-            const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-            const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-            const futura = dataObj >= new Date(hoje.toDateString());
-
-            const linha = `
-    <tr class="${futura ? 'agendamento-futuro' : ''}">
-        <td>${a.congregacao}</td>
-        <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
-        <td>${a.irmao}</td>
-        <td>${a.tipo}</td>
-        <td>
-            <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${index})">
-                <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})">
-                <i class="bi bi-trash"></i>
-            </button>
-        </td>
-    </tr>`;
+            // Ordenar agendamentos por data antes de exibir
+            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
 
 
-            corpo.innerHTML += linha;
-        });
-        atualizarIconesCongregacoes();
-    }
+            agendamentosOrdenados.forEach((a, index) => { // 'index' aqui não é mais o índice original de 'agendamentos' se ordenado.
+                                                        // Para edição/exclusão, precisamos do ID do firebase ou o índice original.
+                                                        // Vamos encontrar o índice original para manter a lógica de edição/exclusão.
+                const originalIndex = agendamentos.findIndex(item => item.id === a.id);
+
+                const dataObj = new Date(a.data + "T00:00"); // Adicionar T00:00 para evitar problemas de timezone na interpretação da data
+                const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase().replace('.', ''); // remove ponto final ex: "sáb." -> "sáb"
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+                const futura = dataObj >= new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); // Comparar apenas data
+
+                const linha = `
+                    <tr class="${futura ? 'agendamento-futuro' : ''}">
+                        <td>${a.congregacao}</td>
+                        <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
+                        <td>${a.irmao}</td>
+                        <td>${a.tipo}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${originalIndex})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${originalIndex})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                corpo.innerHTML += linha;
+            });
+            atualizarIconesCongregacoes();
+        }
+
         window.excluirAgendamento = async function (index) {
+            if (index < 0 || index >= agendamentos.length || !agendamentos[index] || !agendamentos[index].id) {
+                console.error("Índice inválido ou agendamento sem ID para exclusão:", index);
+                mostrarAlerta("Erro ao tentar excluir: agendamento não encontrado.", "danger");
+                return;
+            }
             const id = agendamentos[index].id;
             if (confirm("Deseja realmente excluir este agendamento?")) {
-                await remove(ref(db, "agendamentos/" + id));
+                try {
+                    await remove(ref(db, "agendamentos/" + id));
+                    mostrarAlerta("Agendamento excluído com sucesso!", "info");
+                    // A atualização da tabela ocorrerá automaticamente pelo listener 'onValue'
+                } catch (error) {
+                    console.error("Erro ao excluir agendamento:", error);
+                    mostrarAlerta("Erro ao excluir agendamento. Tente novamente.", "danger");
+                }
             }
         };
 
         function carregarAgendamentos() {
             const agRef = ref(db, "agendamentos");
             onValue(agRef, snapshot => {
-                agendamentos = [];
-                snapshot.forEach(child => {
-                    agendamentos.push({ ...child.val(), id: child.key });
-                });
+                const data = snapshot.val();
+                agendamentos = []; // Limpa a lista local
+                if (data) {
+                    for (const key in data) {
+                        agendamentos.push({ ...data[key], id: key });
+                    }
+                }
+                // Ordenar agendamentos por data por padrão ao carregar
+                agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
                 atualizarTabela();
-                atualizarIconesCongregacoes(); // Chamar após carregar
+                // Não é mais necessário chamar atualizarIconesCongregacoes aqui, pois atualizarTabela já o faz.
             });
         }
 
         function atualizarIconesCongregacoes() {
             const container = document.getElementById("congregacoes");
-            container.innerHTML = ""; // Limpar os botões existentes
+            container.innerHTML = "";
 
             congregacoes.forEach(c => {
                 const col = document.createElement("div");
                 const botao = document.createElement("button");
-                botao.className = "btn btn-outline-primary w-100 botao-congregacao";
+                botao.className = "btn btn-outline-primary w-100 botao-congregacao mb-2"; // Adicionado mb-2 para espaçamento
 
-                // Verificar se há algum agendamento para a congregação
-                const agendamentoCulto = agendamentos.some(a => a.congregacao === c && a.tipo === "Culto Oficial");
-                const agendamentoJovens = agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
+                const agendamentosCongregacao = agendamentos.filter(a => a.congregacao === c);
+                const agendamentoCulto = agendamentosCongregacao.some(a => a.tipo === "Culto Oficial");
+                const agendamentoJovens = agendamentosCongregacao.some(a => a.tipo === "Reunião de Jovens e Menores");
 
                 let icone = '';
                 if (agendamentoCulto && agendamentoJovens) {
-                    icone = '<span class="text-success"><i class="bi bi-check-double"></i></span>'; // Dois checks se ambos agendados
+                    icone = '<span class="text-success float-end"><i class="bi bi-check-all"></i></span>'; // Alterado para check-all e float-end
                 } else if (agendamentoCulto) {
-                    icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Culto</span>';
+                    icone = '<span class="text-success float-end"><i class="bi bi-check-circle-fill"></i> C</span>'; // Adicionado C para Culto
                 } else if (agendamentoJovens) {
-                    icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+                    icone = '<span class="text-success float-end"><i class="bi bi-check-circle-fill"></i> J</span>'; // Adicionado J para Jovens
                 }
 
                 botao.innerHTML = `${c} ${icone}`;
@@ -273,90 +306,133 @@
         function mostrarAlerta(mensagem, tipo) {
             const alerta = document.getElementById("mensagem-alerta");
             const textoAlerta = document.getElementById("texto-alerta");
+            // Assegurar que os elementos existem
+            if (!alerta || !textoAlerta) {
+                console.error("Elementos de alerta não encontrados no DOM.");
+                return;
+            }
             alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
             textoAlerta.textContent = mensagem;
             alerta.classList.remove("d-none");
-            setTimeout(() => {
+            
+            // Limpar timeout anterior se houver
+            if (alerta.timeoutId) {
+                clearTimeout(alerta.timeoutId);
+            }
+
+            alerta.timeoutId = setTimeout(() => {
                 alerta.classList.add("d-none");
-            }, 3000); // O alerta desaparece após 3 segundos
+            }, 3000);
         }
 
-        carregarAgendamentos();
+        // Adicionar o div para o alerta de feedback ao DOM
+        const alertaDiv = document.createElement('div');
+        alertaDiv.id = 'mensagem-alerta';
+        alertaDiv.className = 'alert alert-dismissible fade show d-none fixed-top m-3'; // Posicionamento melhorado
+        alertaDiv.setAttribute('role', 'alert');
+        alertaDiv.innerHTML = '<span id="texto-alerta"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>';
+        document.querySelector('.container').prepend(alertaDiv);
 
-        // Criar botões das congregações (chamada inicial)
-        atualizarIconesCongregacoes();
+
+        carregarAgendamentos();
+        atualizarIconesCongregacoes(); // Chamada inicial para desenhar os botões das congregações
 
         // Exportar como PDF
         document.getElementById("btnExportPDF").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
-            
             const doc = new jsPDF();
 
-            doc.text("Agenda de Coletas - CCB", 10, 10);
+            doc.setFontSize(18);
+            doc.text("Agenda de Coletas - CCB", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" });
+            doc.setFontSize(10);
+            doc.text(`Mês de Referência: JUNHO/2025`, doc.internal.pageSize.getWidth() / 2, 22, { align: "center" });
+            doc.setFontSize(12);
 
-            let y = 20;
-            agendamentos.forEach((a, index) => {
+            let y = 35;
+            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
+
+
+            agendamentosOrdenados.forEach((a, index) => {
                 const dataObj = new Date(a.data + "T00:00");
-                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase().replace('.','');
                 const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-                const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - <span class="math-inline">\{a\.irmao\} \(</span>{a.tipo})`; // Inclui o tipo
+                // CORREÇÃO: Removidas tags HTML da linha de texto do PDF
+                const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao} (${a.tipo})`;
+                
+                if (y > 270) { // Checagem de quebra de página
+                    doc.addPage();
+                    y = 15; // Reinicia y na nova página
+                     doc.setFontSize(18);
+                    doc.text("Agenda de Coletas - CCB", doc.internal.pageSize.getWidth() / 2, 15, { align: "center" }); // Repete título
+                    doc.setFontSize(12);
+                    y = 25;
+                }
                 doc.text(linha, 10, y);
                 y += 7;
-
-                if (y > 270) {
-                    doc.addPage();
-                    y = 10;
-                }
             });
 
-            doc.save("agendamentos.pdf");
+            doc.save("agendamentos_ccb.pdf");
         });
 
         // Exportar como XLS
         document.getElementById("btnExportXLS").addEventListener("click", () => {
-            const dados = agendamentos.map(a => {
+            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            const dados = agendamentosOrdenados.map(a => {
                 const dataObj = new Date(a.data + "T00:00");
-                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase().replace('.','');
                 const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
                 return {
                     Congregação: a.congregacao,
                     Data: `${diaAbrev} - ${dataFormatada}`,
                     Irmão: a.irmao,
-                    Tipo: a.tipo // Inclui o tipo
+                    Tipo: a.tipo
                 };
             });
 
             const ws = XLSX.utils.json_to_sheet(dados);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
-
-            XLSX.writeFile(wb, "agendamentos.xlsx");
+            XLSX.writeFile(wb, "agendamentos_ccb.xlsx");
         });
 
         // Exportar como PNG
         document.getElementById("btnExportPNG").addEventListener("click", () => {
-            html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
+            const tabelaElement = document.getElementById("tabela-agendamentos");
+            const congregacoesElement = document.getElementById("congregacoes");
+            const tituloPrincipal = document.querySelector(".container > h1");
+            const subtituloAdmin = document.querySelector(".container > h5");
+            const subtituloMes = document.querySelector(".container > h6");
+            
+            // Criar um contêiner temporário para a imagem
+            const containerParaImagem = document.createElement('div');
+            containerParaImagem.style.padding = '20px';
+            containerParaImagem.style.backgroundColor = 'white'; // Fundo branco para a imagem
+            
+            // Clonar e adicionar os elementos desejados
+            if(tituloPrincipal) containerParaImagem.appendChild(tituloPrincipal.cloneNode(true));
+            if(subtituloAdmin) containerParaImagem.appendChild(subtituloAdmin.cloneNode(true));
+            if(subtituloMes) containerParaImagem.appendChild(subtituloMes.cloneNode(true));
+            if(congregacoesElement) containerParaImagem.appendChild(congregacoesElement.cloneNode(true)); // Adiciona botões
+            containerParaImagem.appendChild(document.createElement('hr')); // Linha separadora
+            if(tabelaElement) containerParaImagem.appendChild(tabelaElement.cloneNode(true));
+
+            // Adicionar temporariamente ao corpo para renderização correta
+            document.body.appendChild(containerParaImagem);
+
+            html2canvas(containerParaImagem, { scale: 2 }).then(canvas => { // Aumenta a escala para melhor qualidade
                 const link = document.createElement("a");
-                link.download = "agendamentos.png";
-                link.href = canvas.toDataURL();
+                link.download = "agendamentos_ccb.png";
+                link.href = canvas.toDataURL("image/png");
                 link.click();
+                document.body.removeChild(containerParaImagem); // Remover o contêiner temporário
+            }).catch(err => {
+                console.error("Erro ao gerar PNG:", err);
+                document.body.removeChild(containerParaImagem); // Remover em caso de erro também
             });
         });
-
-        // Adicionar o div para o alerta de feedback
-        const alertaDiv = document.createElement('div');
-        alertaDiv.id = 'mensagem-alerta';
-        alertaDiv.className = 'alert alert-dismissible fade show d-none';
-        alertaDiv.setAttribute('role', 'alert');
-        alertaDiv.innerHTML = '<span id="texto-alerta"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>';
-        document.querySelector('.container').prepend(alertaDiv);
-
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-
-
+    </body>
+</html>
