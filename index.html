@@ -266,6 +266,7 @@
       });
     }
 
+    // PDF
     document.getElementById("btnExportarPDF").addEventListener("click", () => {
       atualizarTabelaExportacao();
       const content = document.getElementById("exportArea");
@@ -279,6 +280,7 @@
       html2pdf().set(opt).from(content).save();
     });
 
+    // XLS
     document.getElementById("btnExportarXLS").addEventListener("click", () => {
       atualizarTabelaExportacao();
       const table = document.getElementById("exportArea").querySelector("table");
@@ -293,6 +295,7 @@
       downloadLink.click();
     });
 
+    // PNG
     document.getElementById("btnExportarPNG").addEventListener("click", () => {
       atualizarTabelaExportacao();
       html2canvas(document.getElementById("exportArea")).then(canvas => {
