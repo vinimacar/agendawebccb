@@ -224,16 +224,24 @@
     carregarAgendamentos();
 
     // Criar botões das congregações
-    const container = document.getElementById("congregacoes");
-    congregacoes.forEach(c => {
-      const col = document.createElement("div");
-      const botao = document.createElement("button");
-      botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-      botao.innerHTML = `${c} <span class="text-success"><i class="bi bi-check-circle"></i></span>`;
-      botao.onclick = () => abrirFormulario(c);
-      col.appendChild(botao);
-      container.appendChild(col);
-    });
+    // Criar botões das congregações
+const container = document.getElementById("congregacoes");
+congregacoes.forEach(c => {
+  const col = document.createElement("div");
+  const botao = document.createElement("button");
+  botao.className = "btn btn-outline-primary w-100 botao-congregacao";
+
+  // Verificar se há algum agendamento para a congregação
+  const agendamentoExistente = agendamentos.some(a => a.congregacao === c);
+
+  // Se houver agendamento, adicionar o ícone verde
+  botao.innerHTML = `${c} ${agendamentoExistente ? '<span class="text-success"><i class="bi bi-check-circle"></i></span>' : ''}`;
+  
+  botao.onclick = () => abrirFormulario(c);
+  col.appendChild(botao);
+  container.appendChild(col);
+});
+
 
     // Exportar como PDF
     document.getElementById("btnExportPDF").addEventListener("click", async () => {
