@@ -197,22 +197,23 @@
             const dataFormatada = dataObj.toLocaleDateString("pt-BR");
             const futura = dataObj >= new Date(hoje.toDateString());
 
-            const linha = 
-              <tr class="${futura ? 'agendamento-futuro' : ''}">
-                <td>${a.congregacao}</td>
-                <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
-                <td>${a.irmao}</td>
-                <td>${a.tipo}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${index})">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-              </tr>
-            ;
+            const linha = `
+    <tr class="${futura ? 'agendamento-futuro' : ''}">
+        <td>${a.congregacao}</td>
+        <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
+        <td>${a.irmao}</td>
+        <td>${a.tipo}</td>
+        <td>
+            <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${index})">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>`;
+
+
             corpo.innerHTML += linha;
         });
         atualizarIconesCongregacoes();
