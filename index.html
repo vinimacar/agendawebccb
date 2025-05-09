@@ -1,315 +1,370 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Agenda de Coletas - CCB</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agenda de Coletas - CCB</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
-  <style>
-    .botao-congregacao {
-      white-space: normal;
-      text-align: left;
-    }
-    .agendamento-futuro {
-      background-color: #e7fbe7;
-    }
-    .agendado {
-      color: green;
-    }
-  </style>
+    <style>
+        .botao-congregacao {
+            white-space: normal;
+            text-align: left;
+        }
+        .agendamento-futuro {
+            background-color: #e7fbe7;
+        }
+        .agendado {
+            color: green;
+        }
+        #infoRJM {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        #infoRJM h5 {
+            margin-top: 0;
+            color: #333;
+        }
+        #infoRJM ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        #infoRJM li {
+            margin-bottom: 5px;
+        }
+        #infoRJM strong {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
 </head>
 <body class="p-3">
-  <div class="container">
-    <h1 class="mb-4 text-center">Agenda Reforços de Coletas - CCB</h1>
-    <h6 class="mb-4 text-center">Administração Ituiutaba</h6>
+    <div class="container">
+        <h1 class="mb-4 text-center">Agenda Reforços de Coletas - CCB</h1>
+        <h6 class="mb-4 text-center">Administração Ituiutaba</h6>
 
-    <!-- Botões das Congregações -->
-    <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
 
-    <!-- Tabela de Agendamentos -->
-    <div class="table-responsive">
-      <h4>Agendamentos</h4>
-      <table class="table table-bordered table-striped" id="tabela-agendamentos">
-        <thead class="table-dark">
-          <tr>
-            <th>Congregação</th>
-            <th>Data</th>
-            <th>Irmão</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="lista-agendamentos"></tbody>
-      </table>
+        <div id="infoRJM" style="display: none;"></div>
+
+        <div class="table-responsive">
+            <h4>Agendamentos</h4>
+            <table class="table table-bordered table-striped" id="tabela-agendamentos">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Congregação</th>
+                        <th>Data</th>
+                        <th>Irmão</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-agendamentos"></tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button id="btnExportPDF" class="btn btn-success me-2">Baixar PDF</button>
+            <button id="btnExportXLS" class="btn btn-primary me-2">Baixar XLS</button>
+            <button id="btnExportPNG" class="btn btn-info">Baixar PNG</button>
+        </div>
     </div>
 
-    <!-- Botões de Exportação -->
-    <div class="d-flex justify-content-end">
-      <button id="btnExportPDF" class="btn btn-success me-2">Baixar PDF</button>
-      <button id="btnExportXLS" class="btn btn-primary me-2">Baixar XLS</button>
-      <button id="btnExportPNG" class="btn btn-info">Baixar PNG</button>
+    <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="formAgendamento" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agendar Coleta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Congregação</label>
+                        <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label for="dataColeta" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="dataColeta" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="irmaoNome" class="form-label">Nome do Irmão</label>
+                        <input type="text" class="form-control" id="irmaoNome" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal de Agendamento -->
-  <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <form id="formAgendamento" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Agendar Coleta</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Congregação</label>
-            <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
-          </div>
-          <div class="mb-3">
-            <label for="dataColeta" class="form-label">Data</label>
-            <input type="date" class="form-control" id="dataColeta" required />
-          </div>
-          <div class="mb-3">
-            <label for="irmaoNome" class="form-label">Nome do Irmão</label>
-            <input type="text" class="form-control" id="irmaoNome" required />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
-      authDomain: "agendawebccb.firebaseapp.com",
-      databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
-      projectId: "agendawebccb",
-      storageBucket: "agendawebccb.firebasestorage.app",
-      messagingSenderId: "1002090805726",
-      appId: "1:1002090805726:web:d9aab35124d174e85d454f"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const congregacoes = [
-      "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
-      "Chaveslândia", "Chico Mendes", "Dom Alexandre", "Eldorado",
-      "Flor de Minas", "Gurinhatã", "Ipiaçu", "Ipiranga", "Ituiutaba - Central",
-      "Jerônimo Mendonça", "Marta Helena", "Natal", "Novo Tempo II",
-      "Recanto das Acácias", "Santa Vitória - Central", "Satélite Andradina",
-      "Setor Norte"
-    ].sort();
-
-    let agendamentos = [];
-    let congregacaoAtual = "";
-    let indexEdicao = null;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
-
-    window.abrirFormulario = function (cong, index = null) {
-      congregacaoAtual = cong;
-      indexEdicao = index;
-      document.getElementById("congregacaoSelecionada").value = cong;
-      document.getElementById("dataColeta").value = "";
-      document.getElementById("irmaoNome").value = "";
-
-      if (index !== null) {
-        const ag = agendamentos[index];
-        document.getElementById("dataColeta").value = ag.data;
-        document.getElementById("irmaoNome").value = ag.irmao;
-      }
-
-      modal.show();
-    }
-
-    document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const data = document.getElementById("dataColeta").value;
-      const irmao = document.getElementById("irmaoNome").value;
-      const hoje = new Date().toISOString().split("T")[0];
-
-      if (data < hoje) {
-        alert("Não é permitido agendar uma data passada.");
-        return;
-      }
-
-      // Verificar se já existe agendamento no mesmo mês
-      const duplicado = agendamentos.some((a, i) => {
-        const dataAgendamento = new Date(a.data);
-        const dataSelecionada = new Date(data);
-        return (
-          a.congregacao === congregacaoAtual &&
-          dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
-          dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
-          i !== indexEdicao
-        );
-      });
-
-      if (duplicado) {
-        alert("Já existe um agendamento para essa congregação neste mês.");
-        return;
-      }
-
-      const novo = { congregacao: congregacaoAtual, data, irmao };
-
-      if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-        const id = agendamentos[indexEdicao].id;
-        await set(ref(db, "agendamentos/" + id), novo);
-      } else {
-        await push(ref(db, "agendamentos"), novo);
-      }
-
-      modal.hide();
-    });
-
-    function atualizarTabela() {
-      const corpo = document.getElementById("lista-agendamentos");
-      corpo.innerHTML = "";
-      const hoje = new Date();
-
-      agendamentos.forEach((a, index) => {
-        const dataObj = new Date(a.data + "T00:00");
-        const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-        const futura = dataObj >= new Date(hoje.toDateString());
-
-        const linha = `
-          <tr class="${futura ? 'agendamento-futuro' : ''}">
-            <td>${a.congregacao}</td>
-            <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
-            <td>${a.irmao}</td>
-            <td>
-              <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${index})">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-        corpo.innerHTML += linha;
-      });
-    }
-
-    window.excluirAgendamento = async function (index) {
-      const id = agendamentos[index].id;
-      if (confirm("Deseja realmente excluir este agendamento?")) {
-        await remove(ref(db, "agendamentos/" + id));
-      }
-    };
-
-    function carregarAgendamentos() {
-      const agRef = ref(db, "agendamentos");
-      onValue(agRef, snapshot => {
-        agendamentos = [];
-        snapshot.forEach(child => {
-          agendamentos.push({ ...child.val(), id: child.key });
-        });
-        atualizarTabela();
-      });
-    }
-
-    carregarAgendamentos();
-
-    // Criar botões das congregações
-    // Criar botões das congregações
-const container = document.getElementById("congregacoes");
-congregacoes.forEach(c => {
-  const col = document.createElement("div");
-  const botao = document.createElement("button");
-  botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-
-  // Verificar se há algum agendamento para a congregação
-  const agendamentoExistente = agendamentos.some(a => a.congregacao === c);
-
-  // Se houver agendamento, adicionar o ícone verde
-  botao.innerHTML = `${c} ${agendamentoExistente ? '<span class="text-success"><i class="bi bi-check-circle"></i></span>' : ''}`;
-  
-  botao.onclick = () => abrirFormulario(c);
-  col.appendChild(botao);
-  container.appendChild(col);
-});
-
-
-    // Exportar como PDF
-    document.getElementById("btnExportPDF").addEventListener("click", async () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.text("Agenda de Coletas - CCB", 10, 10);
-
-      let y = 20;
-      agendamentos.forEach((a, index) => {
-        const dataObj = new Date(a.data + "T00:00");
-        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-
-        const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao}`;
-        doc.text(linha, 10, y);
-        y += 7;
-
-        if (y > 270) {
-          doc.addPage();
-          y = 10;
-        }
-      });
-
-      doc.save("agendamentos.pdf");
-    });
-
-    // Exportar como XLS
-    document.getElementById("btnExportXLS").addEventListener("click", () => {
-      const dados = agendamentos.map(a => {
-        const dataObj = new Date(a.data + "T00:00");
-        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-
-        return {
-          Congregação: a.congregacao,
-          Data: `${diaAbrev} - ${dataFormatada}`,
-          Irmão: a.irmao
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY", // Substitua pela sua API Key
+            authDomain: "SEU_AUTH_DOMAIN", // Substitua pelo seu Auth Domain
+            databaseURL: "SUA_DATABASE_URL", // Substitua pela sua Database URL
+            projectId: "SEU_PROJECT_ID", // Substitua pelo seu Project ID
+            storageBucket: "SEU_STORAGE_BUCKET", // Substitua pelo seu Storage Bucket
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID", // Substitua pelo seu Messaging Sender ID
+            appId: "SEU_APP_ID" // Substitua pelo seu App ID
         };
-      });
 
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-      XLSX.writeFile(wb, "agendamentos.xlsx");
-    });
+        const congregacoes = [
+            "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
+            "Chaveslândia", "Chico Mendes", "Dom Alexandre", "Eldorado",
+            "Flor de Minas", "Gurinhatã", "Ipiaçu", "Ipiranga", "Ituiutaba - Central",
+            "Jerônimo Mendonça", "Marta Helena", "Natal", "Novo Tempo II",
+            "Recanto das Acácias", "Santa Vitória - Central", "Satélite Andradina",
+            "Setor Norte"
+        ].sort();
 
-    // Exportar como PNG
-    document.getElementById("btnExportPNG").addEventListener("click", () => {
-      html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "agendamentos.png";
-        link.href = canvas.toDataURL();
-        link.click();
-      });
-    });
+        // **OBJETO COM OS HORÁRIOS DA RJM - PREENCHA COM OS HORÁRIOS CORRETOS!**
+        const horariosRJM = {
+            "Alvorada": {
+                "Domingo": "9:00 e 19:00",
+                "Quarta-feira": "20:00"
+            },
+            "Buritis": {
+                "Sábado": "19:30",
+                "Terça-feira": "19:30"
+            },
+            "Capinópolis - Central": {
+                "Domingo": "10:00 e 18:00",
+                "Quinta-feira": "20:00"
+            },
+            "Cachoeira Dourada": {},
+            "Chaveslândia": {},
+            "Chico Mendes": {},
+            "Dom Alexandre": {},
+            "Eldorado": {},
+            "Flor de Minas": {},
+            "Gurinhatã": {},
+            "Ipiaçu": {},
+            "Ipiranga": {},
+            "Ituiutaba - Central": {
+                "Domingo": "9:30 e 19:00",
+                "Quarta-feira": "19:30"
+            },
+            "Jerônimo Mendonça": {},
+            "Marta Helena": {},
+            "Natal": {},
+            "Novo Tempo II": {},
+            "Recanto das Acácias": {},
+            "Santa Vitória - Central": {
+                "Domingo": "10:00 e 18:30",
+                "Terça-feira": "20:00"
+            },
+            "Satélite Andradina": {},
+            "Setor Norte": {}
+            // Adicione os horários para as outras congregações aqui
+        };
 
-  </script>
+        let agendamentos = [];
+        let congregacaoAtual = "";
+        let indexEdicao = null;
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- XLSX -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-  <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
+        const infoRJMDiv = document.getElementById("infoRJM");
 
-</body>
-</html>
+        window.abrirFormulario = function (cong) {
+            congregacaoAtual = cong;
+            indexEdicao = null;
+
+            // Exibir informações da RJM
+            if (horariosRJM[cong] && Object.keys(horariosRJM[cong]).length > 0) {
+                let textoInfo = `<h5>Horários de Culto - ${cong}</h5><ul>`;
+                for (const dia in horariosRJM[cong]) {
+                    textoInfo += `<li><strong>${dia}:</strong> ${horariosRJM[cong][dia]}</li>`;
+                }
+                textoInfo += "</ul>";
+                infoRJMDiv.innerHTML = textoInfo;
+                infoRJMDiv.style.display = 'block';
+            } else {
+                infoRJMDiv.innerHTML = `<p>Não há informações de horários de culto para ${cong}.</p>`;
+                infoRJMDiv.style.display = 'block';
+            }
+
+            // Esconder o modal de agendamento ao clicar no botão da congregação
+            modal.hide();
+        }
+
+        document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const data = document.getElementById("dataColeta").value;
+            const irmao = document.getElementById("irmaoNome").value;
+            const hoje = new Date().toISOString().split("T")[0];
+
+            if (data < hoje) {
+                alert("Não é permitido agendar uma data passada.");
+                return;
+            }
+
+            // Verificar se já existe agendamento no mesmo mês
+            const duplicado = agendamentos.some((a, i) => {
+                const dataAgendamento = new Date(a.data);
+                const dataSelecionada = new Date(data);
+                return (
+                    a.congregacao === congregacaoAtual &&
+                    dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
+                    dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
+                    i !== indexEdicao
+                );
+            });
+
+            if (duplicado) {
+                alert("Já existe um agendamento para essa congregação neste mês.");
+                return;
+            }
+
+            const novo = { congregacao: congregacaoAtual, data, irmao };
+
+            if (indexEdicao !== null && agendamentos[indexEdicao].id) {
+                const id = agendamentos[indexEdicao].id;
+                await set(ref(db, "agendamentos/" + id), novo);
+            } else {
+                await push(ref(db, "agendamentos"), novo);
+            }
+
+            modal.hide();
+        });
+
+        function atualizarTabela() {
+            const corpo = document.getElementById("lista-agendamentos");
+            corpo.innerHTML = "";
+            const hoje = new Date();
+
+            agendamentos.forEach((a, index) => {
+                const dataObj = new Date(a.data + "T00:00");
+                const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+                const futura = dataObj >= new Date(hoje.toDateString());
+
+                const linha = `
+                    <tr class="<span class="math-inline">\{futura ? 'agendamento\-futuro' \: ''\}"\>
+<td\></span>{a.congregacao}</td>
+                        <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - <span class="math-inline">\{dataFormatada\}</td\>
+<td\></span>{a.irmao}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', <span class="math-inline">\{index\}\)"\>
+<i class\="bi bi\-pencil"\></i\>
+</button\>
+<button class\="btn btn\-sm btn\-danger" onclick\="excluirAgendamento\(</span>{index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                corpo.innerHTML += linha;
+            });
+        }
+
+        window.excluirAgendamento = async function (index) {
+            const id = agendamentos[index].id;
+            if (confirm("Deseja realmente excluir este agendamento?")) {
+                await remove(ref(db, "agendamentos/" + id));
+            }
+        };
+
+        function carregarAgendamentos() {
+            const agRef = ref(db, "agendamentos");
+            onValue(agRef, snapshot => {
+                agendamentos = [];
+                snapshot.forEach(child => {
+                    agendamentos.push({ ...child.val(), id: child.key });
+                });
+                atualizarTabela();
+            });
+        }
+
+        carregarAgendamentos();
+
+        // Criar botões das congregações
+        const container = document.getElementById("congregacoes");
+        congregacoes.forEach(c => {
+            const col = document.createElement("div");
+            const botao = document.createElement("button");
+            botao.className = "btn btn-outline-primary w-100 botao-congregacao";
+
+            // Verificar se há algum agendamento para a congregação
+            const agendamentoExistente = agendamentos.some(a => a.congregacao === c);
+
+            // Se houver agendamento, adicionar o ícone verde
+            botao.innerHTML = `${c} ${agendamentoExistente ? '<span class="text-success"><i class="bi bi-check-circle"></i></span>' : ''}`;
+
+            botao.onclick = () => abrirFormulario(c); // Agora, ao clicar, chama a função para exibir os horários
+            col.appendChild(botao);
+            container.appendChild(col);
+        });
+
+        // Exportar como PDF
+        document.getElementById("btnExportPDF").addEventListener("click", async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text("Agenda de Coletas - CCB", 10, 10);
+
+            let y = 20;
+            agendamentos.forEach((a, index) => {
+                const dataObj = new Date(a.data + "T00:00");
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+
+                const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao}`;
+                doc.text(linha, 10, y);
+                y += 7;
+
+                if (y > 270) {
+                    doc.addPage();
+                    y = 10;
+                }
+            });
+
+            doc.save("agendamentos.pdf");
+        });
+
+        // Exportar como XLS
+        document.getElementById("btnExportXLS").addEventListener("click", () => {
+            const dados = agendamentos.map(a => {
+                const dataObj = new Date(a.data + "T00:00");
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+
+                return {
+                    Congregação: a.congregacao,
+                    Data: `${diaAbrev} - ${dataFormatada}`,
+                    Irmão: a.irmao
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+
+            XLSX.writeFile(wb, "agendamentos.xlsx");
+        });
+
+        // Exportar como PNG
+        document.getElementById("btnExportPNG").addEventListener("click", () => {
+            html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
+                const link = document.createElement("a");
+                link.download = "agendamentos.png";
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs
