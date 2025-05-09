@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agenda de Coletas - CCB</title>
 
-  <!-- Bootstrap CSS & Icons -->
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
   <style>
     .botao-congregacao {
       white-space: normal;
@@ -20,14 +22,14 @@
 </head>
 <body class="p-3">
   <div class="container">
-    <h1 class="mb-2 text-center">Agenda Reforços de Coletas - CCB</h1>
+    <h1 class="mb-4 text-center">Agenda Reforços de Coletas - CCB</h1>
     <h6 class="mb-4 text-center">Administração Ituiutaba</h6>
 
     <!-- Botões das Congregações -->
     <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
 
     <!-- Tabela de Agendamentos -->
-    <div class="table-responsive" id="relatorioPDF">
+    <div class="table-responsive">
       <h4>Agendamentos</h4>
       <table class="table table-bordered table-striped" id="tabela-agendamentos">
         <thead class="table-dark">
@@ -43,31 +45,10 @@
     </div>
 
     <!-- Botões de Exportação -->
-    <div class="d-flex justify-content-end my-3">
-      <button id="btnExportarPDF" class="btn btn-outline-danger me-2">
-        <i class="bi bi-file-earmark-pdf"></i> Baixar PDF
-      </button>
-      <button id="btnExportarXLS" class="btn btn-outline-success me-2">
-        <i class="bi bi-file-earmark-excel"></i> Baixar XLS
-      </button>
-      <button id="btnExportarPNG" class="btn btn-outline-info">
-        <i class="bi bi-file-earmark-image"></i> Baixar PNG
-      </button>
-    </div>
-
-    <!-- Conteúdo para exportação -->
-    <div id="exportArea" style="display: none;">
-      <h4 class="text-center">Relatório de Agendamentos</h4>
-      <table class="table table-bordered">
-        <thead class="table-dark">
-          <tr>
-            <th>Congregação</th>
-            <th>Data</th>
-            <th>Irmão</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-exportacao"></tbody>
-      </table>
+    <div class="d-flex justify-content-end">
+      <button id="btnExportPDF" class="btn btn-success me-2">Baixar PDF</button>
+      <button id="btnExportXLS" class="btn btn-primary me-2">Baixar XLS</button>
+      <button id="btnExportPNG" class="btn btn-info">Baixar PNG</button>
     </div>
   </div>
 
@@ -110,7 +91,7 @@
       authDomain: "agendawebccb.firebaseapp.com",
       databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
       projectId: "agendawebccb",
-      storageBucket: "agendawebccb.appspot.com",
+      storageBucket: "agendawebccb.firebasestorage.app",
       messagingSenderId: "1002090805726",
       appId: "1:1002090805726:web:d9aab35124d174e85d454f"
     };
@@ -231,6 +212,7 @@
 
     carregarAgendamentos();
 
+    // Criar botões das congregações
     const container = document.getElementById("congregacoes");
     congregacoes.forEach(c => {
       const col = document.createElement("div");
@@ -241,73 +223,53 @@
       col.appendChild(botao);
       container.appendChild(col);
     });
-  </script>
 
-  <!-- html2pdf para exportar PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <!-- html2canvas para exportar PNG -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
-
-  <!-- Exportação PDF, XLS e PNG -->
-  <script>
+    // Função para gerar o relatório
     function atualizarTabelaExportacao() {
-      const exportBody = document.getElementById("tabela-exportacao");
-      exportBody.innerHTML = "";
-
-      agendamentos.forEach(a => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${a.congregacao}</td>
-          <td>${new Date(a.data + "T00:00").toLocaleDateString("pt-BR")}</td>
-          <td>${a.irmao}</td>
-        `;
-        exportBody.appendChild(tr);
-      });
+      return agendamentos.map(a => ({
+        Congregação: a.congregacao,
+        Data: a.data,
+        Irmão: a.irmao,
+      }));
     }
 
-    // PDF
-    document.getElementById("btnExportarPDF").addEventListener("click", () => {
-      atualizarTabelaExportacao();
-      const content = document.getElementById("exportArea");
-      const opt = {
-        margin: 0.5,
-        filename: 'relatorio_agendamentos.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(content).save();
-    });
+    // Configuração dos botões de exportação
+    document.getElementById("btnExportPDF").onclick = () => {
+      const dadosTabela = atualizarTabelaExportacao();
+      const doc = new jsPDF();
+      doc.autoTable({
+        head: [['Congregação', 'Data', 'Irmão']],
+        body: dadosTabela.map(d => [d.Congregação, d.Data, d.Irmão]),
+      });
+      doc.save('relatorio_agendamentos.pdf');
+    };
 
-    // XLS
-    document.getElementById("btnExportarXLS").addEventListener("click", () => {
-      atualizarTabelaExportacao();
-      const table = document.getElementById("exportArea").querySelector("table");
-      const tableHTML = table.outerHTML.replace(/ /g, '%20');
+    document.getElementById("btnExportXLS").onclick = () => {
+      const dadosTabela = atualizarTabelaExportacao();
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(dadosTabela);
+      XLSX.utils.book_append_sheet(wb, ws, 'Agendamentos');
+      XLSX.writeFile(wb, 'relatorio_agendamentos.xlsx');
+    };
 
-      const filename = 'relatorio_agendamentos.xls';
-      const dataType = 'application/vnd.ms-excel';
-
-      const downloadLink = document.createElement("a");
-      downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-      downloadLink.download = filename;
-      downloadLink.click();
-    });
-
-    // PNG
-    document.getElementById("btnExportarPNG").addEventListener("click", () => {
-      atualizarTabelaExportacao();
-      html2canvas(document.getElementById("exportArea")).then(canvas => {
+    document.getElementById("btnExportPNG").onclick = () => {
+      const dadosTabela = document.getElementById("tabela-agendamentos");
+      html2canvas(dadosTabela).then(canvas => {
         const link = document.createElement("a");
-        link.download = "relatorio_agendamentos.png";
-        link.href = canvas.toDataURL();
+        link.download = 'relatorio_agendamentos.png';
+        link.href = canvas.toDataURL("image/png");
         link.click();
       });
-    });
+    };
   </script>
 
-  <!-- Bootstrap Bundle -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- XLSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
 </body>
 </html>
