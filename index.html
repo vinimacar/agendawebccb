@@ -12,6 +12,12 @@
         .botao-congregacao {
             white-space: normal;
             text-align: left;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .botao-congregacao:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.05);
         }
         .agendamento-futuro {
             background-color: #e7fbe7;
@@ -19,19 +25,35 @@
         .agendado {
             color: green;
         }
+        .btn-modern {
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-modern:hover {
+            transform: scale(1.1);
+        }
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+        .modal-footer {
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="p-3">
     <div class="container">
-        <h1 class="mb-4 text-center">AGENDA DE REFORÇOS DE COLETAS</h1>
-        <h5 class="mb-4 text-center">Administração de Ituiutaba-MG </h5>
-        <h6 class="mb-4 text-center">Referente ao mês de: JUNHO/2025</h6>
+        <h1 class="mb-4 text-center text-primary">AGENDA DE REFORÇOS DE COLETAS</h1>
+        <h5 class="mb-4 text-center text-secondary">Administração de Ituiutaba-MG</h5>
+        <h6 class="mb-4 text-center text-muted">Referente ao mês de: JUNHO/2025</h6>
 
-        <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
+        <div class="row row-cols-1 row-cols-md-2 g-3 mb-4" id="congregacoes"></div>
 
         <div class="table-responsive">
-            <h4>Agendamentos</h4>
-            <table class="table table-bordered table-striped" id="tabela-agendamentos">
+            <h4 class="text-primary">Agendamentos</h4>
+            <table class="table table-bordered table-striped">
                 <thead class="table-dark">
                     <tr>
                         <th>Congregação</th>
@@ -45,10 +67,16 @@
             </table>
         </div>
 
-        <div class="d-flex justify-content-end">
-            <button id="btnExportPDF" class="btn btn-success me-2">Baixar PDF</button>
-            <button id="btnExportXLS" class="btn btn-primary me-2">Baixar XLS</button>
-            <button id="btnExportPNG" class="btn btn-info">Baixar PNG</button>
+        <div class="d-flex justify-content-center mt-4">
+            <button id="btnExportPDF" class="btn btn-modern btn-success me-2">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Baixar PDF
+            </button>
+            <button id="btnExportXLS" class="btn btn-modern btn-primary me-2">
+                <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Baixar XLS
+            </button>
+            <button id="btnExportPNG" class="btn btn-modern btn-info">
+                <i class="bi bi-file-earmark-image-fill me-1"></i> Baixar PNG
+            </button>
         </div>
     </div>
 
@@ -82,7 +110,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="submit" class="btn btn-modern btn-primary">Salvar</button>
                 </div>
             </form>
         </div>
