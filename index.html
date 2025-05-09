@@ -133,6 +133,24 @@
       document.getElementById("dataColeta").value = "";
       document.getElementById("irmaoNome").value = "";
 
+      window.abrirFormulario = function (cong, index = null) {
+        congregacaoAtual = cong;
+        indexEdicao = index;
+        document.getElementById("congregacaoSelecionada").value = cong;
+        document.getElementById("dataColeta").value = "";
+        document.getElementById("irmaoNome").value = "";
+        document.getElementById("tipoAgendamento").value = ""; // Reset do campo
+
+        if (index !== null) {
+            const ag = agendamentos[index];
+            document.getElementById("dataColeta").value = ag.data;
+            document.getElementById("irmaoNome").value = ag.irmao;
+            document.getElementById("tipoAgendamento").value = ag.tipo; // Carrega o tipo
+        }
+
+        modal.show();
+    }
+
       if (index !== null) {
         const ag = agendamentos[index];
         document.getElementById("dataColeta").value = ag.data;
