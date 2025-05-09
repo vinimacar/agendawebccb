@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light dark">
   <title>Agenda de Coletas - CCB</title>
 
   <!-- Bootstrap CSS -->
@@ -12,92 +11,49 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
   <style>
-    body {
-      background-color: #f8f9fa;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    h1 {
-      font-weight: 600;
-      color: #0d6efd;
-    }
-
     .botao-congregacao {
       white-space: normal;
-      text-align: center;
-      font-size: 1rem;
-      padding: 1rem;
-      border-radius: 0.75rem;
-      transition: all 0.2s ease-in-out;
+      text-align: left;
     }
-
-    .botao-congregacao:hover {
-      background-color: #0d6efd;
-      color: white;
-    }
-
     .agendamento-futuro {
-      background-color: #e6f4ea !important;
-    }
-
-    .table thead th {
-      background-color: #0d6efd !important;
-      color: white;
-      text-align: center;
-    }
-
-    .table td, .table th {
-      vertical-align: middle;
-      text-align: center;
-    }
-
-    .btn-warning, .btn-danger {
-      font-size: 0.875rem;
-      padding: 0.25rem 0.5rem;
-    }
-
-    .modal-header {
-      background-color: #0d6efd;
-      color: white;
-    }
-
-    .modal-footer {
-      justify-content: center;
-    }
-
-    .form-label {
-      font-weight: 500;
-    }
-
-    @media (min-width: 768px) {
-      .botao-congregacao {
-        font-size: 1.1rem;
-      }
+      background-color: #e7fbe7;
     }
   </style>
 </head>
-<body class="p-3">
-  <div class="container">
-    <h1 class="mb-4 text-center">Agenda Reforços de Coletas - CCB</h1>
-    <h6 class="mb-4 text-center">Administração Ituiutaba</h6>
+<body class="p-3 bg-light">
+  <div class="container shadow p-4 bg-white rounded">
+    <div id="relatorioPDF">
+      <h1 class="mb-2 text-center">Agenda Reforços de Coletas - CCB</h1>
+      <h6 class="mb-4 text-center text-muted">Administração Ituiutaba</h6>
 
-    <!-- Botões das Congregações -->
-    <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
+      <!-- Botões das Congregações -->
+      <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
 
-    <!-- Tabela de Agendamentos -->
-    <div class="table-responsive">
-      <h4>Agendamentos</h4>
-      <table class="table table-bordered table-striped" id="tabela-agendamentos">
-        <thead class="table-dark">
-          <tr>
-            <th>Congregação</th>
-            <th>Data</th>
-            <th>Irmão</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody id="lista-agendamentos"></tbody>
-      </table>
+      <!-- Tabela de Agendamentos -->
+      <div class="table-responsive">
+        <h4>Agendamentos</h4>
+        <table class="table table-bordered table-striped" id="tabela-agendamentos">
+          <thead class="table-dark">
+            <tr>
+              <th>Congregação</th>
+              <th>Data</th>
+              <th>Irmão</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="lista-agendamentos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Botões de Exportação -->
+    <div class="text-center mt-4">
+      <button id="btnExportarPDF" class="btn btn-outline-success me-2">
+        <i class="bi bi-file-earmark-pdf"></i> Baixar Relatório em PDF
+      </button>
+      <button id="btnExportarImagem" class="btn btn-outline-primary">
+        <i class="bi bi-image"></i> Baixar Relatório como Imagem (PNG)
+      </button>
     </div>
   </div>
 
@@ -130,7 +86,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK + Funções JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -140,7 +96,7 @@
       authDomain: "agendawebccb.firebaseapp.com",
       databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
       projectId: "agendawebccb",
-      storageBucket: "agendawebccb.firebasestorage.app",
+      storageBucket: "agendawebccb.appspot.com",
       messagingSenderId: "1002090805726",
       appId: "1:1002090805726:web:d9aab35124d174e85d454f"
     };
@@ -267,10 +223,42 @@
       const col = document.createElement("div");
       const botao = document.createElement("button");
       botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-      botao.innerHTML = `<i class="bi bi-plus-circle me-1"></i> ${c}`;
+      botao.innerText = c;
       botao.onclick = () => abrirFormulario(c);
       col.appendChild(botao);
       container.appendChild(col);
+    });
+  </script>
+
+  <!-- Bibliotecas para PDF e Imagem -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Exportar PDF -->
+  <script>
+    document.getElementById("btnExportarPDF").addEventListener("click", () => {
+      const conteudo = document.getElementById("relatorioPDF");
+      const opt = {
+        margin: 0.5,
+        filename: 'relatorio_agendamentos.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(conteudo).save();
+    });
+  </script>
+
+  <!-- Exportar Imagem -->
+  <script>
+    document.getElementById("btnExportarImagem").addEventListener("click", () => {
+      const conteudo = document.getElementById("relatorioPDF");
+      html2canvas(conteudo, { scale: 2 }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "relatorio_agendamentos.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
     });
   </script>
 
