@@ -414,23 +414,24 @@ congregacoes.forEach(c => {
 
     // Exportar como XLS
     document.getElementById("btnExportXLS").addEventListener("click", () => {
-      const dados = agendamentos.map(a => {
-        const dataObj = new Date(a.data + "T00:00");
-        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+        const dados = agendamentos.map(a => {
+            const dataObj = new Date(a.data + "T00:00");
+            const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+            const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-        return {
-          Congregação: a.congregacao,
-          Data: `${diaAbrev} - ${dataFormatada}`,
-          Irmão: a.irmao
-        };
-      });
+            return {
+                Congregação: a.congregacao,
+                Data: `${diaAbrev} - ${dataFormatada}`,
+                Irmão: a.irmao,
+                Tipo: a.tipo // Inclui o tipo
+            };
+        });
 
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+        const ws = XLSX.utils.json_to_sheet(dados);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
 
-      XLSX.writeFile(wb, "agendamentos.xlsx");
+        XLSX.writeFile(wb, "agendamentos.xlsx");
     });
 
     // Exportar como PNG
