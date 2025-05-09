@@ -159,7 +159,7 @@
 
       modal.show();
     }
-
+    
     document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
       e.preventDefault();
       const data = document.getElementById("dataColeta").value;
@@ -170,7 +170,53 @@
         alert("Não é permitido agendar uma data passada.");
         return;
       }
+      document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const data = document.getElementById("dataColeta").value;
+        const irmao = document.getElementById("irmaoNome").value;
+        const tipo = document.getElementById("tipoAgendamento").value; // Novo campo
+        const hoje = new Date().toISOString().split("T")[0];
 
+        if (!tipo) {
+            alert("Por favor, selecione o tipo de agendamento.");
+            return;
+        }
+
+        if (data < hoje) {
+            alert("Não é permitido agendar uma data passada.");
+            return;
+        }
+
+        // Verificar se já existe agendamento no mesmo mês e tipo
+        const duplicado = agendamentos.some((a, i) => {
+            const dataAgendamento = new Date(a.data);
+            const dataSelecionada = new Date(data);
+            return (
+                a.congregacao === congregacaoAtual &&
+                dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
+                dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
+                a.tipo === tipo && // Verifica o tipo também
+                i !== indexEdicao
+            );
+        });
+
+        if (duplicado) {
+            alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+            return;
+        }
+
+        const novo = { congregacao: congregacaoAtual, data, irmao, tipo }; // Inclui o tipo
+
+        if (indexEdicao !== null && agendamentos[indexEdicao].id) {
+            const id = agendamentos[indexEdicao].id;
+            await set(ref(db, "agendamentos/" + id), novo);
+        } else {
+            await push(ref(db, "agendamentos"), novo);
+        }
+
+        modal.hide();
+        mostrarAlerta("Agendamento salvo com sucesso!", "success");
+    });
       // Verificar se já existe agendamento no mesmo mês
       const duplicado = agendamentos.some((a, i) => {
         const dataAgendamento = new Date(a.data);
