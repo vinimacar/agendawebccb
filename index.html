@@ -197,7 +197,7 @@
             const dataFormatada = dataObj.toLocaleDateString("pt-BR");
             const futura = dataObj >= new Date(hoje.toDateString());
 
-            const linha = `
+            const linha = 
               <tr class="${futura ? 'agendamento-futuro' : ''}">
                 <td>${a.congregacao}</td>
                 <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
@@ -212,7 +212,7 @@
                     </button>
                 </td>
               </tr>
-            `;
+            ;
             corpo.innerHTML += linha;
         });
         atualizarIconesCongregacoes();
