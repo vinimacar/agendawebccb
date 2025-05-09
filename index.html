@@ -277,6 +277,46 @@
         // Atualizar os ícones dos botões das congregações
         atualizarIconesCongregacoes();
     }
+        function atualizarIconesCongregacoes() {
+        const container = document.getElementById("congregacoes");
+        container.innerHTML = ""; // Limpar os botões existentes
+
+        congregacoes.forEach(c => {
+            const col = document.createElement("div");
+            const botao = document.createElement("button");
+            botao.className = "btn btn-outline-primary w-100 botao-congregacao";
+
+            // Verificar se há algum agendamento para a congregação
+            const agendamentoCulto = agendamentos.some(a => a.congregacao === c && a.tipo === "Culto Oficial");
+            const agendamentoJovens = agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
+
+            let icone = '';
+            if (agendamentoCulto && agendamentoJovens) {
+                icone = '<span class="text-success"><i class="bi bi-check-double"></i></span>'; // Dois checks se ambos agendados
+            } else if (agendamentoCulto) {
+                icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Culto</span>';
+            } else if (agendamentoJovens) {
+                icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+            }
+
+            botao.innerHTML = `${c} ${icone}`;
+            botao.onclick = () => abrirFormulario(c);
+            col.appendChild(botao);
+            container.appendChild(col);
+        });
+    }
+
+    function carregarAgendamentos() {
+        const agRef = ref(db, "agendamentos");
+        onValue(agRef, snapshot => {
+            agendamentos = [];
+            snapshot.forEach(child => {
+                agendamentos.push({ ...child.val(), id: child.key });
+            });
+            atualizarTabela();
+            atualizarIconesCongregacoes(); // Chamar após carregar
+        });
+    }
     function atualizarTabela() {
       const corpo = document.getElementById("lista-agendamentos");
       corpo.innerHTML = "";
