@@ -102,22 +102,23 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+   <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY", // Substitua pela sua API Key
-            authDomain: "SEU_AUTH_DOMAIN", // Substitua pelo seu Auth Domain
-            databaseURL: "SUA_DATABASE_URL", // Substitua pela sua Database URL
-            projectId: "SEU_PROJECT_ID", // Substitua pelo seu Project ID
-            storageBucket: "SEU_STORAGE_BUCKET", // Substitua pelo seu Storage Bucket
-            messagingSenderId: "SEU_MESSAGING_SENDER_ID", // Substitua pelo seu Messaging Sender ID
-            appId: "SEU_APP_ID" // Substitua pelo seu App ID
-        };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
+      authDomain: "agendawebccb.firebaseapp.com",
+      databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
+      projectId: "agendawebccb",
+      storageBucket: "agendawebccb.firebasestorage.app",
+      messagingSenderId: "1002090805726",
+      appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
         const congregacoes = [
             "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
