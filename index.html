@@ -18,6 +18,9 @@
     .agendamento-futuro {
       background-color: #e7fbe7;
     }
+    .agendado {
+      color: green;
+    }
   </style>
 </head>
 <body class="p-3">
@@ -141,12 +144,20 @@
         return;
       }
 
-      const duplicado = agendamentos.some((a, i) =>
-        a.congregacao === congregacaoAtual && a.data === data && i !== indexEdicao
-      );
+      // Verificar se já existe agendamento no mesmo mês
+      const duplicado = agendamentos.some((a, i) => {
+        const dataAgendamento = new Date(a.data);
+        const dataSelecionada = new Date(data);
+        return (
+          a.congregacao === congregacaoAtual &&
+          dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
+          dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
+          i !== indexEdicao
+        );
+      });
 
       if (duplicado) {
-        alert("Já existe uma marcação para esta data nesta congregação.");
+        alert("Já existe um agendamento para essa congregação neste mês.");
         return;
       }
 
@@ -218,49 +229,11 @@
       const col = document.createElement("div");
       const botao = document.createElement("button");
       botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-      botao.innerText = c;
+      botao.innerHTML = `${c} <span class="text-success"><i class="bi bi-check-circle"></i></span>`;
       botao.onclick = () => abrirFormulario(c);
       col.appendChild(botao);
       container.appendChild(col);
     });
-
-    // Função para gerar o relatório
-    function atualizarTabelaExportacao() {
-      return agendamentos.map(a => ({
-        Congregação: a.congregacao,
-        Data: a.data,
-        Irmão: a.irmao,
-      }));
-    }
-
-    // Configuração dos botões de exportação
-    document.getElementById("btnExportPDF").onclick = () => {
-      const dadosTabela = atualizarTabelaExportacao();
-      const doc = new jsPDF();
-      doc.autoTable({
-        head: [['Congregação', 'Data', 'Irmão']],
-        body: dadosTabela.map(d => [d.Congregação, d.Data, d.Irmão]),
-      });
-      doc.save('relatorio_agendamentos.pdf');
-    };
-
-    document.getElementById("btnExportXLS").onclick = () => {
-      const dadosTabela = atualizarTabelaExportacao();
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(dadosTabela);
-      XLSX.utils.book_append_sheet(wb, ws, 'Agendamentos');
-      XLSX.writeFile(wb, 'relatorio_agendamentos.xlsx');
-    };
-
-    document.getElementById("btnExportPNG").onclick = () => {
-      const dadosTabela = document.getElementById("tabela-agendamentos");
-      html2canvas(dadosTabela).then(canvas => {
-        const link = document.createElement("a");
-        link.download = 'relatorio_agendamentos.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      });
-    };
   </script>
 
   <!-- Bootstrap JS -->
