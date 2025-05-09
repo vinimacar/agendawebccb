@@ -110,6 +110,181 @@
       "Recanto das Acácias", "Santa Vitória - Central", "Satélite Andradina",
       "Setor Norte"
     ].sort();
+    // Objeto contendo as informações dos cultos
+const cultos = {
+  "Ituiutaba - Central": {
+    "Cultos Oficiais": "RJM",
+    "Horários": {
+      "19h30": "Quarta e Sábado",
+      "18h30": "Domingo",
+      "15h00": "Quinta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Buritis": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Segunda e Sábado"
+    }
+  },
+  "Ituiutaba - Chico Mendes": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Sábado - 1º e 3º mês"
+    }
+  },
+  "Ituiutaba - Eldorado": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quinta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Ipiranga": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Terça",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Jerônimo Mendonça": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Terça",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Marta Helena": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Terça e Sexta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Natal": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Segunda e Quinta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Novo Tempo II": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Satélite Andradina": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quinta",
+      "10h00": "Domingo"
+    }
+  },
+  "Ituiutaba - Setor Norte": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta",
+      "10h00": "Domingo"
+    }
+  },
+  "Capinópolis - Central": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Terça",
+      "10h00": "Domingo"
+    }
+  },
+  "Capinópolis - Alvorada": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Segunda e Sábado"
+    }
+  },
+  "Capinópolis - Recanto das Acácias": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta e Sexta"
+    }
+  },
+  "Cachoeira Dourada - Central": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta e Sábado"
+    }
+  },
+  "Ipiaçu - Central": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta",
+      "10h00": "Domingo"
+    }
+  },
+  "Gurinhatã - Central": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta",
+      "10h00": "Domingo"
+    }
+  },
+  "Gurinhatã - Flor de Minas": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "10h00": "Domingo"
+    }
+  },
+  "Santa Vitória - Central": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Quarta",
+      "10h00": "Domingo"
+    }
+  },
+  "Santa Vitória - Chaveslândia": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Sábado"
+    }
+  },
+  "Santa Vitória - Dom Alexandre": {
+    "Cultos Oficiais": "",
+    "Horários": {
+      "19h30": "Segunda e Sábado"
+    }
+  }
+};
+
+// Função para abrir o formulário e exibir as informações dos cultos
+window.abrirFormulario = function (cong, index = null) {
+  congregacaoAtual = cong;
+  indexEdicao = index;
+  document.getElementById("congregacaoSelecionada").value = cong;
+  document.getElementById("dataColeta").value = "";
+  document.getElementById("irmaoNome").value = "";
+
+  // Exibir informações sobre os cultos
+  const cultoInfo = cultos[congregacaoAtual];
+  const cultoContainer = document.getElementById("informacoesCulto");
+
+  // Limpar informações anteriores
+  cultoContainer.innerHTML = `
+    <h5>Cultos Oficiais: ${cultoInfo["Cultos Oficiais"]}</h5>
+    <ul>
+      ${Object.entries(cultoInfo["Horários"]).map(([hora, dias]) => {
+        return `<li><strong>${hora}</strong>: ${dias}</li>`;
+      }).join('')}
+    </ul>
+  `;
+
+  if (index !== null) {
+    const ag = agendamentos[index];
+    document.getElementById("dataColeta").value = ag.data;
+    document.getElementById("irmaoNome").value = ag.irmao;
+  }
+
+  modal.show();
+}
 
     let agendamentos = [];
     let congregacaoAtual = "";
