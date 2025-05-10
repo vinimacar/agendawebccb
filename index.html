@@ -147,16 +147,30 @@
 
         const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
 
-        // Inicializa os horários para cada congregação
-        const horariosCongregacoes = {};
-        congregacoes.forEach(c => {
-            horariosCongregacoes[c] = {
-                "Culto Oficial": [],
-                "Reunião de Jovens e Menores": []
-            };
-        });
+        // Horários fixos para cada congregação
+        const horariosCongregacoes = {
+            "Alvorada": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Buritis": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            // ... adicione os horários para todas as outras congregações
+        };
 
-        const modalHorarios = new bootstrap.Modal(document.getElementById("modalHorarios"));
+       
 
         window.abrirFormulario = function (cong, index = null) {
             congregacaoAtual = cong;
@@ -308,16 +322,6 @@
                 botao.innerHTML = `${c} ${icone}`;
                 botao.onclick = () => abrirFormulario(c);
                 col.appendChild(botao);
-
-                // Adiciona botão de editar horários
-                const editarBtn = document.createElement("button");
-                editarBtn.className = "btn btn-sm btn-secondary ms-2";
-                editarBtn.innerHTML = '<i class="bi bi-clock-history"></i>';
-                editarBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    abrirModalHorarios(c);
-                };
-                col.appendChild(editarBtn);
                 container.appendChild(col);
             });
         }
@@ -359,15 +363,7 @@
             modalHorarios.show();
         };
 
-        window.adicionarHorario = function(cong, tipo) {
-            horariosCongregacoes[cong][tipo].push({ dia: "", hora: "" });
-            abrirModalHorarios(cong);
-        };
-
-        window.removerHorario = function(cong, tipo, index) {
-            horariosCongregacoes[cong][tipo].splice(index, 1);
-            abrirModalHorarios(cong);
-        };
+       
 
         document.getElementById("formHorarios").addEventListener("input", function(e) {
             const input = e.target;
@@ -450,6 +446,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
 </body>
 </html>
