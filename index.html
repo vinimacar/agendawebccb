@@ -97,24 +97,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalHorarios" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="formHorarios" class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Horários</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="congregacaoHorarios" />
-                    <div id="horariosCampos"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -167,10 +149,178 @@
                     { dia: "Sábado", hora: "15:00" }
                 ]
             },
-            // ... adicione os horários para todas as outras congregações
+            "Capinópolis - Central": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Cachoeira Dourada": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Chaveslândia": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Chico Mendes": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Dom Alexandre": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Eldorado": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Flor de Minas": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Gurinhatã": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Ipiaçu": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Ipiranga": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Ituiutaba - Central": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Jerônimo Mendonça": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Marta Helena": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Natal": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Novo Tempo II": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Recanto das Acácias": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Santa Vitória - Central": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Satélite Andradina": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            },
+            "Setor Norte": {
+                "Culto Oficial": [
+                    { dia: "Quarta-feira", hora: "19:30" },
+                    { dia: "Domingo", hora: "19:30" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "15:00" }
+                ]
+            }
         };
-
-       
 
         window.abrirFormulario = function (cong, index = null) {
             congregacaoAtual = cong;
@@ -339,47 +489,6 @@
 
         carregarAgendamentos();
         atualizarIconesCongregacoes();
-
-        window.abrirModalHorarios = function(cong) {
-            document.getElementById("congregacaoHorarios").value = cong;
-            const campos = document.getElementById("horariosCampos");
-            campos.innerHTML = "";
-
-            ["Culto Oficial", "Reunião de Jovens e Menores"].forEach(tipo => {
-                const horarios = horariosCongregacoes[cong][tipo];
-                let html = `<label class="form-label mt-2">${tipo}</label>`;
-                horarios.forEach((h, i) => {
-                    html += `
-                    <div class="input-group mb-1">
-                        <input type="text" class="form-control" value="${h.dia}" placeholder="Dia" data-tipo="${tipo}" data-index="${i}" data-campo="dia">
-                        <input type="time" class="form-control" value="${h.hora}" placeholder="Hora" data-tipo="${tipo}" data-index="${i}" data-campo="hora">
-                        <button class="btn btn-danger" type="button" onclick="removerHorario('${cong}','${tipo}',${i})"><i class="bi bi-x"></i></button>
-                    </div>`;
-                });
-                html += `<button class="btn btn-sm btn-success mb-2" type="button" onclick="adicionarHorario('${cong}','${tipo}')"><i class="bi bi-plus"></i> Adicionar ${tipo}</button>`;
-                campos.innerHTML += html;
-            });
-
-            modalHorarios.show();
-        };
-
-       
-
-        document.getElementById("formHorarios").addEventListener("input", function(e) {
-            const input = e.target;
-            const tipo = input.getAttribute("data-tipo");
-            const index = input.getAttribute("data-index");
-            const campo = input.getAttribute("data-campo");
-            const cong = document.getElementById("congregacaoHorarios").value;
-            if (tipo && index !== null && campo) {
-                horariosCongregacoes[cong][tipo][index][campo] = input.value;
-            }
-        });
-
-        document.getElementById("formHorarios").addEventListener("submit", function(e) {
-            e.preventDefault();
-            modalHorarios.hide();
-        });
 
         document.getElementById("btnExportPDF").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
