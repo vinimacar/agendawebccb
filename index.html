@@ -82,9 +82,8 @@
                 </div>
                 <div class="alert alert-info">
                     <strong>Horários:</strong>
-                    <ul>
-                        <li><strong>Culto Oficial:</strong> Quartas e Domingos às 19h30</li>
-                        <li><strong>RJM:</strong> Sábados às 15h00</li>
+                    <ul id="horarios-lista">
+                        <!-- Os horários serão inseridos dinamicamente aqui -->
                     </ul>
                 </div>
             </div>
@@ -94,6 +93,24 @@
         </form>
     </div>
 </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalHorarios" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="formHorarios" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Horários</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="congregacaoHorarios" />
+                    <div id="horariosCampos"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
             </form>
         </div>
     </div>
@@ -130,6 +147,17 @@
 
         const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
 
+        // Inicializa os horários para cada congregação
+        const horariosCongregacoes = {};
+        congregacoes.forEach(c => {
+            horariosCongregacoes[c] = {
+                "Culto Oficial": [],
+                "Reunião de Jovens e Menores": []
+            };
+        });
+
+        const modalHorarios = new bootstrap.Modal(document.getElementById("modalHorarios"));
+
         window.abrirFormulario = function (cong, index = null) {
             congregacaoAtual = cong;
             indexEdicao = index;
@@ -144,6 +172,16 @@
                 document.getElementById("irmaoNome").value = ag.irmao;
                 document.getElementById("tipoAgendamento").value = ag.tipo;
             }
+
+            // Atualiza os horários exibidos
+            const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+            horariosDiv.innerHTML = "";
+            const horarios = horariosCongregacoes[cong];
+            Object.entries(horarios).forEach(([tipo, lista]) => {
+                lista.forEach(h => {
+                    horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                });
+            });
 
             modal.show();
         };
@@ -270,6 +308,16 @@
                 botao.innerHTML = `${c} ${icone}`;
                 botao.onclick = () => abrirFormulario(c);
                 col.appendChild(botao);
+
+                // Adiciona botão de editar horários
+                const editarBtn = document.createElement("button");
+                editarBtn.className = "btn btn-sm btn-secondary ms-2";
+                editarBtn.innerHTML = '<i class="bi bi-clock-history"></i>';
+                editarBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    abrirModalHorarios(c);
+                };
+                col.appendChild(editarBtn);
                 container.appendChild(col);
             });
         }
@@ -287,6 +335,55 @@
 
         carregarAgendamentos();
         atualizarIconesCongregacoes();
+
+        window.abrirModalHorarios = function(cong) {
+            document.getElementById("congregacaoHorarios").value = cong;
+            const campos = document.getElementById("horariosCampos");
+            campos.innerHTML = "";
+
+            ["Culto Oficial", "Reunião de Jovens e Menores"].forEach(tipo => {
+                const horarios = horariosCongregacoes[cong][tipo];
+                let html = `<label class="form-label mt-2">${tipo}</label>`;
+                horarios.forEach((h, i) => {
+                    html += `
+                    <div class="input-group mb-1">
+                        <input type="text" class="form-control" value="${h.dia}" placeholder="Dia" data-tipo="${tipo}" data-index="${i}" data-campo="dia">
+                        <input type="time" class="form-control" value="${h.hora}" placeholder="Hora" data-tipo="${tipo}" data-index="${i}" data-campo="hora">
+                        <button class="btn btn-danger" type="button" onclick="removerHorario('${cong}','${tipo}',${i})"><i class="bi bi-x"></i></button>
+                    </div>`;
+                });
+                html += `<button class="btn btn-sm btn-success mb-2" type="button" onclick="adicionarHorario('${cong}','${tipo}')"><i class="bi bi-plus"></i> Adicionar ${tipo}</button>`;
+                campos.innerHTML += html;
+            });
+
+            modalHorarios.show();
+        };
+
+        window.adicionarHorario = function(cong, tipo) {
+            horariosCongregacoes[cong][tipo].push({ dia: "", hora: "" });
+            abrirModalHorarios(cong);
+        };
+
+        window.removerHorario = function(cong, tipo, index) {
+            horariosCongregacoes[cong][tipo].splice(index, 1);
+            abrirModalHorarios(cong);
+        };
+
+        document.getElementById("formHorarios").addEventListener("input", function(e) {
+            const input = e.target;
+            const tipo = input.getAttribute("data-tipo");
+            const index = input.getAttribute("data-index");
+            const campo = input.getAttribute("data-campo");
+            const cong = document.getElementById("congregacaoHorarios").value;
+            if (tipo && index !== null && campo) {
+                horariosCongregacoes[cong][tipo][index][campo] = input.value;
+            }
+        });
+
+        document.getElementById("formHorarios").addEventListener("submit", function(e) {
+            e.preventDefault();
+            modalHorarios.hide();
+        });
 
         document.getElementById("btnExportPDF").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
@@ -352,6 +449,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
