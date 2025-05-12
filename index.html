@@ -446,8 +446,38 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>Cancelar
                     </button>
-                    <button type="button" class="btn btn-danger" id="btnConfirmarExclusao">
+                    <button type="button" class="btn btn-danger" id="btnPrimeiraConfirmacao">
                         <i class="bi bi-trash me-2"></i>Confirmar Exclusão
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalConfirmacaoFinal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Confirmação Final
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="alert alert-danger mb-3">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <strong>Última Verificação!</strong>
+                    </div>
+                    <p>Tem certeza absoluta que deseja excluir este agendamento?</p>
+                    <p class="text-danger"><small>Esta ação é irreversível!</small></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmacaoFinal">
+                        <i class="bi bi-trash me-2"></i>Confirmar
                     </button>
                 </div>
             </div>
@@ -865,11 +895,12 @@
             atualizarIconesCongregacoes();
         }
 
-        // Criar referência ao modal de exclusão
+        // Criar referências aos modais
         const modalExclusao = new bootstrap.Modal(document.getElementById('modalConfirmacaoExclusao'));
+        const modalConfirmacaoFinal = new bootstrap.Modal(document.getElementById('modalConfirmacaoFinal'));
         let agendamentoParaExcluir = null;
 
-        // Função atualizada para excluir agendamento
+        // Função para excluir agendamento
         window.excluirAgendamento = async function (index) {
             const agendamento = agendamentos[index];
             agendamentoParaExcluir = agendamento;
@@ -882,27 +913,47 @@
                 weekday: 'long'
             });
 
-            // Preencher os dados no modal
+            // Preencher os dados no primeiro modal
             document.getElementById('congExclusao').textContent = agendamento.congregacao;
             document.getElementById('dataExclusao').textContent = dataFormatada;
             document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
             document.getElementById('tipoExclusao').textContent = agendamento.tipo;
 
-            // Mostrar o modal
+            // Mostrar o primeiro modal
             modalExclusao.show();
         };
 
-        // Adicionar evento ao botão de confirmação de exclusão
-        document.getElementById('btnConfirmarExclusao').addEventListener('click', async () => {
+        // Evento para a primeira confirmação
+        document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', () => {
+            modalExclusao.hide(); // Esconde o primeiro modal
+            setTimeout(() => {
+                modalConfirmacaoFinal.show(); // Mostra o segundo modal após um pequeno delay
+            }, 500);
+        });
+
+        // Evento para a confirmação final
+        document.getElementById('btnConfirmacaoFinal').addEventListener('click', async () => {
             if (agendamentoParaExcluir && agendamentoParaExcluir.id) {
                 try {
                     await remove(ref(db, "agendamentos/" + agendamentoParaExcluir.id));
-                    modalExclusao.hide();
+                    modalConfirmacaoFinal.hide();
                     mostrarAlerta("Agendamento excluído com sucesso!", "success");
                 } catch (error) {
+                    modalConfirmacaoFinal.hide();
                     mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
                 }
             }
+        });
+
+        // Limpar referência do agendamento quando os modais forem fechados
+        document.getElementById('modalConfirmacaoExclusao').addEventListener('hidden.bs.modal', () => {
+            if (!document.getElementById('modalConfirmacaoFinal').classList.contains('show')) {
+                agendamentoParaExcluir = null;
+            }
+        });
+
+        document.getElementById('modalConfirmacaoFinal').addEventListener('hidden.bs.modal', () => {
+            agendamentoParaExcluir = null;
         });
 
         function carregarAgendamentos() {
