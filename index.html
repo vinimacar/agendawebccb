@@ -979,35 +979,36 @@
             // Configurações da tabela
             const margemEsquerda = 15;
             const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
+            const alturaLinha = 7;
             const colunas = {
-                data: { titulo: "Data", largura: larguraUtil * 0.35 },
-                local: { titulo: "Localidade", largura: larguraUtil * 0.35 },
-                irmao: { titulo: "Irmão", largura: larguraUtil * 0.30 }
+                data: { titulo: "Data", largura: larguraUtil * 0.35, x: margemEsquerda },
+                local: { titulo: "Localidade", largura: larguraUtil * 0.35, x: margemEsquerda + (larguraUtil * 0.35) },
+                irmao: { titulo: "Irmão", largura: larguraUtil * 0.30, x: margemEsquerda + (larguraUtil * 0.70) }
             };
 
-            // Função para desenhar linha da tabela
-            const desenharLinha = (x, y, largura) => {
-                doc.line(x, y, x + largura, y);
+            // Função para desenhar retângulo de fundo
+            const desenharFundo = (y, altura) => {
+                doc.setFillColor(240, 240, 240); // Cinza claro
+                doc.rect(margemEsquerda, y - 5, larguraUtil, altura, 'F');
             };
 
             // Função para adicionar cabeçalho da tabela
             const adicionarCabecalhoTabela = (y) => {
+                // Fundo do cabeçalho
+                doc.setFillColor(51, 51, 51); // Cinza escuro
+                doc.rect(margemEsquerda, y - 5, larguraUtil, alturaLinha + 3, 'F');
+                
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(11);
+                doc.setTextColor(255, 255, 255); // Texto branco para o cabeçalho
                 
-                let x = margemEsquerda;
-                desenharLinha(margemEsquerda, y, larguraUtil);
-                
-                y += 6;
+                // Adicionar títulos das colunas
                 Object.values(colunas).forEach(coluna => {
-                    doc.text(coluna.titulo, x + 2, y);
-                    x += coluna.largura;
+                    doc.text(coluna.titulo, coluna.x + 2, y);
                 });
                 
-                y += 2;
-                desenharLinha(margemEsquerda, y, larguraUtil);
-                
-                return y + 5;
+                doc.setTextColor(0, 0, 0); // Voltar para texto preto
+                return y + alturaLinha;
             };
 
             // Função para adicionar uma seção com tabela
@@ -1027,7 +1028,7 @@
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(10);
 
-                dados.forEach((item) => {
+                dados.forEach((item, index) => {
                     // Verificar se precisa de nova página
                     if (y > 270) {
                         doc.addPage();
@@ -1035,22 +1036,17 @@
                         y = adicionarCabecalhoTabela(y);
                     }
 
-                    let x = margemEsquerda;
-                    const dataFormatada = formatarData(item.data);
+                    // Adicionar fundo cinza para linhas alternadas
+                    if (index % 2 === 1) {
+                        desenharFundo(y, alturaLinha);
+                    }
 
-                    // Data
-                    doc.text(dataFormatada, x + 2, y);
-                    x += colunas.data.largura;
+                    // Adicionar texto
+                    doc.text(formatarData(item.data), colunas.data.x + 2, y);
+                    doc.text(item.congregacao, colunas.local.x + 2, y);
+                    doc.text(item.irmao, colunas.irmao.x + 2, y);
 
-                    // Localidade
-                    doc.text(item.congregacao, x + 2, y);
-                    x += colunas.local.largura;
-
-                    // Irmão
-                    doc.text(item.irmao, x + 2, y);
-
-                    y += 7;
-                    desenharLinha(margemEsquerda, y, larguraUtil);
+                    y += alturaLinha;
                 });
 
                 return y + 10;
@@ -1074,29 +1070,6 @@
             doc.setFontSize(8);
             doc.text(`Relatório gerado em: ${dataGeracao}`, 105, 290, { align: "center" });
 
-            // Adicionar linhas verticais da tabela
-            const adicionarLinhasVerticais = () => {
-                const paginas = doc.internal.getNumberOfPages();
-                let x = margemEsquerda;
-                
-                for (let i = 1; i <= paginas; i++) {
-                    doc.setPage(i);
-                    
-                    // Resetar x para cada coluna
-                    x = margemEsquerda;
-                    
-                    // Linha inicial
-                    doc.line(x, 0, x, 297);
-                    
-                    // Linhas entre colunas
-                    Object.values(colunas).forEach(coluna => {
-                        x += coluna.largura;
-                        doc.line(x, 0, x, 297);
-                    });
-                }
-            };
-
-            adicionarLinhasVerticais();
             doc.save("agenda_coletas.pdf");
         });
 
