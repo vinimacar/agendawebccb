@@ -632,6 +632,21 @@
         ];
 
         window.abrirFormulario = function (cong, index = null) {
+            if (index !== null) {
+                const agendamento = agendamentos[index];
+                const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
+                
+                const mensagem = `Deseja editar este agendamento?\n\n` +
+                    `Congregação: ${agendamento.congregacao}\n` +
+                    `Data: ${dataFormatada}\n` +
+                    `Irmão: ${agendamento.irmao}\n` +
+                    `Tipo: ${agendamento.tipo}`;
+
+                if (!confirm(mensagem)) {
+                    return; // Se o usuário cancelar, não abre o modal
+                }
+            }
+
             congregacaoAtual = cong;
             indexEdicao = index;
             document.getElementById("congregacaoSelecionada").value = cong;
@@ -661,7 +676,6 @@
             horariosDiv.innerHTML = "";
             const horarios = horariosCongregacoes[cong];
             Object.entries(horarios).forEach(([tipo, lista]) => {
-                // Mostrar apenas os horários relevantes para a congregação
                 if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
                     lista.forEach(h => {
                         horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
@@ -743,15 +757,19 @@
 
             const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
 
-            if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-                const id = agendamentos[indexEdicao].id;
-                await set(ref(db, "agendamentos/" + id), novo);
-            } else {
-                await push(ref(db, "agendamentos"), novo);
+            try {
+                if (indexEdicao !== null && agendamentos[indexEdicao].id) {
+                    const id = agendamentos[indexEdicao].id;
+                    await set(ref(db, "agendamentos/" + id), novo);
+                    mostrarAlerta("Agendamento atualizado com sucesso!", "success");
+                } else {
+                    await push(ref(db, "agendamentos"), novo);
+                    mostrarAlerta("Novo agendamento criado com sucesso!", "success");
+                }
+                modal.hide();
+            } catch (error) {
+                mostrarAlerta("Erro ao salvar o agendamento. Tente novamente.", "danger");
             }
-
-            modal.hide();
-            mostrarAlerta("Agendamento salvo com sucesso!", "success");
         });
 
         function atualizarTabela() {
@@ -811,9 +829,19 @@
         }
 
         window.excluirAgendamento = async function (index) {
-            const id = agendamentos[index].id;
-            if (confirm("Deseja realmente excluir este agendamento?")) {
+            const agendamento = agendamentos[index];
+            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
+            
+            const mensagem = `Deseja realmente excluir este agendamento?\n\n` +
+                `Congregação: ${agendamento.congregacao}\n` +
+                `Data: ${dataFormatada}\n` +
+                `Irmão: ${agendamento.irmao}\n` +
+                `Tipo: ${agendamento.tipo}`;
+
+            if (confirm(mensagem)) {
+                const id = agendamento.id;
                 await remove(ref(db, "agendamentos/" + id));
+                mostrarAlerta("Agendamento excluído com sucesso!", "success");
             }
         };
 
@@ -915,10 +943,13 @@
             toast.setAttribute('aria-live', 'assertive');
             toast.setAttribute('aria-atomic', 'true');
             
+            const icon = tipo === 'success' ? 'bi-check-circle' : 
+                         tipo === 'danger' ? 'bi-exclamation-circle' : 'bi-info-circle';
+            
             toast.innerHTML = `
                 <div class="d-flex">
                     <div class="toast-body">
-                        <i class="bi ${tipo === 'success' ? 'bi-check-circle' : 'bi-info-circle'} me-2"></i>
+                        <i class="bi ${icon} me-2"></i>
                         ${mensagem}
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
@@ -934,7 +965,9 @@
             }
             
             toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
+            const bsToast = new bootstrap.Toast(toast, {
+                delay: 3000 // Toast ficará visível por 3 segundos
+            });
             bsToast.show();
             
             // Remover toast após ser ocultado
@@ -980,7 +1013,7 @@
             const margemEsquerda = 15;
             const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
             const alturaLinha = 7;
-            const alturaCabecalho = 6; // Altura reduzida do cabeçalho
+            const alturaCabecalho = 5; // Altura reduzida do cabeçalho
             const colunas = {
                 data: { titulo: "Data", largura: larguraUtil * 0.35, x: margemEsquerda },
                 local: { titulo: "Localidade", largura: larguraUtil * 0.35, x: margemEsquerda + (larguraUtil * 0.35) },
@@ -996,11 +1029,11 @@
             // Função para adicionar cabeçalho da tabela
             const adicionarCabecalhoTabela = (y) => {
                 // Fundo do cabeçalho
-                doc.setFillColor(51, 51, 51); // Cinza escuro
+                doc.setFillColor(51, 51, 51); // Cinza escuro quase preto
                 doc.rect(margemEsquerda, y - 4, larguraUtil, alturaCabecalho, 'F');
                 
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(11);
+                doc.setFontSize(10); // Tamanho reduzido para o cabeçalho
                 doc.setTextColor(255, 255, 255); // Texto branco para o cabeçalho
                 
                 // Adicionar títulos das colunas
@@ -1024,7 +1057,7 @@
 
                 // Adicionar cabeçalho da tabela
                 y = adicionarCabecalhoTabela(y);
-                y += 2; // Espaço adicional após o cabeçalho
+                y += 3; // Espaço adicional após o cabeçalho
 
                 // Adicionar dados
                 doc.setFont("helvetica", "normal");
@@ -1036,7 +1069,7 @@
                         doc.addPage();
                         y = 20;
                         y = adicionarCabecalhoTabela(y);
-                        y += 2; // Espaço adicional após o cabeçalho na nova página
+                        y += 3; // Espaço adicional após o cabeçalho na nova página
                     }
 
                     // Adicionar fundo cinza para linhas alternadas
