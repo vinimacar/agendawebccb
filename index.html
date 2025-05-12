@@ -40,6 +40,94 @@
             font-family: 'Inter', sans-serif;
             color: var(--text-primary);
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-header {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid #e1e8ef;
+            margin-bottom: 2rem;
+        }
+
+        .app-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .app-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 2rem;
+            padding: 0 2rem;
+        }
+
+        .congregacoes-section {
+            flex: 1;
+            max-width: 50%;
+        }
+
+        .agendamentos-section {
+            flex: 1;
+        }
+
+        .congregacoes-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .congregacoes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e1e8ef;
+        }
+
+        .congregacoes-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .congregacoes-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .congregacoes-list::-webkit-scrollbar-thumb {
+            background-color: var(--text-muted);
+            border-radius: 3px;
+        }
+
+        .botao-congregacao {
+            margin-bottom: 0.5rem;
+        }
+
+        .export-buttons {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e1e8ef;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .container {
@@ -289,135 +377,78 @@
             }
         }
 
-        /* Adicione estes estilos ao CSS existente */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 280px;
-            background-color: var(--light-bg);
-            border-right: 1px solid #e1e8ef;
-            padding: 1rem;
-            overflow-y: auto;
-        }
-
-        .main-content {
-            margin-left: 280px;
-            padding: 1rem;
-            min-height: 100vh;
-        }
-
-        .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid #e1e8ef;
-            margin: -1rem -1rem 1rem -1rem;
-            background-color: var(--card-bg);
-        }
-
-        .sidebar-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .congregacoes-list {
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-        }
-
-        .botao-congregacao {
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .export-buttons {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 280px;
-            padding: 1rem;
-            background-color: var(--card-bg);
-            border-top: 1px solid #e1e8ef;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .export-buttons .btn {
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                margin-bottom: 1rem;
+        @media (max-width: 992px) {
+            .main-container {
+                flex-direction: column;
+                padding: 0 1rem;
             }
 
-            .main-content {
-                margin-left: 0;
+            .congregacoes-section {
+                max-width: 100%;
             }
 
-            .export-buttons {
-                position: static;
-                width: 100%;
+            .congregacoes-list {
+                max-height: 40vh;
+            }
+
+            .app-title {
+                font-size: 1.5rem;
+            }
+
+            .app-subtitle {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title">AGENDA DE REFORÇOS DE COLETAS</h1>
-            <div class="sidebar-subtitle">Administração de Ituiutaba-MG</div>
-        </div>
-        
-        <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">
-                    <i class="bi bi-building me-2"></i>Congregações
-                </h5>
-                <div class="legend">
-                    <small class="text-muted d-block">
-                        <i class="bi bi-check-circle-fill text-success"></i> Agendado
-                    </small>
-                    <small class="text-muted d-block">
-                        <i class="bi bi-circle text-muted"></i> Disponível
-                    </small>
+    <header class="app-header">
+        <h1 class="app-title">AGENDA DE REFORÇOS DE COLETAS</h1>
+        <div class="app-subtitle">Administração de Ituiutaba-MG</div>
+        <div class="app-subtitle">Referente ao mês de : JUNHO/2025</div>
+    </header>
+
+    <div class="main-container">
+        <!-- Seção de Congregações -->
+        <section class="congregacoes-section">
+            <div class="congregacoes-container">
+                <div class="congregacoes-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building me-2"></i>Congregações
+                    </h5>
+                    <div class="legend">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-check-circle-fill text-success"></i> Agendado
+                        </small>
+                        <small class="text-muted d-block">
+                            <i class="bi bi-circle text-muted"></i> Disponível
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="congregacoes-list" id="congregacoes"></div>
+
+                <div class="export-buttons">
+                    <button id="btnExportPDF" class="btn btn-success">
+                        <i class="bi bi-file-pdf me-2"></i>Baixar PDF
+                    </button>
+                    <button id="btnExportXLS" class="btn btn-primary">
+                        <i class="bi bi-file-excel me-2"></i>Baixar XLS
+                    </button>
+                    <button id="btnExportPNG" class="btn btn-info">
+                        <i class="bi bi-file-image me-2"></i>Baixar PNG
+                    </button>
                 </div>
             </div>
-            <div class="congregacoes-list" id="congregacoes"></div>
-        </div>
+        </section>
 
-        <div class="export-buttons">
-            <button id="btnExportPDF" class="btn btn-success btn-sm">
-                <i class="bi bi-file-pdf me-2"></i>Baixar PDF
-            </button>
-            <button id="btnExportXLS" class="btn btn-primary btn-sm">
-                <i class="bi bi-file-excel me-2"></i>Baixar XLS
-            </button>
-            <button id="btnExportPNG" class="btn btn-info btn-sm">
-                <i class="bi bi-file-image me-2"></i>Baixar PNG
-            </button>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="container-fluid">
-            <section class="mb-5">
+        <!-- Seção de Agendamentos -->
+        <section class="agendamentos-section">
+            <div class="table-container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="section-title mb-0">
-                        <i class="bi bi-calendar-check me-2"></i>
-                        Agendamentos
-                    </h4>
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>Agendamentos
+                    </h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover" id="tabela-agendamentos">
@@ -433,8 +464,8 @@
                         <tbody id="lista-agendamentos"></tbody>
                     </table>
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
     </div>
 
     <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
