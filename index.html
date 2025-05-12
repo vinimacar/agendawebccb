@@ -950,7 +950,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Configurações de fonte e estilo
+            // Configurações iniciais
             doc.setFont("helvetica", "bold");
             doc.setFontSize(16);
             doc.text("AGENDA DE REFORÇOS DE COLETAS", 105, 20, { align: "center" });
@@ -967,7 +967,7 @@
                 .filter(a => a.tipo === "Reunião de Jovens e Menores")
                 .sort((a, b) => new Date(a.data) - new Date(b.data));
 
-            // Função auxiliar para formatar a data
+            // Função para formatar a data
             const formatarData = (data) => {
                 const dataObj = new Date(data + "T00:00");
                 const dia = dataObj.getDate().toString().padStart(2, '0');
@@ -976,39 +976,88 @@
                 return `${dia}/${mes} - ${diaSemana}`;
             };
 
-            // Função para adicionar uma seção
-            const adicionarSecao = (titulo, agendamentos, yInicial) => {
+            // Configurações da tabela
+            const margemEsquerda = 15;
+            const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
+            const colunas = {
+                data: { titulo: "Data", largura: larguraUtil * 0.35 },
+                local: { titulo: "Localidade", largura: larguraUtil * 0.35 },
+                irmao: { titulo: "Irmão", largura: larguraUtil * 0.30 }
+            };
+
+            // Função para desenhar linha da tabela
+            const desenharLinha = (x, y, largura) => {
+                doc.line(x, y, x + largura, y);
+            };
+
+            // Função para adicionar cabeçalho da tabela
+            const adicionarCabecalhoTabela = (y) => {
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                
+                let x = margemEsquerda;
+                desenharLinha(margemEsquerda, y, larguraUtil);
+                
+                y += 6;
+                Object.values(colunas).forEach(coluna => {
+                    doc.text(coluna.titulo, x + 2, y);
+                    x += coluna.largura;
+                });
+                
+                y += 2;
+                desenharLinha(margemEsquerda, y, larguraUtil);
+                
+                return y + 5;
+            };
+
+            // Função para adicionar uma seção com tabela
+            const adicionarSecaoTabela = (titulo, dados, yInicial) => {
                 let y = yInicial;
                 
+                // Título da seção
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(14);
-                doc.text(titulo, 15, y);
+                doc.text(titulo, margemEsquerda, y);
                 y += 10;
 
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(11);
+                // Adicionar cabeçalho da tabela
+                y = adicionarCabecalhoTabela(y);
 
-                agendamentos.forEach((a) => {
+                // Adicionar dados
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+
+                dados.forEach((item) => {
                     // Verificar se precisa de nova página
                     if (y > 270) {
                         doc.addPage();
                         y = 20;
+                        y = adicionarCabecalhoTabela(y);
                     }
 
-                    const dataFormatada = formatarData(a.data);
-                    const linha = `${dataFormatada} - ${a.congregacao} - ${a.irmao}`;
-                    
-                    // Quebrar linha se for muito longa
-                    const linhas = doc.splitTextToSize(linha, 180);
-                    doc.text(linhas, 15, y);
-                    y += (linhas.length * 7);
+                    let x = margemEsquerda;
+                    const dataFormatada = formatarData(item.data);
+
+                    // Data
+                    doc.text(dataFormatada, x + 2, y);
+                    x += colunas.data.largura;
+
+                    // Localidade
+                    doc.text(item.congregacao, x + 2, y);
+                    x += colunas.local.largura;
+
+                    // Irmão
+                    doc.text(item.irmao, x + 2, y);
+
+                    y += 7;
+                    desenharLinha(margemEsquerda, y, larguraUtil);
                 });
 
-                return y + 10; // Retorna a próxima posição Y disponível
+                return y + 10;
             };
 
             // Adicionar seção de Cultos Oficiais
-            let proximoY = adicionarSecao("CULTOS OFICIAIS", cultosOficiais, 50);
+            let proximoY = adicionarSecaoTabela("CULTOS OFICIAIS", cultosOficiais, 50);
 
             // Adicionar seção de Reuniões de Jovens e Menores
             if (reunioesJovens.length > 0) {
@@ -1017,7 +1066,7 @@
                     doc.addPage();
                     proximoY = 20;
                 }
-                adicionarSecao("REUNIÕES DE JOVENS E MENORES", reunioesJovens, proximoY);
+                adicionarSecaoTabela("REUNIÕES DE JOVENS E MENORES", reunioesJovens, proximoY);
             }
 
             // Adicionar rodapé com data de geração
@@ -1025,6 +1074,29 @@
             doc.setFontSize(8);
             doc.text(`Relatório gerado em: ${dataGeracao}`, 105, 290, { align: "center" });
 
+            // Adicionar linhas verticais da tabela
+            const adicionarLinhasVerticais = () => {
+                const paginas = doc.internal.getNumberOfPages();
+                let x = margemEsquerda;
+                
+                for (let i = 1; i <= paginas; i++) {
+                    doc.setPage(i);
+                    
+                    // Resetar x para cada coluna
+                    x = margemEsquerda;
+                    
+                    // Linha inicial
+                    doc.line(x, 0, x, 297);
+                    
+                    // Linhas entre colunas
+                    Object.values(colunas).forEach(coluna => {
+                        x += coluna.largura;
+                        doc.line(x, 0, x, 297);
+                    });
+                }
+            };
+
+            adicionarLinhasVerticais();
             doc.save("agenda_coletas.pdf");
         });
 
