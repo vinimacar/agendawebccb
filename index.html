@@ -949,26 +949,83 @@
         document.getElementById("btnExportPDF").addEventListener("click", async () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            
+            // Configurações de fonte e estilo
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text("AGENDA DE REFORÇOS DE COLETAS", 105, 20, { align: "center" });
+            
+            doc.setFontSize(12);
+            doc.text("Administração de Ituiutaba-MG", 105, 30, { align: "center" });
+            
+            // Separar agendamentos por tipo
+            const cultosOficiais = agendamentos
+                .filter(a => a.tipo === "Culto Oficial")
+                .sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            const reunioesJovens = agendamentos
+                .filter(a => a.tipo === "Reunião de Jovens e Menores")
+                .sort((a, b) => new Date(a.data) - new Date(b.data));
 
-            doc.text("Agenda de Coletas - CCB", 10, 10);
+            // Função auxiliar para formatar a data
+            const formatarData = (data) => {
+                const dataObj = new Date(data + "T00:00");
+                const dia = dataObj.getDate().toString().padStart(2, '0');
+                const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+                const diaSemana = dataObj.toLocaleDateString("pt-BR", { weekday: "long" });
+                return `${dia}/${mes} - ${diaSemana}`;
+            };
 
-            let y = 20;
-            agendamentos.forEach((a, index) => {
-                const dataObj = new Date(a.data + "T00:00");
-                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            // Função para adicionar uma seção
+            const adicionarSecao = (titulo, agendamentos, yInicial) => {
+                let y = yInicial;
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text(titulo, 15, y);
+                y += 10;
 
-                const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao} (${a.tipo})`;
-                doc.text(linha, 10, y);
-                y += 7;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(11);
 
-                if (y > 270) {
+                agendamentos.forEach((a) => {
+                    // Verificar se precisa de nova página
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+
+                    const dataFormatada = formatarData(a.data);
+                    const linha = `${dataFormatada} - ${a.congregacao} - ${a.irmao}`;
+                    
+                    // Quebrar linha se for muito longa
+                    const linhas = doc.splitTextToSize(linha, 180);
+                    doc.text(linhas, 15, y);
+                    y += (linhas.length * 7);
+                });
+
+                return y + 10; // Retorna a próxima posição Y disponível
+            };
+
+            // Adicionar seção de Cultos Oficiais
+            let proximoY = adicionarSecao("CULTOS OFICIAIS", cultosOficiais, 50);
+
+            // Adicionar seção de Reuniões de Jovens e Menores
+            if (reunioesJovens.length > 0) {
+                // Se não houver espaço suficiente, adicionar nova página
+                if (proximoY > 240) {
                     doc.addPage();
-                    y = 10;
+                    proximoY = 20;
                 }
-            });
+                adicionarSecao("REUNIÕES DE JOVENS E MENORES", reunioesJovens, proximoY);
+            }
 
-            doc.save("agendamentos.pdf");
+            // Adicionar rodapé com data de geração
+            const dataGeracao = new Date().toLocaleDateString("pt-BR");
+            doc.setFontSize(8);
+            doc.text(`Relatório gerado em: ${dataGeracao}`, 105, 290, { align: "center" });
+
+            doc.save("agenda_coletas.pdf");
         });
 
         document.getElementById("btnExportXLS").addEventListener("click", () => {
@@ -1011,6 +1068,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
