@@ -417,6 +417,43 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalConfirmacaoExclusao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger mb-3">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <strong>Atenção!</strong> Esta ação não poderá ser desfeita.
+                    </div>
+                    <p>Você está prestes a excluir o seguinte agendamento:</p>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-2"><strong>Congregação:</strong> <span id="congExclusao"></span></p>
+                            <p class="mb-2"><strong>Data:</strong> <span id="dataExclusao"></span></p>
+                            <p class="mb-2"><strong>Irmão:</strong> <span id="irmaoExclusao"></span></p>
+                            <p class="mb-0"><strong>Tipo:</strong> <span id="tipoExclusao"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmarExclusao">
+                        <i class="bi bi-trash me-2"></i>Confirmar Exclusão
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -828,22 +865,45 @@
             atualizarIconesCongregacoes();
         }
 
+        // Criar referência ao modal de exclusão
+        const modalExclusao = new bootstrap.Modal(document.getElementById('modalConfirmacaoExclusao'));
+        let agendamentoParaExcluir = null;
+
+        // Função atualizada para excluir agendamento
         window.excluirAgendamento = async function (index) {
             const agendamento = agendamentos[index];
-            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
+            agendamentoParaExcluir = agendamento;
             
-            const mensagem = `Deseja realmente excluir este agendamento?\n\n` +
-                `Congregação: ${agendamento.congregacao}\n` +
-                `Data: ${dataFormatada}\n` +
-                `Irmão: ${agendamento.irmao}\n` +
-                `Tipo: ${agendamento.tipo}`;
+            // Formatar a data
+            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR", {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                weekday: 'long'
+            });
 
-            if (confirm(mensagem)) {
-                const id = agendamento.id;
-                await remove(ref(db, "agendamentos/" + id));
-                mostrarAlerta("Agendamento excluído com sucesso!", "success");
-            }
+            // Preencher os dados no modal
+            document.getElementById('congExclusao').textContent = agendamento.congregacao;
+            document.getElementById('dataExclusao').textContent = dataFormatada;
+            document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
+            document.getElementById('tipoExclusao').textContent = agendamento.tipo;
+
+            // Mostrar o modal
+            modalExclusao.show();
         };
+
+        // Adicionar evento ao botão de confirmação de exclusão
+        document.getElementById('btnConfirmarExclusao').addEventListener('click', async () => {
+            if (agendamentoParaExcluir && agendamentoParaExcluir.id) {
+                try {
+                    await remove(ref(db, "agendamentos/" + agendamentoParaExcluir.id));
+                    modalExclusao.hide();
+                    mostrarAlerta("Agendamento excluído com sucesso!", "success");
+                } catch (error) {
+                    mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
+                }
+            }
+        });
 
         function carregarAgendamentos() {
             const agRef = ref(db, "agendamentos");
@@ -956,7 +1016,6 @@
                 </div>
             `;
             
-            // Adicionar container de toasts se não existir
             let toastContainer = document.querySelector('.toast-container');
             if (!toastContainer) {
                 toastContainer = document.createElement('div');
@@ -966,11 +1025,10 @@
             
             toastContainer.appendChild(toast);
             const bsToast = new bootstrap.Toast(toast, {
-                delay: 3000 // Toast ficará visível por 3 segundos
+                delay: 3000
             });
             bsToast.show();
             
-            // Remover toast após ser ocultado
             toast.addEventListener('hidden.bs.toast', () => {
                 toast.remove();
             });
