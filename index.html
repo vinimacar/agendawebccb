@@ -11,90 +11,295 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 600;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
         .botao-congregacao {
             white-space: normal;
             text-align: left;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .botao-congregacao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
         .agendamento-futuro {
             background-color: #e7fbe7;
+            transition: background-color 0.3s ease;
         }
+
+        .agendamento-futuro:hover {
+            background-color: #d4f8d4;
+        }
+
         .agendado {
-            color: green;
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .table {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .alert-info {
+            background-color: #e8f4fd;
+            border-color: #b8daff;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 1.2rem;
+        }
+
+        .alert-info li {
+            margin: 0.5rem 0;
+        }
+
+        #congregacoes {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin: 2rem 0 1rem;
+            font-weight: 500;
+        }
+
+        .export-buttons {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .status-icon {
+            font-size: 1.2rem;
+            margin-left: 0.5rem;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .botao-congregacao {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body class="p-3">
     <div class="container">
-        <h1 class="mb-4 text-center">AGENDA DE REFORÇOS DE COLETAS</h1>
-        <h5 class="mb-4 text-center">Administração de Ituiutaba-MG </h5>
-        <h6 class="mb-4 text-center">Referente ao mês de: JUNHO/2025</h6>
+        <header class="text-center mb-5">
+            <h1 class="mb-3">AGENDA DE REFORÇOS DE COLETAS</h1>
+            <h5 class="text-muted mb-2">Administração de Ituiutaba-MG</h5>
+            <h6 class="text-primary">Referente ao mês de: JUNHO/2025</h6>
+        </header>
 
-        <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="section-title mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Congregações
+                </h4>
+                <div class="legend d-flex align-items-center">
+                    <small class="text-muted me-3">
+                        <i class="bi bi-check-circle-fill text-success"></i> Agendado
+                    </small>
+                    <small class="text-muted">
+                        <i class="bi bi-circle text-muted"></i> Disponível
+                    </small>
+                </div>
+            </div>
+            <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
+        </section>
 
-        <div class="table-responsive">
-            <h4>Agendamentos</h4>
-            <table class="table table-bordered table-striped" id="tabela-agendamentos">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Congregação</th>
-                        <th>Data</th>
-                        <th>Irmão</th>
-                        <th>Tipo</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="lista-agendamentos"></tbody>
-            </table>
-        </div>
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="section-title mb-0">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Agendamentos
+                </h4>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="tabela-agendamentos">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><i class="bi bi-building me-2"></i>Congregação</th>
+                            <th><i class="bi bi-calendar3 me-2"></i>Data</th>
+                            <th><i class="bi bi-person me-2"></i>Irmão</th>
+                            <th><i class="bi bi-tag me-2"></i>Tipo</th>
+                            <th><i class="bi bi-gear me-2"></i>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-agendamentos"></tbody>
+                </table>
+            </div>
+        </section>
 
-        <div class="d-flex justify-content-end">
-            <button id="btnExportPDF" class="btn btn-success me-2">Baixar PDF</button>
-            <button id="btnExportXLS" class="btn btn-primary me-2">Baixar XLS</button>
-            <button id="btnExportPNG" class="btn btn-info">Baixar PNG</button>
-        </div>
+        <section class="export-buttons">
+            <div class="d-flex justify-content-end gap-2">
+                <button id="btnExportPDF" class="btn btn-success">
+                    <i class="bi bi-file-pdf me-2"></i>Baixar PDF
+                </button>
+                <button id="btnExportXLS" class="btn btn-primary">
+                    <i class="bi bi-file-excel me-2"></i>Baixar XLS
+                </button>
+                <button id="btnExportPNG" class="btn btn-info">
+                    <i class="bi bi-file-image me-2"></i>Baixar PNG
+                </button>
+            </div>
+        </section>
     </div>
 
     <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form id="formAgendamento" class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Agendar Coleta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Congregação</label>
-                    <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
+        <div class="modal-dialog">
+            <form id="formAgendamento" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Agendar Coleta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="dataColeta" class="form-label">Data</label>
-                    <input type="date" class="form-control" id="dataColeta" required />
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-building me-2"></i>
+                            Congregação
+                        </label>
+                        <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
+                    </div>
+                    <div class="mb-4">
+                        <label for="dataColeta" class="form-label">
+                            <i class="bi bi-calendar-date me-2"></i>
+                            Data
+                        </label>
+                        <input type="date" class="form-control" id="dataColeta" required />
+                    </div>
+                    <div class="mb-4">
+                        <label for="irmaoNome" class="form-label">
+                            <i class="bi bi-person me-2"></i>
+                            Nome do Irmão
+                        </label>
+                        <input type="text" class="form-control" id="irmaoNome" required />
+                    </div>
+                    <div class="mb-4">
+                        <label for="tipoAgendamento" class="form-label">
+                            <i class="bi bi-tag me-2"></i>
+                            Tipo de Agendamento
+                        </label>
+                        <select class="form-select" id="tipoAgendamento" required>
+                            <option value="">Selecione</option>
+                            <option value="Culto Oficial">Culto Oficial</option>
+                            <option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Horários Disponíveis:</strong>
+                        </div>
+                        <ul id="horarios-lista" class="mb-0"></ul>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="irmaoNome" class="form-label">Nome do Irmão</label>
-                    <input type="text" class="form-control" id="irmaoNome" required />
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Salvar
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="tipoAgendamento" class="form-label">Tipo de Agendamento</label>
-                    <select class="form-select" id="tipoAgendamento" required>
-                        <option value="">Selecione</option>
-                        <option value="Culto Oficial">Culto Oficial</option>
-                        <option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>
-                    </select>
-                </div>
-                <div class="alert alert-info">
-                    <strong>Horários:</strong>
-                    <ul id="horarios-lista">
-                        <!-- Os horários serão inseridos dinamicamente aqui -->
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </div>
-        </form>
-    </div>
-</div>
             </form>
         </div>
     </div>
@@ -379,6 +584,9 @@
             corpo.innerHTML = "";
             const hoje = new Date();
 
+            // Ordenar agendamentos por data
+            agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+
             agendamentos.forEach((a, index) => {
                 const dataObj = new Date(a.data + "T00:00");
                 const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
@@ -386,23 +594,44 @@
                 const futura = dataObj >= new Date(hoje.toDateString());
 
                 const linha = `
-                  <tr class="${futura ? 'agendamento-futuro' : ''}">
-                    <td>${a.congregacao}</td>
-                    <td><i class="bi bi-calendar3 me-1"></i>${diaAbreviado} - ${dataFormatada}</td>
-                    <td>${a.irmao}</td>
-                    <td>${a.tipo}</td>
+                  <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
                     <td>
-                        <button class="btn btn-sm btn-warning me-1" onclick="abrirFormulario('${a.congregacao}', ${index})">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <i class="bi bi-building me-2"></i>
+                        ${a.congregacao}
+                    </td>
+                    <td>
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                    </td>
+                    <td>
+                        <i class="bi bi-person me-2"></i>
+                        ${a.irmao}
+                    </td>
+                    <td>
+                        <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                            <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                            ${a.tipo}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Ações">
+                            <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})" data-bs-toggle="tooltip" title="Excluir agendamento">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </td>
                   </tr>
                 `;
                 corpo.innerHTML += linha;
             });
+
+            // Inicializar tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(t => new bootstrap.Tooltip(t));
+
             atualizarIconesCongregacoes();
         }
 
@@ -437,31 +666,70 @@
                 const agendamentoCulto = agendamentos.some(a => a.congregacao === c && a.tipo === "Culto Oficial");
                 const agendamentoJovens = agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
 
-                let icone = '';
+                let statusHtml = '';
                 if (agendamentoCulto && agendamentoJovens) {
-                    icone = '<span class="text-success"><i class="bi bi-check-double"></i></span>';
+                    statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
                 } else if (agendamentoCulto) {
-                    icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Culto</span>';
+                    statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
                 } else if (agendamentoJovens) {
-                    icone = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+                    statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+                } else {
+                    statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
                 }
 
-                botao.innerHTML = `${c} ${icone}`;
+                botao.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-building me-2"></i>${c}</span>
+                        ${statusHtml}
+                    </div>
+                `;
+                
+                botao.setAttribute('data-bs-toggle', 'tooltip');
+                botao.setAttribute('title', 'Clique para agendar');
                 botao.onclick = () => abrirFormulario(c);
+                
                 col.appendChild(botao);
                 container.appendChild(col);
             });
+
+            // Inicializar tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(t => new bootstrap.Tooltip(t));
         }
 
         function mostrarAlerta(mensagem, tipo) {
-            const alerta = document.getElementById("mensagem-alerta");
-            const textoAlerta = document.getElementById("texto-alerta");
-            alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
-            textoAlerta.textContent = mensagem;
-            alerta.classList.remove("d-none");
-            setTimeout(() => {
-                alerta.classList.add("d-none");
-            }, 3000);
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi ${tipo === 'success' ? 'bi-check-circle' : 'bi-info-circle'} me-2"></i>
+                        ${mensagem}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+                </div>
+            `;
+            
+            // Adicionar container de toasts se não existir
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remover toast após ser ocultado
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
         }
 
         carregarAgendamentos();
