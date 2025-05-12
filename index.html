@@ -288,70 +288,153 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* Adicione estes estilos ao CSS existente */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background-color: var(--light-bg);
+            border-right: 1px solid #e1e8ef;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 1rem;
+            min-height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e1e8ef;
+            margin: -1rem -1rem 1rem -1rem;
+            background-color: var(--card-bg);
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .congregacoes-list {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .botao-congregacao {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .export-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border-top: 1px solid #e1e8ef;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .export-buttons .btn {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 1rem;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .export-buttons {
+                position: static;
+                width: 100%;
+            }
+        }
     </style>
 </head>
-<body class="p-3">
-    <div class="container">
-        <header class="text-center mb-5">
-            <h1 class="mb-3">AGENDA DE REFORÇOS DE COLETAS</h1>
-            <h5 class="text-muted mb-2">Administração de Ituiutaba-MG</h5>
-            <h6 class="text-primary">Referente ao mês de: JUNHO/2025</h6>
-        </header>
-
-        <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="section-title mb-0">
-                    <i class="bi bi-building me-2"></i>
-                    Congregações
-                </h4>
-                <div class="legend d-flex align-items-center">
-                    <small class="text-muted me-3">
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-title">AGENDA DE REFORÇOS DE COLETAS</h1>
+            <div class="sidebar-subtitle">Administração de Ituiutaba-MG</div>
+        </div>
+        
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>Congregações
+                </h5>
+                <div class="legend">
+                    <small class="text-muted d-block">
                         <i class="bi bi-check-circle-fill text-success"></i> Agendado
                     </small>
-                    <small class="text-muted">
+                    <small class="text-muted d-block">
                         <i class="bi bi-circle text-muted"></i> Disponível
                     </small>
                 </div>
             </div>
-            <div class="row row-cols-1 row-cols-md-2 g-2 mb-4" id="congregacoes"></div>
-        </section>
+            <div class="congregacoes-list" id="congregacoes"></div>
+        </div>
 
-        <section class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="section-title mb-0">
-                    <i class="bi bi-calendar-check me-2"></i>
-                    Agendamentos
-                </h4>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="tabela-agendamentos">
-                    <thead class="table-dark">
-                        <tr>
-                            <th><i class="bi bi-building me-2"></i>Congregação</th>
-                            <th><i class="bi bi-calendar3 me-2"></i>Data</th>
-                            <th><i class="bi bi-person me-2"></i>Irmão</th>
-                            <th><i class="bi bi-tag me-2"></i>Tipo</th>
-                            <th><i class="bi bi-gear me-2"></i>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-agendamentos"></tbody>
-                </table>
-            </div>
-        </section>
+        <div class="export-buttons">
+            <button id="btnExportPDF" class="btn btn-success btn-sm">
+                <i class="bi bi-file-pdf me-2"></i>Baixar PDF
+            </button>
+            <button id="btnExportXLS" class="btn btn-primary btn-sm">
+                <i class="bi bi-file-excel me-2"></i>Baixar XLS
+            </button>
+            <button id="btnExportPNG" class="btn btn-info btn-sm">
+                <i class="bi bi-file-image me-2"></i>Baixar PNG
+            </button>
+        </div>
+    </div>
 
-        <section class="export-buttons">
-            <div class="d-flex justify-content-end gap-2">
-                <button id="btnExportPDF" class="btn btn-success">
-                    <i class="bi bi-file-pdf me-2"></i>Baixar PDF
-                </button>
-                <button id="btnExportXLS" class="btn btn-primary">
-                    <i class="bi bi-file-excel me-2"></i>Baixar XLS
-                </button>
-                <button id="btnExportPNG" class="btn btn-info">
-                    <i class="bi bi-file-image me-2"></i>Baixar PNG
-                </button>
-            </div>
-        </section>
+    <div class="main-content">
+        <div class="container-fluid">
+            <section class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="section-title mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Agendamentos
+                    </h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="tabela-agendamentos">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="bi bi-building me-2"></i>Congregação</th>
+                                <th><i class="bi bi-calendar3 me-2"></i>Data</th>
+                                <th><i class="bi bi-person me-2"></i>Irmão</th>
+                                <th><i class="bi bi-tag me-2"></i>Tipo</th>
+                                <th><i class="bi bi-gear me-2"></i>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-agendamentos"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     </div>
 
     <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
