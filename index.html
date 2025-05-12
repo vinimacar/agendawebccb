@@ -504,13 +504,37 @@
             }
         };
 
+        // Lista de congregações que têm reunião de jovens
+        const congregacoesComReuniaoJovens = [
+            "Ituiutaba - Central",
+            "Ipiranga",
+            "Eldorado",
+            "Marta Helena",
+            "Natal",
+            "Novo Tempo II",
+            "Gurinhatã",
+            "Flor de Minas",
+            "Santa Vitória - Central",
+            "Capinópolis - Central"
+        ];
+
         window.abrirFormulario = function (cong, index = null) {
             congregacaoAtual = cong;
             indexEdicao = index;
             document.getElementById("congregacaoSelecionada").value = cong;
             document.getElementById("dataColeta").value = "";
             document.getElementById("irmaoNome").value = "";
-            document.getElementById("tipoAgendamento").value = "";
+            
+            // Atualizar opções do tipo de agendamento
+            const tipoSelect = document.getElementById("tipoAgendamento");
+            tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
+            
+            // Adicionar opção de Reunião de Jovens apenas para congregações específicas
+            if (congregacoesComReuniaoJovens.includes(cong)) {
+                tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
+            }
+
+            tipoSelect.value = "";
 
             if (index !== null) {
                 const ag = agendamentos[index];
@@ -524,9 +548,12 @@
             horariosDiv.innerHTML = "";
             const horarios = horariosCongregacoes[cong];
             Object.entries(horarios).forEach(([tipo, lista]) => {
-                lista.forEach(h => {
-                    horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
-                });
+                // Mostrar apenas os horários relevantes para a congregação
+                if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+                    lista.forEach(h => {
+                        horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                    });
+                }
             });
 
             modal.show();
@@ -664,28 +691,40 @@
                 botao.className = "btn btn-outline-primary w-100 botao-congregacao";
 
                 const agendamentoCulto = agendamentos.some(a => a.congregacao === c && a.tipo === "Culto Oficial");
-                const agendamentoJovens = agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
+                const temReuniaoJovens = congregacoesComReuniaoJovens.includes(c);
+                const agendamentoJovens = temReuniaoJovens && agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
 
                 let statusHtml = '';
-                if (agendamentoCulto && agendamentoJovens) {
-                    statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
-                } else if (agendamentoCulto) {
-                    statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
-                } else if (agendamentoJovens) {
-                    statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+                if (temReuniaoJovens) {
+                    if (agendamentoCulto && agendamentoJovens) {
+                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
+                    } else if (agendamentoCulto) {
+                        statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
+                    } else if (agendamentoJovens) {
+                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
+                    } else {
+                        statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
+                    }
                 } else {
-                    statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
+                    if (agendamentoCulto) {
+                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Agendado</span>';
+                    } else {
+                        statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
+                    }
                 }
 
                 botao.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-building me-2"></i>${c}</span>
+                        <div>
+                            <i class="bi bi-building me-2"></i>${c}
+                            ${temReuniaoJovens ? '<small class="ms-2 badge bg-info"><i class="bi bi-people"></i> Jovens</small>' : ''}
+                        </div>
                         ${statusHtml}
                     </div>
                 `;
                 
                 botao.setAttribute('data-bs-toggle', 'tooltip');
-                botao.setAttribute('title', 'Clique para agendar');
+                botao.setAttribute('title', `Clique para agendar${temReuniaoJovens ? ' (Culto/Jovens)' : ' (Culto)'}`);
                 botao.onclick = () => abrirFormulario(c);
                 
                 col.appendChild(botao);
