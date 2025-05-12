@@ -689,21 +689,56 @@
                 return;
             }
 
-            const duplicado = agendamentos.some((a, i) => {
-                const dataAgendamento = new Date(a.data);
-                const dataSelecionada = new Date(data);
-                return (
-                    a.congregacao === congregacaoAtual &&
-                    dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
-                    dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
-                    a.tipo === tipo &&
-                    i !== indexEdicao
-                );
-            });
+            const dataSelecionada = new Date(data + "T00:00");
+            const diaSemana = dataSelecionada.getDay(); // 0 = Domingo, 4 = Quinta-feira
 
-            if (duplicado) {
-                alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
-                return;
+            // Validação especial para Ituiutaba - Central
+            if (congregacaoAtual === "Ituiutaba - Central" && tipo === "Culto Oficial") {
+                const cultosItuiutaba = agendamentos.filter(a => 
+                    a.congregacao === "Ituiutaba - Central" && 
+                    a.tipo === "Culto Oficial" &&
+                    new Date(a.data).getMonth() === dataSelecionada.getMonth() &&
+                    new Date(a.data).getFullYear() === dataSelecionada.getFullYear() &&
+                    a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null)
+                );
+
+                if (cultosItuiutaba.length >= 2) {
+                    alert("A Congregação Central de Ituiutaba já possui dois cultos agendados neste mês.");
+                    return;
+                }
+
+                const temCultoQuinta = cultosItuiutaba.some(a => new Date(a.data).getDay() === 4);
+                
+                if (cultosItuiutaba.length === 1 && !temCultoQuinta && diaSemana !== 4) {
+                    alert("O segundo culto deve ser obrigatoriamente na quinta-feira.");
+                    return;
+                }
+
+                if (cultosItuiutaba.length === 0 && diaSemana === 4) {
+                    // Permitir o primeiro agendamento na quinta-feira
+                } else if (cultosItuiutaba.length === 0) {
+                    // Permitir o primeiro agendamento em qualquer dia
+                } else if (cultosItuiutaba.length === 1 && temCultoQuinta && diaSemana === 4) {
+                    alert("Já existe um culto agendado para quinta-feira.");
+                    return;
+                }
+            } else {
+                // Validação normal para outras congregações
+                const duplicado = agendamentos.some((a, i) => {
+                    const dataAgendamento = new Date(a.data);
+                    return (
+                        a.congregacao === congregacaoAtual &&
+                        dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
+                        dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
+                        a.tipo === tipo &&
+                        i !== indexEdicao
+                    );
+                });
+
+                if (duplicado) {
+                    alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                    return;
+                }
             }
 
             const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
@@ -803,15 +838,32 @@
                 const botao = document.createElement("button");
                 botao.className = "btn btn-outline-primary w-100 botao-congregacao";
 
-                const agendamentoCulto = agendamentos.some(a => a.congregacao === c && a.tipo === "Culto Oficial");
+                const agendamentosCulto = agendamentos.filter(a => 
+                    a.congregacao === c && 
+                    a.tipo === "Culto Oficial"
+                );
                 const temReuniaoJovens = congregacoesComReuniaoJovens.includes(c);
-                const agendamentoJovens = temReuniaoJovens && agendamentos.some(a => a.congregacao === c && a.tipo === "Reunião de Jovens e Menores");
+                const agendamentoJovens = temReuniaoJovens && agendamentos.some(a => 
+                    a.congregacao === c && 
+                    a.tipo === "Reunião de Jovens e Menores"
+                );
 
                 let statusHtml = '';
-                if (temReuniaoJovens) {
-                    if (agendamentoCulto && agendamentoJovens) {
+                if (c === "Ituiutaba - Central") {
+                    const cultosQuinta = agendamentosCulto.filter(a => new Date(a.data).getDay() === 4);
+                    if (agendamentosCulto.length === 2 && cultosQuinta.length > 0 && agendamentoJovens) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
-                    } else if (agendamentoCulto) {
+                    } else {
+                        const badges = [];
+                        if (cultosQuinta.length > 0) badges.push('<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Quinta</span>');
+                        if (agendamentosCulto.length > cultosQuinta.length) badges.push('<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Extra</span>');
+                        if (agendamentoJovens) badges.push('<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>');
+                        statusHtml = badges.join(' ') || '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
+                    }
+                } else if (temReuniaoJovens) {
+                    if (agendamentosCulto.length > 0 && agendamentoJovens) {
+                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
+                    } else if (agendamentosCulto.length > 0) {
                         statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
                     } else if (agendamentoJovens) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
@@ -819,7 +871,7 @@
                         statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
                     }
                 } else {
-                    if (agendamentoCulto) {
+                    if (agendamentosCulto.length > 0) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Agendado</span>';
                     } else {
                         statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
@@ -830,14 +882,21 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <i class="bi bi-building me-2"></i>${c}
+                            ${c === "Ituiutaba - Central" ? 
+                                '<small class="ms-2 badge bg-warning text-dark"><i class="bi bi-star-fill"></i> 2 Cultos</small>' : ''}
                             ${temReuniaoJovens ? '<small class="ms-2 badge bg-info"><i class="bi bi-people"></i> Jovens</small>' : ''}
                         </div>
-                        ${statusHtml}
+                        <div class="d-flex gap-1">
+                            ${statusHtml}
+                        </div>
                     </div>
                 `;
                 
                 botao.setAttribute('data-bs-toggle', 'tooltip');
-                botao.setAttribute('title', `Clique para agendar${temReuniaoJovens ? ' (Culto/Jovens)' : ' (Culto)'}`);
+                const tooltipText = c === "Ituiutaba - Central" ? 
+                    'Clique para agendar (Permite 2 cultos, um na quinta-feira)' : 
+                    `Clique para agendar${temReuniaoJovens ? ' (Culto/Jovens)' : ' (Culto)'}`;
+                botao.setAttribute('title', tooltipText);
                 botao.onclick = () => abrirFormulario(c);
                 
                 col.appendChild(botao);
