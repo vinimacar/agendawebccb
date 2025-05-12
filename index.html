@@ -980,6 +980,7 @@
             const margemEsquerda = 15;
             const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
             const alturaLinha = 7;
+            const alturaCabecalho = 6; // Altura reduzida do cabeçalho
             const colunas = {
                 data: { titulo: "Data", largura: larguraUtil * 0.35, x: margemEsquerda },
                 local: { titulo: "Localidade", largura: larguraUtil * 0.35, x: margemEsquerda + (larguraUtil * 0.35) },
@@ -989,14 +990,14 @@
             // Função para desenhar retângulo de fundo
             const desenharFundo = (y, altura) => {
                 doc.setFillColor(240, 240, 240); // Cinza claro
-                doc.rect(margemEsquerda, y - 5, larguraUtil, altura, 'F');
+                doc.rect(margemEsquerda, y - 4, larguraUtil, altura, 'F');
             };
 
             // Função para adicionar cabeçalho da tabela
             const adicionarCabecalhoTabela = (y) => {
                 // Fundo do cabeçalho
                 doc.setFillColor(51, 51, 51); // Cinza escuro
-                doc.rect(margemEsquerda, y - 5, larguraUtil, alturaLinha + 3, 'F');
+                doc.rect(margemEsquerda, y - 4, larguraUtil, alturaCabecalho, 'F');
                 
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(11);
@@ -1008,7 +1009,7 @@
                 });
                 
                 doc.setTextColor(0, 0, 0); // Voltar para texto preto
-                return y + alturaLinha;
+                return y + alturaCabecalho;
             };
 
             // Função para adicionar uma seção com tabela
@@ -1023,6 +1024,7 @@
 
                 // Adicionar cabeçalho da tabela
                 y = adicionarCabecalhoTabela(y);
+                y += 2; // Espaço adicional após o cabeçalho
 
                 // Adicionar dados
                 doc.setFont("helvetica", "normal");
@@ -1034,6 +1036,7 @@
                         doc.addPage();
                         y = 20;
                         y = adicionarCabecalhoTabela(y);
+                        y += 2; // Espaço adicional após o cabeçalho na nova página
                     }
 
                     // Adicionar fundo cinza para linhas alternadas
