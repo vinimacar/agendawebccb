@@ -431,6 +431,7 @@
     <div class="toast-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, push, set, serverTimestamp, remove, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -467,66 +468,92 @@
             });
         }
 
-        // Função para criar um item de serviço
-        window.criarItemServico = function(servico) {
-            return `
-                <div class="service-item" data-id="${servico.id || ''}">
-                    <div class="service-date mb-2">
-                        <i class="bi bi-calendar3 me-2"></i>${formatarData(servico.data)}
-                    </div>
-                    <div class="service-location mb-2">
-                        <i class="bi bi-geo-alt me-2"></i>${servico.local}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'} mb-2">
-                            ${servico.status}
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-warning" onclick="editarServico('${servico.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="excluirServico('${servico.id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    ${servico.observacoes ? `
-                    <div class="service-obs mt-2">
-                        <i class="bi bi-chat-text me-2"></i>${servico.observacoes}
-                    </div>
-                    ` : ''}
-                </div>
-            `;
+        // Inicialização do Calendário
+        let calendar;
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                eventClick: function(info) {
+                    mostrarDetalhesServico(info.event.extendedProps.tipo);
+                },
+                events: []
+            });
+            calendar.render();
+            
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Carregar serviços iniciais
+            carregarServicos();
+
+            // Adicionar listeners
+            document.getElementById('monthSelector').addEventListener('change', carregarServicos);
+            document.getElementById('tipoFiltro').addEventListener('change', filtrarServicos);
+        });
+
+        // Função para alternar entre visualizações
+        window.toggleView = function() {
+            const calendarView = document.getElementById('calendarView');
+            const cardsView = document.getElementById('cardsView');
+            
+            if (calendarView.style.display === 'none') {
+                calendarView.style.display = 'block';
+                cardsView.style.display = 'none';
+                calendar.render();
+            } else {
+                calendarView.style.display = 'none';
+                cardsView.style.display = 'grid';
+            }
         }
 
-        // Carregar serviços do Firebase
+        // Função para filtrar serviços
+        function filtrarServicos() {
+            const tipo = document.getElementById('tipoFiltro').value;
+            const cards = document.querySelectorAll('.service-card');
+            
+            if (!tipo) {
+                cards.forEach(card => card.style.display = 'block');
+                return;
+            }
+
+            cards.forEach(card => {
+                const cardTipo = card.querySelector('.service-title span').textContent;
+                card.style.display = cardTipo.toUpperCase() === tipo ? 'block' : 'none';
+            });
+        }
+
+        // Função para carregar serviços
         window.carregarServicos = function() {
             const servicosRef = ref(db, 'agendamento2');
             onValue(servicosRef, (snapshot) => {
                 const servicos = snapshot.val() || {};
                 
-                // Limpar todas as listas
-                document.querySelectorAll('[id$="-list"]').forEach(el => el.innerHTML = '');
-                
-                // Resetar contadores
-                const tipos = [
-                    'batismos', 'santas-ceias', 'mocidade', 'ensaios-regionais',
-                    'ensaios-locais', 'conselho-mocidade', 'cultos-jovens',
-                    'obra-piedade', 'evangelizacao'
-                ];
-                
-                tipos.forEach(tipo => {
-                    document.getElementById(`${tipo}-count`).textContent = '0';
-                });
+                // Limpar todas as listas e contadores
+                document.querySelectorAll('.service-list').forEach(el => el.innerHTML = '');
+                document.querySelectorAll('[id$="-count"]').forEach(el => el.textContent = '0');
 
+                // Limpar eventos do calendário
+                calendar.removeAllEvents();
+                
                 // Filtrar por mês selecionado
                 const mesSelecionado = document.getElementById('monthSelector').value;
                 
-                // Preencher cada tipo de serviço
                 Object.entries(servicos).forEach(([id, servico]) => {
-                    servico.id = id; // Adicionar ID ao objeto do serviço
+                    servico.id = id;
                     const servicoData = new Date(servico.data);
+                    
                     if (servicoData.getMonth() + 1 === parseInt(mesSelecionado)) {
+                        // Adicionar ao card correspondente
                         const elementId = servico.tipo.toLowerCase().replace(/\s+/g, '-') + '-list';
                         const countId = elementId.replace('-list', '-count');
                         const element = document.getElementById(elementId);
@@ -538,9 +565,77 @@
                                 countElement.textContent = parseInt(countElement.textContent) + 1;
                             }
                         }
+
+                        // Adicionar ao calendário
+                        calendar.addEvent({
+                            title: servico.tipo,
+                            start: servico.data,
+                            backgroundColor: getEventColor(servico.tipo),
+                            extendedProps: {
+                                tipo: servico.tipo,
+                                local: servico.local,
+                                status: servico.status
+                            }
+                        });
                     }
                 });
+
+                calendar.render();
             });
+        }
+
+        // Função para obter cor do evento baseado no tipo
+        function getEventColor(tipo) {
+            const cores = {
+                'BATISMOS': '#1a237e',
+                'SANTAS-CEIAS': '#c62828',
+                'REUNIÃO PARA MOCIDADE': '#2e7d32',
+                'ENSAIOS REGIONAIS': '#f57f17',
+                'ENSAIOS LOCAIS': '#0277bd',
+                'REUNIÃO DE CONSELHO DA MOCIDADE': '#283593',
+                'REUNIÃO DA OBRA DA PIEDADE': '#ad1457',
+                'EVANGELIZAÇÃO': '#00695c'
+            };
+            return cores[tipo] || '#666666';
+        }
+
+        // Função para criar um item de serviço
+        window.criarItemServico = function(servico) {
+            return `
+                <div class="service-item p-3 mb-3 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="mb-2">
+                                <i class="bi bi-calendar3 me-2"></i>
+                                <strong>${formatarData(servico.data)}</strong>
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-geo-alt me-2"></i>
+                                ${servico.local}
+                            </div>
+                            ${servico.observacoes ? `
+                            <div class="mt-2 text-muted">
+                                <i class="bi bi-chat-text me-2"></i>
+                                ${servico.observacoes}
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="d-flex flex-column align-items-end">
+                            <span class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'} mb-2">
+                                ${servico.status}
+                            </span>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editarServico('${servico.id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="excluirServico('${servico.id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // Função para salvar serviço
@@ -616,57 +711,6 @@
                     mostrarToast('Erro ao excluir serviço: ' + error.message, 'danger');
                 }
             }
-        }
-
-        // Inicializar
-        window.addEventListener('DOMContentLoaded', () => {
-            carregarServicos();
-            document.getElementById('monthSelector').addEventListener('change', carregarServicos);
-            
-            // Listener para o formulário
-            document.getElementById('formServico').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const editId = e.target.dataset.editId;
-                
-                if (editId) {
-                    // Atualizar serviço existente
-                    try {
-                        const servicoRef = ref(db, `agendamento2/${editId}`);
-                        const servico = {
-                            tipo: document.getElementById('tipoServico').value,
-                            data: document.getElementById('dataServico').value,
-                            local: document.getElementById('localServico').value,
-                            status: document.getElementById('statusServico').value,
-                            observacoes: document.getElementById('observacoesServico').value,
-                            ultimaAtualizacao: serverTimestamp()
-                        };
-                        
-                        await set(servicoRef, servico);
-                        modalServico.hide();
-                        mostrarToast('Serviço atualizado com sucesso!', 'success');
-                        e.target.dataset.editId = '';
-                        e.target.reset();
-                    } catch (error) {
-                        console.error('Erro ao atualizar:', error);
-                        mostrarToast('Erro ao atualizar serviço: ' + error.message, 'danger');
-                    }
-                } else {
-                    // Criar novo serviço
-                    await salvarServico();
-                }
-            });
-        });
-    </script>
-
-    <script>
-        // Definições globais
-        const modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
-        const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
-
-        function abrirModalCadastro() {
-            document.getElementById('formServico').reset();
-            document.getElementById('formServico').dataset.editId = '';
-            modalServico.show();
         }
 
         function mostrarDetalhesServico(tipo) {
@@ -771,14 +815,6 @@
             
             doc.save("relatorio_completo_servicos.pdf");
         }
-
-        // Inicializar tooltips quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
