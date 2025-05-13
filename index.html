@@ -1157,11 +1157,20 @@
                 try {
                     await remove(ref(db, "agendamentos/" + agendamentoParaExcluir.id));
                     modalConfirmacaoFinal.hide();
+                    agendamentoParaExcluir = null;
                     mostrarAlerta("Agendamento excluído com sucesso!", "success");
+                    // Atualizar a interface
+                    carregarAgendamentos();
                 } catch (error) {
+                    console.error("Erro ao excluir:", error);
                     modalConfirmacaoFinal.hide();
+                    agendamentoParaExcluir = null;
                     mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
                 }
+            } else {
+                modalConfirmacaoFinal.hide();
+                agendamentoParaExcluir = null;
+                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
             }
         });
 
