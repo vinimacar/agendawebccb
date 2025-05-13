@@ -1473,7 +1473,23 @@
         });
 
         document.getElementById("btnExportPNG").addEventListener("click", () => {
+            // Ocultar a coluna de ações temporariamente
+            const acoesHeaders = document.querySelectorAll('th:last-child');
+            const acoesCells = document.querySelectorAll('td:last-child');
+            
+            // Guardar o display original
+            const headerDisplays = Array.from(acoesHeaders).map(el => el.style.display);
+            const cellDisplays = Array.from(acoesCells).map(el => el.style.display);
+            
+            // Ocultar elementos
+            acoesHeaders.forEach(el => el.style.display = 'none');
+            acoesCells.forEach(el => el.style.display = 'none');
+
             html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
+                // Restaurar a visibilidade dos elementos
+                acoesHeaders.forEach((el, i) => el.style.display = headerDisplays[i] || '');
+                acoesCells.forEach((el, i) => el.style.display = cellDisplays[i] || '');
+
                 const link = document.createElement("a");
                 link.download = "agendamentos.png";
                 link.href = canvas.toDataURL();
