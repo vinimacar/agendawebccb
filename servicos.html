@@ -770,7 +770,51 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initial data load is handled by the Firebase listener
             initializeCalendar();
+            initializeCongregations();
         });
+
+        // Initialize congregations in Firebase
+        function initializeCongregations() {
+            const congregations = [
+                { name: "Alvorada", number: "01" },
+                { name: "Buritis", number: "02" },
+                { name: "Capinópolis - Central", number: "03" },
+                { name: "Cachoeira Dourada", number: "04" },
+                { name: "Chaveslândia", number: "05" },
+                { name: "Chico Mendes", number: "06" },
+                { name: "Dom Alexandre", number: "07" },
+                { name: "Eldorado", number: "08" },
+                { name: "Flor de Minas", number: "09" },
+                { name: "Gurinhatã", number: "10" },
+                { name: "Ipiaçu", number: "11" },
+                { name: "Ipiranga", number: "12" },
+                { name: "Ituiutaba - Central", number: "13" },
+                { name: "Jerônimo Mendonça", number: "14" },
+                { name: "Marta Helena", number: "15" },
+                { name: "Natal", number: "16" },
+                { name: "Novo Tempo II", number: "17" },
+                { name: "Recanto das Acácias", number: "18" },
+                { name: "Santa Vitória - Central", number: "19" },
+                { name: "Satélite Andradina", number: "20" },
+                { name: "Setor Norte", number: "21" }
+            ];
+
+            // Check if congregations already exist
+            congregationsRef.once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        // Create congregation entries
+                        congregations.forEach(congregation => {
+                            congregationsRef.push(congregation);
+                        });
+                        showToast('Congregações inicializadas com sucesso!', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao inicializar congregações:', error);
+                    showToast('Erro ao inicializar congregações: ' + error.message, 'danger');
+                });
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
