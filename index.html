@@ -1098,7 +1098,7 @@
                             <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento(${index})" data-bs-toggle="tooltip" title="Excluir agendamento">
+                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -1121,20 +1121,13 @@
         let agendamentoParaExcluir = null;
 
         // Função para excluir agendamento
-        window.excluirAgendamento = async function (index) {
-            const agendamento = agendamentos[index];
-            if (!agendamento || !agendamento.id) {
-                mostrarAlerta("Erro: Agendamento inválido.", "danger");
+        window.excluirAgendamento = async function (id) {
+            const agendamento = agendamentos.find(a => a.id === id);
+            
+            if (!agendamento) {
+                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
                 return;
             }
-            
-            agendamentoParaExcluir = {
-                id: agendamento.id,
-                congregacao: agendamento.congregacao,
-                data: agendamento.data,
-                irmao: agendamento.irmao,
-                tipo: agendamento.tipo
-            };
             
             // Formatar a data
             const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR", {
@@ -1150,14 +1143,17 @@
             document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
             document.getElementById('tipoExclusao').textContent = agendamento.tipo;
 
+            // Armazenar o ID do agendamento para exclusão
+            agendamentoParaExcluir = id;
+
             // Mostrar o primeiro modal
             modalExclusao.show();
         };
 
         // Evento para a primeira confirmação
         document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', () => {
-            if (!agendamentoParaExcluir || !agendamentoParaExcluir.id) {
-                mostrarAlerta("Erro: Dados do agendamento inválidos.", "danger");
+            if (!agendamentoParaExcluir) {
+                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
                 modalExclusao.hide();
                 return;
             }
@@ -1169,16 +1165,15 @@
 
         // Evento para a confirmação final
         document.getElementById('btnConfirmacaoFinal').addEventListener('click', async () => {
-            if (!agendamentoParaExcluir || !agendamentoParaExcluir.id) {
-                mostrarAlerta("Erro: Dados do agendamento inválidos.", "danger");
+            if (!agendamentoParaExcluir) {
+                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
                 modalConfirmacaoFinal.hide();
                 return;
             }
 
             try {
-                const agendamentoRef = ref(db, `agendamentos/${agendamentoParaExcluir.id}`);
+                const agendamentoRef = ref(db, `agendamentos/${agendamentoParaExcluir}`);
                 await remove(agendamentoRef);
-                modalConfirmacaoFinal.hide();
                 mostrarAlerta("Agendamento excluído com sucesso!", "success");
                 
                 // Atualizar a interface
