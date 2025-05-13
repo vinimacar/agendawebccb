@@ -51,6 +51,7 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
 
         .service-card:hover {
@@ -65,6 +66,7 @@
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
         }
 
         .service-title i {
@@ -108,6 +110,52 @@
         .month-selector {
             max-width: 200px;
         }
+
+        .add-service-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 6rem;
+            padding: 1rem;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 10rem;
+            padding: 1rem;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-item {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+
+        .service-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .modal-title {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1050;
+        }
     </style>
 </head>
 <body>
@@ -130,40 +178,52 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6">
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('BATISMOS')">
                     <div class="service-title">
-                        <i class="bi bi-water text-primary"></i>
-                        BATISMOS
+                        <div>
+                            <i class="bi bi-water text-primary"></i>
+                            BATISMOS
+                        </div>
+                        <span class="badge bg-primary" id="batismos-count">0</span>
                     </div>
                     <div id="batismos-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('SANTAS-CEIAS')">
                     <div class="service-title">
-                        <i class="bi bi-cup-hot text-danger"></i>
-                        SANTAS-CEIAS
+                        <div>
+                            <i class="bi bi-cup-hot text-danger"></i>
+                            SANTAS-CEIAS
+                        </div>
+                        <span class="badge bg-danger" id="santas-ceias-count">0</span>
                     </div>
                     <div id="santas-ceias-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO PARA MOCIDADE')">
                     <div class="service-title">
-                        <i class="bi bi-people-fill text-success"></i>
-                        REUNIÃO PARA MOCIDADE
+                        <div>
+                            <i class="bi bi-people-fill text-success"></i>
+                            REUNIÃO PARA MOCIDADE
+                        </div>
+                        <span class="badge bg-success" id="mocidade-count">0</span>
                     </div>
                     <div id="mocidade-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('ENSAIOS REGIONAIS')">
                     <div class="service-title">
-                        <i class="bi bi-music-note-list text-warning"></i>
-                        ENSAIOS REGIONAIS
+                        <div>
+                            <i class="bi bi-music-note-list text-warning"></i>
+                            ENSAIOS REGIONAIS
+                        </div>
+                        <span class="badge bg-warning" id="ensaios-regionais-count">0</span>
                     </div>
                     <div id="ensaios-regionais-list">
                         <!-- Será preenchido via JavaScript -->
@@ -172,50 +232,65 @@
             </div>
 
             <div class="col-md-6">
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('ENSAIOS LOCAIS')">
                     <div class="service-title">
-                        <i class="bi bi-music-note text-info"></i>
-                        ENSAIOS LOCAIS
+                        <div>
+                            <i class="bi bi-music-note text-info"></i>
+                            ENSAIOS LOCAIS
+                        </div>
+                        <span class="badge bg-info" id="ensaios-locais-count">0</span>
                     </div>
                     <div id="ensaios-locais-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO DE CONSELHO DA MOCIDADE')">
                     <div class="service-title">
-                        <i class="bi bi-people text-primary"></i>
-                        REUNIÃO DE CONSELHO DA MOCIDADE
+                        <div>
+                            <i class="bi bi-people text-primary"></i>
+                            REUNIÃO DE CONSELHO DA MOCIDADE
+                        </div>
+                        <span class="badge bg-primary" id="conselho-mocidade-count">0</span>
                     </div>
                     <div id="conselho-mocidade-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('CULTOS PARA JOVENS')">
                     <div class="service-title">
-                        <i class="bi bi-person-heart text-danger"></i>
-                        CULTOS PARA JOVENS
+                        <div>
+                            <i class="bi bi-person-heart text-danger"></i>
+                            CULTOS PARA JOVENS
+                        </div>
+                        <span class="badge bg-danger" id="cultos-jovens-count">0</span>
                     </div>
                     <div id="cultos-jovens-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO DA OBRA DA PIEDADE')">
                     <div class="service-title">
-                        <i class="bi bi-heart-fill text-success"></i>
-                        REUNIÃO DA OBRA DA PIEDADE
+                        <div>
+                            <i class="bi bi-heart-fill text-success"></i>
+                            REUNIÃO DA OBRA DA PIEDADE
+                        </div>
+                        <span class="badge bg-success" id="obra-piedade-count">0</span>
                     </div>
                     <div id="obra-piedade-list">
                         <!-- Será preenchido via JavaScript -->
                     </div>
                 </div>
 
-                <div class="service-card">
+                <div class="service-card" onclick="mostrarDetalhesServico('EVANGELIZAÇÃO')">
                     <div class="service-title">
-                        <i class="bi bi-megaphone text-warning"></i>
-                        EVANGELIZAÇÃO
+                        <div>
+                            <i class="bi bi-megaphone text-warning"></i>
+                            EVANGELIZAÇÃO
+                        </div>
+                        <span class="badge bg-warning" id="evangelizacao-count">0</span>
                     </div>
                     <div id="evangelizacao-list">
                         <!-- Será preenchido via JavaScript -->
@@ -225,13 +300,102 @@
         </div>
     </div>
 
+    <!-- Modal de Cadastro de Serviço -->
+    <div class="modal fade" id="modalServico" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Cadastrar Serviço
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formServico">
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Serviço</label>
+                            <select class="form-select" id="tipoServico" required>
+                                <option value="">Selecione o tipo de serviço</option>
+                                <option value="BATISMOS">BATISMOS</option>
+                                <option value="SANTAS-CEIAS">SANTAS-CEIAS</option>
+                                <option value="REUNIÃO PARA MOCIDADE">REUNIÃO PARA MOCIDADE</option>
+                                <option value="ENSAIOS REGIONAIS">ENSAIOS REGIONAIS</option>
+                                <option value="ENSAIOS LOCAIS">ENSAIOS LOCAIS</option>
+                                <option value="REUNIÃO DE CONSELHO DA MOCIDADE">REUNIÃO DE CONSELHO DA MOCIDADE</option>
+                                <option value="CULTOS PARA JOVENS">CULTOS PARA JOVENS</option>
+                                <option value="REUNIÃO DA OBRA DA PIEDADE">REUNIÃO DA OBRA DA PIEDADE</option>
+                                <option value="EVANGELIZAÇÃO">EVANGELIZAÇÃO</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data</label>
+                            <input type="date" class="form-control" id="dataServico" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Local</label>
+                            <input type="text" class="form-control" id="localServico" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusServico" required>
+                                <option value="Confirmado">Confirmado</option>
+                                <option value="Pendente">Pendente</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesServico" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarServico()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Serviço -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detalhesTitulo"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detalhesConteudo"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" onclick="exportarRelatorio()">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container"></div>
+
     <a href="index.html" class="btn btn-primary back-button">
         <i class="bi bi-arrow-left"></i>
     </a>
 
+    <button class="btn btn-success add-service-btn" onclick="abrirModalCadastro()">
+        <i class="bi bi-plus-lg"></i>
+    </button>
+
+    <button class="btn btn-info export-btn" onclick="exportarTodosServicos()">
+        <i class="bi bi-file-earmark-pdf"></i>
+    </button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
@@ -246,8 +410,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        window.db = db;
+        window.ref = ref;
+        window.push = push;
+        window.set = set;
+
         // Função para formatar a data
-        function formatarData(data) {
+        window.formatarData = function(data) {
             const dataObj = new Date(data);
             return dataObj.toLocaleDateString('pt-BR', {
                 weekday: 'long',
@@ -258,46 +427,222 @@
         }
 
         // Função para criar um item de serviço
-        function criarItemServico(servico) {
+        window.criarItemServico = function(servico) {
             return `
-                <div class="service-date mb-2">
-                    <i class="bi bi-calendar3 me-2"></i>${formatarData(servico.data)}
+                <div class="service-item">
+                    <div class="service-date mb-2">
+                        <i class="bi bi-calendar3 me-2"></i>${formatarData(servico.data)}
+                    </div>
+                    <div class="service-location mb-2">
+                        <i class="bi bi-geo-alt me-2"></i>${servico.local}
+                    </div>
+                    <div class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'} mb-2">
+                        ${servico.status}
+                    </div>
+                    ${servico.observacoes ? `
+                    <div class="service-obs mt-2">
+                        <i class="bi bi-chat-text me-2"></i>${servico.observacoes}
+                    </div>
+                    ` : ''}
                 </div>
-                <div class="service-location mb-3">
-                    <i class="bi bi-geo-alt me-2"></i>${servico.local}
-                </div>
-                <div class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'}">
-                    ${servico.status}
-                </div>
-                <hr>
             `;
         }
 
         // Carregar serviços do Firebase
-        function carregarServicos() {
+        window.carregarServicos = function() {
             const servicosRef = ref(db, 'servicos');
             onValue(servicosRef, (snapshot) => {
                 const servicos = snapshot.val() || {};
                 
                 // Limpar todas as listas
                 document.querySelectorAll('[id$="-list"]').forEach(el => el.innerHTML = '');
+                
+                // Resetar contadores
+                const tipos = [
+                    'batismos', 'santas-ceias', 'mocidade', 'ensaios-regionais',
+                    'ensaios-locais', 'conselho-mocidade', 'cultos-jovens',
+                    'obra-piedade', 'evangelizacao'
+                ];
+                
+                tipos.forEach(tipo => {
+                    document.getElementById(`${tipo}-count`).textContent = '0';
+                });
 
+                // Filtrar por mês selecionado
+                const mesSelecionado = document.getElementById('monthSelector').value;
+                
                 // Preencher cada tipo de serviço
                 Object.values(servicos).forEach(servico => {
-                    const elementId = servico.tipo.toLowerCase().replace(/\s+/g, '-') + '-list';
-                    const element = document.getElementById(elementId);
-                    if (element) {
-                        element.innerHTML += criarItemServico(servico);
+                    const servicoData = new Date(servico.data);
+                    if (servicoData.getMonth() + 1 === parseInt(mesSelecionado)) {
+                        const elementId = servico.tipo.toLowerCase().replace(/\s+/g, '-') + '-list';
+                        const countId = elementId.replace('-list', '-count');
+                        const element = document.getElementById(elementId);
+                        const countElement = document.getElementById(countId);
+                        
+                        if (element) {
+                            element.innerHTML += criarItemServico(servico);
+                            if (countElement) {
+                                countElement.textContent = parseInt(countElement.textContent) + 1;
+                            }
+                        }
                     }
                 });
             });
         }
 
         // Inicializar
-        carregarServicos();
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarServicos();
+            document.getElementById('monthSelector').addEventListener('change', carregarServicos);
+        });
+    </script>
 
-        // Atualizar ao mudar o mês
-        document.getElementById('monthSelector').addEventListener('change', carregarServicos);
+    <script>
+        // Modal de cadastro
+        const modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
+        const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+
+        window.abrirModalCadastro = function() {
+            document.getElementById('formServico').reset();
+            modalServico.show();
+        }
+
+        window.mostrarDetalhesServico = function(tipo) {
+            const titulo = document.getElementById('detalhesTitulo');
+            const conteudo = document.getElementById('detalhesConteudo');
+            
+            titulo.innerHTML = `<i class="bi bi-info-circle me-2"></i>${tipo}`;
+            const lista = document.getElementById(`${tipo.toLowerCase().replace(/\s+/g, '-')}-list`).innerHTML;
+            
+            if (lista.trim()) {
+                conteudo.innerHTML = lista;
+            } else {
+                conteudo.innerHTML = '<div class="alert alert-info">Nenhum serviço cadastrado para este tipo.</div>';
+            }
+            
+            modalDetalhes.show();
+        }
+
+        window.salvarServico = async function() {
+            const tipo = document.getElementById('tipoServico').value;
+            const data = document.getElementById('dataServico').value;
+            const local = document.getElementById('localServico').value;
+            const status = document.getElementById('statusServico').value;
+            const observacoes = document.getElementById('observacoesServico').value;
+
+            if (!tipo || !data || !local || !status) {
+                mostrarToast('Preencha todos os campos obrigatórios', 'danger');
+                return;
+            }
+
+            const servico = {
+                tipo,
+                data,
+                local,
+                status,
+                observacoes,
+                dataCadastro: new Date().toISOString()
+            };
+
+            try {
+                const servicosRef = ref(db, 'servicos');
+                await push(servicosRef, servico);
+                modalServico.hide();
+                mostrarToast('Serviço cadastrado com sucesso!', 'success');
+                carregarServicos();
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                mostrarToast('Erro ao cadastrar serviço', 'danger');
+            }
+        }
+
+        window.mostrarToast = function(mensagem, tipo) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>${mensagem}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        window.exportarRelatorio = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const titulo = document.getElementById('detalhesTitulo').textContent;
+            const conteudo = document.getElementById('detalhesConteudo').textContent;
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text(titulo, 20, 20);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(12);
+            
+            const linhas = doc.splitTextToSize(conteudo, 170);
+            doc.text(linhas, 20, 40);
+            
+            doc.save(`relatorio_${titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+        }
+
+        window.exportarTodosServicos = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text("Relatório Completo de Serviços", 105, 20, { align: "center" });
+            
+            let yPos = 40;
+            
+            document.querySelectorAll('.service-card').forEach(card => {
+                const titulo = card.querySelector('.service-title').textContent.trim();
+                const conteudo = card.querySelector(`[id$="-list"]`).textContent.trim();
+                
+                if (yPos > 250) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text(titulo, 20, yPos);
+                yPos += 10;
+                
+                if (conteudo) {
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(12);
+                    const linhas = doc.splitTextToSize(conteudo, 170);
+                    doc.text(linhas, 20, yPos);
+                    yPos += linhas.length * 7 + 10;
+                } else {
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(12);
+                    doc.text("Nenhum serviço cadastrado", 20, yPos);
+                    yPos += 20;
+                }
+            });
+            
+            doc.save("relatorio_completo_servicos.pdf");
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
