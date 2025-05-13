@@ -425,6 +425,80 @@
             font-size: 0.75rem;
             margin-right: 3px;
         }
+
+        /* Estilos para o ticker de agendamentos */
+        .ticker-container {
+            background-color: var(--primary-color);
+            padding: 0.5rem 0;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticker-container::before,
+        .ticker-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 50px;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .ticker-container::before {
+            left: 0;
+            background: linear-gradient(to right, var(--primary-color), transparent);
+        }
+
+        .ticker-container::after {
+            right: 0;
+            background: linear-gradient(to left, var(--primary-color), transparent);
+        }
+
+        .ticker-wrapper {
+            display: flex;
+            animation: ticker 60s linear infinite;
+            white-space: nowrap;
+            padding: 0 50px;
+        }
+
+        .ticker-wrapper:hover {
+            animation-play-state: paused;
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            color: white;
+            padding: 0 2rem;
+            font-size: 0.9rem;
+            border-right: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ticker-item:last-child {
+            border-right: none;
+        }
+
+        .ticker-item i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .ticker-item .badge {
+            margin-left: 0.5rem;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
     </style>
 </head>
 <body>
@@ -433,6 +507,12 @@
         <div class="app-subtitle">Administração de Ituiutaba-MG</div>
         <div class="app-subtitle">Referente ao mês de : JUNHO/2025</div>
     </header>
+
+    <div class="ticker-container">
+        <div class="ticker-wrapper" id="ticker-wrapper">
+            <!-- Os itens do ticker serão inseridos aqui via JavaScript -->
+        </div>
+    </div>
 
     <div class="main-container">
         <!-- Seção de Congregações -->
@@ -1105,6 +1185,7 @@
                 });
                 atualizarTabela();
                 atualizarIconesCongregacoes();
+                atualizarTicker();
             });
         }
 
@@ -1185,6 +1266,47 @@
             // Inicializar tooltips
             const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltips.forEach(t => new bootstrap.Tooltip(t));
+        }
+
+        function atualizarTicker() {
+            const tickerWrapper = document.getElementById('ticker-wrapper');
+            tickerWrapper.innerHTML = '';
+
+            // Ordenar agendamentos por data
+            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            // Duplicar os agendamentos para criar um efeito contínuo
+            const todosAgendamentos = [...agendamentosOrdenados, ...agendamentosOrdenados];
+
+            todosAgendamentos.forEach(agendamento => {
+                const dataObj = new Date(agendamento.data + "T00:00");
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
+                    day: '2-digit',
+                    month: '2-digit',
+                    weekday: 'short'
+                });
+
+                const tickerItem = document.createElement('div');
+                tickerItem.className = 'ticker-item';
+
+                const tipoIcone = agendamento.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people';
+                const tipoBadge = agendamento.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success';
+
+                tickerItem.innerHTML = `
+                    <i class="bi bi-calendar-event"></i>
+                    <span>${dataFormatada} - ${agendamento.congregacao} - ${agendamento.irmao}</span>
+                    <span class="badge ${tipoBadge}">
+                        <i class="bi ${tipoIcone}"></i>
+                        ${agendamento.tipo}
+                    </span>
+                `;
+
+                tickerWrapper.appendChild(tickerItem);
+            });
+
+            // Ajustar a animação com base no número de itens
+            const tickerWidth = tickerWrapper.scrollWidth;
+            tickerWrapper.style.animation = `ticker ${tickerWidth * 0.02}s linear infinite`;
         }
 
         function mostrarAlerta(mensagem, tipo) {
