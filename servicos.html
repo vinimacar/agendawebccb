@@ -351,58 +351,71 @@
     </div>
 
     <!-- Modal de Cadastro de Serviço -->
-    <div class="modal fade" id="modalServico" tabindex="-1">
-        <div class="modal-dialog">
+    <div class="modal fade" id="modalServico" tabindex="-1" aria-labelledby="modalServicoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">
+                    <h5 class="modal-title" id="modalServicoLabel">
                         <i class="bi bi-calendar-plus me-2"></i>
-                        Cadastrar Serviço
+                        Agendar Serviço
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="formServico">
+                <form id="formServico" class="needs-validation" novalidate>
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Tipo de Serviço</label>
+                            <label for="tipoServico" class="form-label">Tipo de Serviço</label>
                             <select class="form-select" id="tipoServico" required>
                                 <option value="">Selecione o tipo de serviço</option>
-                                <option value="BATISMOS">BATISMOS</option>
-                                <option value="SANTAS-CEIAS">SANTAS-CEIAS</option>
-                                <option value="REUNIÃO PARA MOCIDADE">REUNIÃO PARA MOCIDADE</option>
-                                <option value="ENSAIOS REGIONAIS">ENSAIOS REGIONAIS</option>
-                                <option value="ENSAIOS LOCAIS">ENSAIOS LOCAIS</option>
-                                <option value="REUNIÃO DE CONSELHO DA MOCIDADE">REUNIÃO DE CONSELHO DA MOCIDADE</option>
-                                <option value="CULTOS PARA JOVENS">CULTOS PARA JOVENS</option>
-                                <option value="REUNIÃO DA OBRA DA PIEDADE">REUNIÃO DA OBRA DA PIEDADE</option>
-                                <option value="EVANGELIZAÇÃO">EVANGELIZAÇÃO</option>
+                                <option value="BATISMOS">Batismos</option>
+                                <option value="SANTAS-CEIAS">Santas Ceias</option>
+                                <option value="REUNIÃO PARA MOCIDADE">Reunião para Mocidade</option>
+                                <option value="ENSAIOS REGIONAIS">Ensaios Regionais</option>
+                                <option value="ENSAIOS LOCAIS">Ensaios Locais</option>
+                                <option value="REUNIÃO DE CONSELHO DA MOCIDADE">Reunião de Conselho da Mocidade</option>
+                                <option value="REUNIÃO DA OBRA DA PIEDADE">Reunião da Obra da Piedade</option>
+                                <option value="EVANGELIZAÇÃO">Evangelização</option>
                             </select>
+                            <div class="invalid-feedback">
+                                Por favor, selecione o tipo de serviço.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Data</label>
+                            <label for="dataServico" class="form-label">Data</label>
                             <input type="date" class="form-control" id="dataServico" required>
+                            <div class="invalid-feedback">
+                                Por favor, selecione a data do serviço.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Local</label>
-                            <input type="text" class="form-control" id="localServico" required>
+                            <label for="localServico" class="form-label">Local</label>
+                            <input type="text" class="form-control" id="localServico" placeholder="Digite o local do serviço" required>
+                            <div class="invalid-feedback">
+                                Por favor, informe o local do serviço.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Status</label>
+                            <label for="statusServico" class="form-label">Status</label>
                             <select class="form-select" id="statusServico" required>
                                 <option value="Confirmado">Confirmado</option>
                                 <option value="Pendente">Pendente</option>
                             </select>
+                            <div class="invalid-feedback">
+                                Por favor, selecione o status do serviço.
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesServico" rows="3"></textarea>
+                            <label for="observacoesServico" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesServico" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="salvarServico()">Salvar</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>Salvar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -449,6 +462,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Exportar funções necessárias para o escopo global
         window.db = db;
         window.ref = ref;
         window.push = push;
@@ -456,6 +470,10 @@
         window.remove = remove;
         window.get = get;
         window.serverTimestamp = serverTimestamp;
+
+        // Inicializar modais globalmente
+        window.modalServico = null;
+        window.modalDetalhes = null;
 
         // Função para formatar a data
         window.formatarData = function(data) {
@@ -468,9 +486,22 @@
             });
         }
 
-        // Inicialização do Calendário
-        let calendar;
+        // Função para abrir modal de cadastro
+        window.abrirModalCadastro = function() {
+            if (!window.modalServico) {
+                window.modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
+            }
+            document.getElementById('formServico').reset();
+            document.getElementById('formServico').dataset.editId = '';
+            window.modalServico.show();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar modais
+            window.modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
+            window.modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+
+            // Inicializar calendário
             const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -499,6 +530,43 @@
             // Adicionar listeners
             document.getElementById('monthSelector').addEventListener('change', carregarServicos);
             document.getElementById('tipoFiltro').addEventListener('change', filtrarServicos);
+
+            // Listener para o formulário de serviço
+            document.getElementById('formServico').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const editId = this.dataset.editId;
+                
+                try {
+                    const servico = {
+                        tipo: document.getElementById('tipoServico').value,
+                        data: document.getElementById('dataServico').value,
+                        local: document.getElementById('localServico').value,
+                        status: document.getElementById('statusServico').value,
+                        observacoes: document.getElementById('observacoesServico').value,
+                        ultimaAtualizacao: serverTimestamp()
+                    };
+
+                    if (editId) {
+                        // Atualizar serviço existente
+                        const servicoRef = ref(db, `agendamento2/${editId}`);
+                        await set(servicoRef, servico);
+                        mostrarToast('Serviço atualizado com sucesso!', 'success');
+                    } else {
+                        // Criar novo serviço
+                        servico.dataCadastro = serverTimestamp();
+                        const servicosRef = ref(db, 'agendamento2');
+                        await push(servicosRef, servico);
+                        mostrarToast('Serviço cadastrado com sucesso!', 'success');
+                    }
+
+                    window.modalServico.hide();
+                    this.reset();
+                    this.dataset.editId = '';
+                } catch (error) {
+                    console.error('Erro ao salvar:', error);
+                    mostrarToast('Erro ao salvar serviço: ' + error.message, 'danger');
+                }
+            });
         });
 
         // Função para alternar entre visualizações
@@ -714,6 +782,9 @@
         }
 
         function mostrarDetalhesServico(tipo) {
+            if (!window.modalDetalhes) {
+                window.modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+            }
             const titulo = document.getElementById('detalhesTitulo');
             const conteudo = document.getElementById('detalhesConteudo');
             
@@ -726,7 +797,7 @@
                 conteudo.innerHTML = '<div class="alert alert-info">Nenhum serviço cadastrado para este tipo.</div>';
             }
             
-            modalDetalhes.show();
+            window.modalDetalhes.show();
         }
 
         function mostrarToast(mensagem, tipo) {
@@ -814,6 +885,54 @@
             });
             
             doc.save("relatorio_completo_servicos.pdf");
+        }
+    </script>
+
+    <script>
+        // Funções auxiliares no escopo global
+        function mostrarDetalhesServico(tipo) {
+            if (!window.modalDetalhes) {
+                window.modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+            }
+            const titulo = document.getElementById('detalhesTitulo');
+            const conteudo = document.getElementById('detalhesConteudo');
+            
+            titulo.innerHTML = `<i class="bi bi-info-circle me-2"></i>${tipo}`;
+            const lista = document.getElementById(`${tipo.toLowerCase().replace(/\s+/g, '-')}-list`).innerHTML;
+            
+            if (lista.trim()) {
+                conteudo.innerHTML = lista;
+            } else {
+                conteudo.innerHTML = '<div class="alert alert-info">Nenhum serviço cadastrado para este tipo.</div>';
+            }
+            
+            window.modalDetalhes.show();
+        }
+
+        function mostrarToast(mensagem, tipo) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>${mensagem}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
         }
     </script>
 
