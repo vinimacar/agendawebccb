@@ -393,19 +393,18 @@
                             <label for="localServico" class="form-label">Local</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="localServico" 
-                                    placeholder="Digite para buscar local" 
+                                    placeholder="Selecione a congregação"
                                     required
                                     list="localidadesList"
                                     autocomplete="off">
-                                <button class="btn btn-outline-secondary" type="button" onclick="abrirModalLocalidades()">
+                                <button class="btn btn-outline-primary" type="button" onclick="abrirModalLocalidades()"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Buscar congregação">
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
-                            <datalist id="localidadesList">
-                                <!-- Será preenchido via JavaScript -->
-                            </datalist>
+                            <datalist id="localidadesList"></datalist>
                             <div class="invalid-feedback">
-                                Por favor, informe o local do serviço.
+                                Por favor, selecione uma congregação.
                             </div>
                         </div>
 
@@ -474,8 +473,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalLocalidadesLabel">
-                        <i class="bi bi-geo-alt me-2"></i>
-                        Selecionar Localidade
+                        <i class="bi bi-building me-2"></i>
+                        Selecionar Congregação
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
@@ -485,7 +484,7 @@
                             <i class="bi bi-search"></i>
                         </span>
                         <input type="text" class="form-control" id="buscaLocalidade" 
-                            placeholder="Digite para filtrar localidades"
+                            placeholder="Buscar por nome ou número"
                             oninput="filtrarLocalidades(this.value)">
                     </div>
                     <div id="listaLocalidades" class="list-group">
@@ -986,38 +985,43 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // Encontrar todas as localidades no index.html
-                const elementos = doc.querySelectorAll('[data-local]');
-                localidades = Array.from(elementos).map(el => el.getAttribute('data-local'));
+                // Encontrar todas as congregações no index.html
+                // Buscando especificamente os elementos com a classe 'congregacao'
+                const elementos = doc.querySelectorAll('.congregacao');
+                localidades = Array.from(elementos).map(el => {
+                    // Extrair o nome da congregação e o número
+                    const nome = el.querySelector('.nome-congregacao')?.textContent || '';
+                    const numero = el.querySelector('.numero-congregacao')?.textContent || '';
+                    return {
+                        nome: nome.trim(),
+                        numero: numero.trim(),
+                        texto: `${nome.trim()} - ${numero.trim()}`
+                    };
+                }).filter(loc => loc.nome && loc.numero); // Filtrar entradas vazias
                 
-                // Remover duplicatas e ordenar
-                localidades = [...new Set(localidades)].sort();
+                // Ordenar por nome
+                localidades.sort((a, b) => a.nome.localeCompare(b.nome));
                 
                 // Preencher o datalist
                 const datalist = document.getElementById('localidadesList');
-                datalist.innerHTML = localidades.map(local => `<option value="${local}">`).join('');
+                datalist.innerHTML = localidades.map(local => 
+                    `<option value="${local.texto}">${local.nome} - ${local.numero}</option>`
+                ).join('');
                 
-                // Preencher a lista no modal
+                // Preencher a lista inicial no modal
                 atualizarListaLocalidades(localidades);
             } catch (error) {
                 console.error('Erro ao carregar localidades:', error);
-                mostrarToast('Erro ao carregar lista de localidades', 'danger');
+                mostrarToast('Erro ao carregar lista de congregações', 'danger');
             }
-        }
-
-        // Função para abrir modal de localidades
-        function abrirModalLocalidades() {
-            if (!modalLocalidades) {
-                modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
-            }
-            modalLocalidades.show();
         }
 
         // Função para filtrar localidades
         function filtrarLocalidades(termo) {
             const termoLower = termo.toLowerCase();
             const localidadesFiltradas = localidades.filter(local => 
-                local.toLowerCase().includes(termoLower)
+                local.nome.toLowerCase().includes(termoLower) ||
+                local.numero.toLowerCase().includes(termoLower)
             );
             atualizarListaLocalidades(localidadesFiltradas);
         }
@@ -1026,17 +1030,78 @@
         function atualizarListaLocalidades(lista) {
             const listaEl = document.getElementById('listaLocalidades');
             listaEl.innerHTML = lista.map(local => `
-                <button type="button" class="list-group-item list-group-item-action"
-                    onclick="selecionarLocalidade('${local}')">
-                    <i class="bi bi-geo-alt me-2"></i>${local}
+                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    onclick="selecionarLocalidade('${local.texto}')">
+                    <div>
+                        <i class="bi bi-building me-2"></i>
+                        <span class="fw-medium">${local.nome}</span>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">${local.numero}</span>
                 </button>
-            `).join('');
+            `).join('') || '<div class="text-center p-3 text-muted">Nenhuma congregação encontrada</div>';
+        }
+
+        // Função para abrir modal de localidades
+        function abrirModalLocalidades() {
+            if (!modalLocalidades) {
+                inicializarModalLocalidades();
+            }
+            // Limpar campo de busca
+            document.getElementById('buscaLocalidade').value = '';
+            // Mostrar todas as localidades
+            atualizarListaLocalidades(localidades);
+            modalLocalidades.show();
         }
 
         // Função para selecionar localidade
-        function selecionarLocalidade(local) {
-            document.getElementById('localServico').value = local;
+        function selecionarLocalidade(texto) {
+            document.getElementById('localServico').value = texto;
             modalLocalidades.hide();
+        }
+
+        // Atualizar o modal de localidades
+        const modalLocalidadesHtml = `
+            <div class="modal fade" id="modalLocalidades" tabindex="-1" aria-labelledby="modalLocalidadesLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalLocalidadesLabel">
+                                <i class="bi bi-building me-2"></i>
+                                Selecionar Congregação
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="buscaLocalidade" 
+                                    placeholder="Buscar por nome ou número"
+                                    oninput="filtrarLocalidades(this.value)">
+                            </div>
+                            <div id="listaLocalidades" class="list-group">
+                                <!-- Será preenchido via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Função para inicializar o modal de localidades
+        function inicializarModalLocalidades() {
+            // Remover modal existente se houver
+            const modalExistente = document.getElementById('modalLocalidades');
+            if (modalExistente) {
+                modalExistente.remove();
+            }
+
+            // Adicionar novo modal ao documento
+            document.body.insertAdjacentHTML('beforeend', modalLocalidadesHtml);
+            
+            // Inicializar o modal do Bootstrap
+            modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
         }
     </script>
 
