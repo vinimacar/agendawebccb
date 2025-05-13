@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Agenda de Serviços - CCB</title>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth-compat.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
+            authDomain: "agendawebccb.firebaseapp.com",
+            databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
+            projectId: "agendawebccb",
+            storageBucket: "agendawebccb.appspot.com",
+            messagingSenderId: "1027981883218",
+            appId: "1:1027981883218:web:23c0fe509f755f1e0d4805"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -339,15 +361,9 @@
 
     <!-- Botões de Ação -->
     <div class="action-buttons">
-        <button class="action-button btn btn-info" onclick="exportarTodosServicos()" data-bs-toggle="tooltip" data-bs-placement="left" title="Exportar Relatório">
-            <i class="bi bi-file-earmark-pdf"></i>
-        </button>
-        <button class="action-button btn btn-success" onclick="abrirModalCadastro()" data-bs-toggle="tooltip" data-bs-placement="left" title="Agendar Novo Serviço">
+        <button class="action-button btn btn-primary" onclick="openNewServiceModal()">
             <i class="bi bi-plus-lg"></i>
         </button>
-        <a href="index.html" class="action-button btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="left" title="Voltar">
-            <i class="bi bi-arrow-left"></i>
-        </a>
     </div>
 
     <!-- Modal de Cadastro de Serviço -->
@@ -495,274 +511,236 @@
         </div>
     </div>
 
+    <!-- Toast Container -->
     <div class="toast-container"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, set, serverTimestamp, remove, get } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+    <!-- Service Modal -->
+    <div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serviceModalLabel">Novo Serviço</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="serviceForm">
+                        <div class="mb-3">
+                            <label for="serviceType" class="form-label">Tipo de Serviço</label>
+                            <select class="form-select" id="serviceType" required>
+                                <option value="">Selecione o tipo...</option>
+                                <option value="BATISMOS">Batismos</option>
+                                <option value="SANTAS_CEIAS">Santas Ceias</option>
+                                <option value="REUNIAO_MOCIDADE">Reunião para Mocidade</option>
+                                <option value="ENSAIOS_REGIONAIS">Ensaios Regionais</option>
+                                <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
+                                <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
+                                <option value="OBRA_PIEDADE">Reunião da Piedade</option>
+                                <option value="EVANGELIZACAO">Evangelização</option>
+                            </select>
+                        </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
-            authDomain: "agendawebccb.firebaseapp.com",
-            databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
-            projectId: "agendawebccb",
-            storageBucket: "agendawebccb.firebasestorage.app",
-            messagingSenderId: "1002090805726",
-            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+                        <div class="mb-3">
+                            <label for="serviceDate" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="serviceDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceCongregation" class="form-label">Congregação</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="serviceCongregation" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="openCongregationSearch()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceAttendingBrother" class="form-label">Irmão Atendente</label>
+                            <input type="text" class="form-control" id="serviceAttendingBrother" required>
+                        </div>
+
+                        <div id="regionalSupervisorField" class="mb-3" style="display: none;">
+                            <label for="regionalSupervisor" class="form-label">Encarregado Regional</label>
+                            <input type="text" class="form-control" id="regionalSupervisor">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceDetails" class="form-label">Observações</label>
+                            <textarea class="form-control" id="serviceDetails" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveService()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Congregation Search Modal -->
+    <div class="modal fade" id="congregationSearchModal" tabindex="-1" aria-labelledby="congregationSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="congregationSearchModalLabel">Buscar Congregação</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="congregationSearchInput" placeholder="Digite o nome ou número...">
+                        <button class="btn btn-outline-secondary" type="button" onclick="searchCongregations()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div id="congregationSearchResults" class="list-group">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database References
+        const servicesRef = database.ref('services');
+        const congregationsRef = database.ref('congregations');
+
+        // Service Types
+        const SERVICE_TYPES = {
+            BATISMOS: {
+                name: 'Batismos',
+                icon: 'bi-water',
+                color: 'primary'
+            },
+            SANTAS_CEIAS: {
+                name: 'Santas Ceias',
+                icon: 'bi-cup-hot',
+                color: 'danger'
+            },
+            REUNIAO_MOCIDADE: {
+                name: 'Reunião para Mocidade',
+                icon: 'bi-people',
+                color: 'success'
+            },
+            ENSAIOS_REGIONAIS: {
+                name: 'Ensaios Regionais',
+                icon: 'bi-music-note-beamed',
+                color: 'info'
+            },
+            ENSAIOS_LOCAIS: {
+                name: 'Ensaios Locais',
+                icon: 'bi-music-note',
+                color: 'secondary'
+            },
+            REUNIAO_CONSELHO: {
+                name: 'Reunião de Conselho',
+                icon: 'bi-clipboard-data',
+                color: 'warning'
+            },
+            OBRA_PIEDADE: {
+                name: 'Reunião da Piedade',
+                icon: 'bi-heart',
+                color: 'danger'
+            },
+            EVANGELIZACAO: {
+                name: 'Evangelização',
+                icon: 'bi-book',
+                color: 'success'
+            }
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Exportar funções necessárias para o escopo global
-        window.db = db;
-        window.ref = ref;
-        window.push = push;
-        window.set = set;
-        window.remove = remove;
-        window.get = get;
-        window.serverTimestamp = serverTimestamp;
-
-        // Inicializar modais globalmente
-        window.modalServico = null;
-        window.modalDetalhes = null;
-
-        // Função para formatar a data
-        window.formatarData = function(data) {
-            const dataObj = new Date(data);
-            return dataObj.toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+        // Create new service
+        function createService(serviceData) {
+            const newServiceRef = servicesRef.push();
+            return newServiceRef.set({
+                ...serviceData,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
         }
 
-        // Função para abrir modal de cadastro
-        window.abrirModalCadastro = function() {
-            if (!window.modalServico) {
-                window.modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
-            }
-            document.getElementById('formServico').reset();
-            document.getElementById('formServico').dataset.editId = '';
-            window.modalServico.show();
+        // Update existing service
+        function updateService(serviceId, serviceData) {
+            return servicesRef.child(serviceId).update({
+                ...serviceData,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar modais
-            window.modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
-            window.modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+        // Delete service
+        function deleteService(serviceId) {
+            return servicesRef.child(serviceId).remove();
+        }
 
-            // Inicializar calendário
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'pt-br',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                eventClick: function(info) {
-                    mostrarDetalhesServico(info.event.extendedProps.tipo);
-                },
-                events: []
-            });
-            calendar.render();
-            
-            // Inicializar tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+        // Get services by type
+        function getServicesByType(type) {
+            return servicesRef.orderByChild('type').equalTo(type).once('value');
+        }
 
-            // Carregar serviços iniciais
-            carregarServicos();
+        // Get services by date range
+        function getServicesByDateRange(startDate, endDate) {
+            return servicesRef
+                .orderByChild('date')
+                .startAt(startDate)
+                .endAt(endDate)
+                .once('value');
+        }
 
-            // Adicionar listeners
-            document.getElementById('monthSelector').addEventListener('change', carregarServicos);
-            document.getElementById('tipoFiltro').addEventListener('change', filtrarServicos);
-
-            // Listener para o formulário de serviço
-            document.getElementById('formServico').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const editId = this.dataset.editId;
-                
-                try {
-                    const servico = {
-                        tipo: document.getElementById('tipoServico').value,
-                        data: document.getElementById('dataServico').value,
-                        local: document.getElementById('localServico').value,
-                        irmaoAtendente: document.getElementById('irmaoAtendente').value,
-                        observacoes: document.getElementById('observacoesServico').value,
-                        ultimaAtualizacao: serverTimestamp()
-                    };
-
-                    if (servico.tipo === 'ENSAIOS REGIONAIS') {
-                        servico.encarregadoRegional = document.getElementById('encarregadoRegional').value;
-                    }
-
-                    if (editId) {
-                        const servicoRef = ref(db, `agendamento2/${editId}`);
-                        await set(servicoRef, servico);
-                        mostrarToast('Serviço atualizado com sucesso!', 'success');
-                    } else {
-                        servico.dataCadastro = serverTimestamp();
-                        const servicosRef = ref(db, 'agendamento2');
-                        await push(servicosRef, servico);
-                        mostrarToast('Serviço cadastrado com sucesso!', 'success');
-                    }
-
-                    window.modalServico.hide();
-                    this.reset();
-                    this.dataset.editId = '';
-                } catch (error) {
-                    console.error('Erro ao salvar:', error);
-                    mostrarToast('Erro ao salvar serviço: ' + error.message, 'danger');
-                }
-            });
+        // Listen for service changes
+        servicesRef.on('value', (snapshot) => {
+            const services = snapshot.val();
+            updateServiceCounters(services);
+            updateServiceLists(services);
+            updateCalendar(services);
         });
 
-        // Função para alternar entre visualizações
-        window.toggleView = function() {
-            const calendarView = document.getElementById('calendarView');
-            const cardsView = document.getElementById('cardsView');
-            
-            if (calendarView.style.display === 'none') {
-                calendarView.style.display = 'block';
-                cardsView.style.display = 'none';
-                calendar.render();
-            } else {
-                calendarView.style.display = 'none';
-                cardsView.style.display = 'grid';
-            }
-        }
-
-        // Função para filtrar serviços
-        function filtrarServicos() {
-            const tipo = document.getElementById('tipoFiltro').value;
-            const cards = document.querySelectorAll('.service-card');
-            
-            if (!tipo) {
-                cards.forEach(card => card.style.display = 'block');
-                return;
-            }
-
-            cards.forEach(card => {
-                const cardTipo = card.querySelector('.service-title span').textContent;
-                card.style.display = cardTipo.toUpperCase() === tipo ? 'block' : 'none';
+        // Update service counters
+        function updateServiceCounters(services) {
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const count = Object.values(services || {})
+                    .filter(service => service.type === type).length;
+                const countElement = document.getElementById(`${type.toLowerCase()}-count`);
+                if (countElement) {
+                    countElement.textContent = count;
+                }
             });
         }
 
-        // Função para carregar serviços
-        window.carregarServicos = function() {
-            const servicosRef = ref(db, 'agendamento2');
-            onValue(servicosRef, (snapshot) => {
-                const servicos = snapshot.val() || {};
-                
-                // Limpar todas as listas e contadores
-                document.querySelectorAll('.service-list').forEach(el => el.innerHTML = '');
-                document.querySelectorAll('[id$="-count"]').forEach(el => el.textContent = '0');
+        // Update service lists
+        function updateServiceLists(services) {
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                if (listElement) {
+                    const typeServices = Object.entries(services || {})
+                        .filter(([_, service]) => service.type === type)
+                        .sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
 
-                // Limpar eventos do calendário
-                calendar.removeAllEvents();
-                
-                // Filtrar por mês selecionado
-                const mesSelecionado = document.getElementById('monthSelector').value;
-                
-                Object.entries(servicos).forEach(([id, servico]) => {
-                    servico.id = id;
-                    const servicoData = new Date(servico.data);
-                    
-                    if (servicoData.getMonth() + 1 === parseInt(mesSelecionado)) {
-                        // Adicionar ao card correspondente
-                        const elementId = servico.tipo.toLowerCase().replace(/\s+/g, '-') + '-list';
-                        const countId = elementId.replace('-list', '-count');
-                        const element = document.getElementById(elementId);
-                        const countElement = document.getElementById(countId);
-                        
-                        if (element) {
-                            element.innerHTML += criarItemServico(servico);
-                            if (countElement) {
-                                countElement.textContent = parseInt(countElement.textContent) + 1;
-                            }
-                        }
-
-                        // Adicionar ao calendário
-                        calendar.addEvent({
-                            title: servico.tipo,
-                            start: servico.data,
-                            backgroundColor: getEventColor(servico.tipo),
-                            extendedProps: {
-                                tipo: servico.tipo,
-                                local: servico.local,
-                                status: servico.status
-                            }
-                        });
-                    }
-                });
-
-                calendar.render();
+                    listElement.innerHTML = typeServices
+                        .map(([id, service]) => createServiceCard(id, service))
+                        .join('');
+                }
             });
         }
 
-        // Função para obter cor do evento baseado no tipo
-        function getEventColor(tipo) {
-            const cores = {
-                'BATISMOS': '#1a237e',
-                'SANTAS-CEIAS': '#c62828',
-                'REUNIÃO PARA MOCIDADE': '#2e7d32',
-                'ENSAIOS REGIONAIS': '#f57f17',
-                'ENSAIOS LOCAIS': '#0277bd',
-                'REUNIÃO DE CONSELHO DA MOCIDADE': '#283593',
-                'REUNIÃO DA OBRA DA PIEDADE': '#ad1457',
-                'EVANGELIZAÇÃO': '#00695c'
-            };
-            return cores[tipo] || '#666666';
-        }
-
-        // Função para criar um item de serviço
-        window.criarItemServico = function(servico) {
-            let infoAdicional = '';
-            if (servico.tipo === 'ENSAIOS REGIONAIS') {
-                infoAdicional = `
-                    <div class="mt-2">
-                        ${servico.encarregadoRegional ? `<div><i class="bi bi-person-badge me-2"></i>Encarregado Regional: ${servico.encarregadoRegional}</div>` : ''}
-                    </div>
-                `;
-            }
-
+        // Create service card HTML
+        function createServiceCard(id, service) {
+            const date = new Date(service.date).toLocaleDateString('pt-BR');
+            const typeInfo = SERVICE_TYPES[service.type];
+            
             return `
-                <div class="service-item p-3 mb-3 bg-light rounded">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="mb-2">
-                                <i class="bi bi-calendar3 me-2"></i>
-                                <strong>${formatarData(servico.data)}</strong>
-                            </div>
-                            <div class="mb-2">
-                                <i class="bi bi-geo-alt me-2"></i>
-                                ${servico.local}
-                            </div>
-                            <div class="mb-2">
-                                <i class="bi bi-person me-2"></i>
-                                Irmão que atende: ${servico.irmaoAtendente}
-                            </div>
-                            ${infoAdicional}
-                            ${servico.observacoes ? `
-                            <div class="mt-2 text-muted">
-                                <i class="bi bi-chat-text me-2"></i>
-                                ${servico.observacoes}
-                            </div>
-                            ` : ''}
-                        </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">${date}</h6>
+                        <p class="card-text">
+                            <i class="bi bi-building"></i> ${service.congregation}<br>
+                            ${service.details ? `<small class="text-muted">${service.details}</small>` : ''}
+                        </p>
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" onclick="editarServico('${servico.id}')">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editService('${id}')">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="excluirServico('${servico.id}')">
+                            <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteService('${id}')">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -771,340 +749,221 @@
             `;
         }
 
-        // Função para salvar serviço
-        window.salvarServico = async function() {
-            const tipo = document.getElementById('tipoServico').value;
-            const data = document.getElementById('dataServico').value;
-            const local = document.getElementById('localServico').value;
-            const status = document.getElementById('statusServico').value;
-            const observacoes = document.getElementById('observacoesServico').value;
-
-            if (!tipo || !data || !local || !status) {
-                mostrarToast('Preencha todos os campos obrigatórios', 'danger');
-                return;
-            }
-
-            try {
-                const servicosRef = ref(db, 'agendamento2');
-                const novoServico = {
-                    tipo,
-                    data,
-                    local,
-                    status,
-                    observacoes,
-                    dataCadastro: serverTimestamp(),
-                    ultimaAtualizacao: serverTimestamp()
-                };
-
-                await push(servicosRef, novoServico);
-                modalServico.hide();
-                mostrarToast('Serviço cadastrado com sucesso!', 'success');
-                document.getElementById('formServico').reset();
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                mostrarToast('Erro ao cadastrar serviço: ' + error.message, 'danger');
-            }
-        }
-
-        // Função para editar serviço
-        window.editarServico = async function(id) {
-            const servicoRef = ref(db, `agendamento2/${id}`);
-            
-            try {
-                const snapshot = await get(servicoRef);
-                const servico = snapshot.val();
-                
-                if (servico) {
-                    document.getElementById('tipoServico').value = servico.tipo;
-                    document.getElementById('dataServico').value = servico.data;
-                    document.getElementById('localServico').value = servico.local;
-                    document.getElementById('irmaoAtendente').value = servico.irmaoAtendente || '';
-                    document.getElementById('observacoesServico').value = servico.observacoes || '';
-
-                    toggleCamposAdicionais();
-                    if (servico.tipo === 'ENSAIOS REGIONAIS') {
-                        document.getElementById('encarregadoRegional').value = servico.encarregadoRegional || '';
-                    }
-                    
-                    document.getElementById('formServico').dataset.editId = id;
-                    window.modalServico.show();
-                }
-            } catch (error) {
-                console.error('Erro ao carregar serviço:', error);
-                mostrarToast('Erro ao carregar serviço: ' + error.message, 'danger');
-            }
-        }
-
-        // Função para excluir serviço
-        window.excluirServico = async function(id) {
-            if (confirm('Tem certeza que deseja excluir este serviço?')) {
-                try {
-                    const servicoRef = ref(db, `agendamento2/${id}`);
-                    await remove(servicoRef);
-                    mostrarToast('Serviço excluído com sucesso!', 'success');
-                } catch (error) {
-                    console.error('Erro ao excluir:', error);
-                    mostrarToast('Erro ao excluir serviço: ' + error.message, 'danger');
-                }
-            }
-        }
-
-        function mostrarDetalhesServico(tipo) {
-            if (!window.modalDetalhes) {
-                window.modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
-            }
-            const titulo = document.getElementById('detalhesTitulo');
-            const conteudo = document.getElementById('detalhesConteudo');
-            
-            titulo.innerHTML = `<i class="bi bi-info-circle me-2"></i>${tipo}`;
-            const lista = document.getElementById(`${tipo.toLowerCase().replace(/\s+/g, '-')}-list`).innerHTML;
-            
-            if (lista.trim()) {
-                conteudo.innerHTML = lista;
-            } else {
-                conteudo.innerHTML = '<div class="alert alert-info">Nenhum serviço cadastrado para este tipo.</div>';
-            }
-            
-            window.modalDetalhes.show();
-        }
-
-        function mostrarToast(mensagem, tipo) {
+        // Show toast notification
+        function showToast(message, type = 'success') {
             const toastContainer = document.querySelector('.toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.className = `toast show bg-${type} text-white`;
             toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            
             toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-info-circle me-2"></i>${mensagem}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <div class="toast-body">
+                    ${message}
                 </div>
             `;
-            
             toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
+            setTimeout(() => {
                 toast.remove();
-            });
+            }, 3000);
         }
 
-        function exportarRelatorio() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const titulo = document.getElementById('detalhesTitulo').textContent;
-            const conteudo = document.getElementById('detalhesConteudo').textContent;
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text(titulo, 20, 20);
-            
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(12);
-            
-            const linhas = doc.splitTextToSize(conteudo, 170);
-            doc.text(linhas, 20, 40);
-            
-            doc.save(`relatorio_${titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`);
-        }
-
-        function exportarTodosServicos() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("Relatório Completo de Serviços", 105, 20, { align: "center" });
-            
-            let yPos = 40;
-            
-            document.querySelectorAll('.service-card').forEach(card => {
-                const titulo = card.querySelector('.service-title').textContent.trim();
-                const conteudo = card.querySelector(`[id$="-list"]`).textContent.trim();
-                
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.text(titulo, 20, yPos);
-                yPos += 10;
-                
-                if (conteudo) {
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(12);
-                    const linhas = doc.splitTextToSize(conteudo, 170);
-                    doc.text(linhas, 20, yPos);
-                    yPos += linhas.length * 7 + 10;
-                } else {
-                    doc.setFont("helvetica", "italic");
-                    doc.setFontSize(12);
-                    doc.text("Nenhum serviço cadastrado", 20, yPos);
-                    yPos += 20;
-                }
-            });
-            
-            doc.save("relatorio_completo_servicos.pdf");
-        }
-
-        // Função para mostrar/ocultar campos adicionais baseado no tipo de serviço
-        function toggleCamposAdicionais() {
-            const tipoServico = document.getElementById('tipoServico').value;
-            const camposEnsaiosRegionais = document.getElementById('camposEnsaiosRegionais');
-            const irmaoAtendente = document.getElementById('irmaoAtendente');
-            const encarregadoRegional = document.getElementById('encarregadoRegional');
-
-            if (tipoServico === 'ENSAIOS REGIONAIS') {
-                camposEnsaiosRegionais.style.display = 'block';
-                irmaoAtendente.required = true;
-                encarregadoRegional.required = true;
-            } else {
-                camposEnsaiosRegionais.style.display = 'none';
-                irmaoAtendente.required = false;
-                encarregadoRegional.required = false;
-            }
-        }
-
-        // Variável global para armazenar as localidades
-        let localidades = [];
-        let modalLocalidades = null;
-
-        // Função para carregar localidades do index.html
-        async function carregarLocalidades() {
-            try {
-                const response = await fetch('index.html');
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Encontrar todas as congregações no index.html
-                // Buscando especificamente os elementos com a classe 'congregacao'
-                const elementos = doc.querySelectorAll('.congregacao');
-                localidades = Array.from(elementos).map(el => {
-                    // Extrair o nome da congregação e o número
-                    const nome = el.querySelector('.nome-congregacao')?.textContent || '';
-                    const numero = el.querySelector('.numero-congregacao')?.textContent || '';
-                    return {
-                        nome: nome.trim(),
-                        numero: numero.trim(),
-                        texto: `${nome.trim()} - ${numero.trim()}`
-                    };
-                }).filter(loc => loc.nome && loc.numero); // Filtrar entradas vazias
-                
-                // Ordenar por nome
-                localidades.sort((a, b) => a.nome.localeCompare(b.nome));
-                
-                // Preencher o datalist
-                const datalist = document.getElementById('localidadesList');
-                datalist.innerHTML = localidades.map(local => 
-                    `<option value="${local.texto}">${local.nome} - ${local.numero}</option>`
-                ).join('');
-                
-                // Preencher a lista inicial no modal
-                atualizarListaLocalidades(localidades);
-            } catch (error) {
-                console.error('Erro ao carregar localidades:', error);
-                mostrarToast('Erro ao carregar lista de congregações', 'danger');
-            }
-        }
-
-        // Função para filtrar localidades
-        function filtrarLocalidades(termo) {
-            const termoLower = termo.toLowerCase();
-            const localidadesFiltradas = localidades.filter(local => 
-                local.nome.toLowerCase().includes(termoLower) ||
-                local.numero.toLowerCase().includes(termoLower)
-            );
-            atualizarListaLocalidades(localidadesFiltradas);
-        }
-
-        // Função para atualizar a lista de localidades no modal
-        function atualizarListaLocalidades(lista) {
-            const listaEl = document.getElementById('listaLocalidades');
-            listaEl.innerHTML = lista.map(local => `
-                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    onclick="selecionarLocalidade('${local.texto}')">
-                    <div>
-                        <i class="bi bi-building me-2"></i>
-                        <span class="fw-medium">${local.nome}</span>
-                    </div>
-                    <span class="badge bg-primary rounded-pill">${local.numero}</span>
-                </button>
-            `).join('') || '<div class="text-center p-3 text-muted">Nenhuma congregação encontrada</div>';
-        }
-
-        // Função para abrir modal de localidades
-        function abrirModalLocalidades() {
-            if (!modalLocalidades) {
-                inicializarModalLocalidades();
-            }
-            // Limpar campo de busca
-            document.getElementById('buscaLocalidade').value = '';
-            // Mostrar todas as localidades
-            atualizarListaLocalidades(localidades);
-            modalLocalidades.show();
-        }
-
-        // Função para selecionar localidade
-        function selecionarLocalidade(texto) {
-            document.getElementById('localServico').value = texto;
-            modalLocalidades.hide();
-        }
-
-        // Atualizar o modal de localidades
-        const modalLocalidadesHtml = `
-            <div class="modal fade" id="modalLocalidades" tabindex="-1" aria-labelledby="modalLocalidadesLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalLocalidadesLabel">
-                                <i class="bi bi-building me-2"></i>
-                                Selecionar Congregação
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text" class="form-control" id="buscaLocalidade" 
-                                    placeholder="Buscar por nome ou número"
-                                    oninput="filtrarLocalidades(this.value)">
-                            </div>
-                            <div id="listaLocalidades" class="list-group">
-                                <!-- Será preenchido via JavaScript -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Função para inicializar o modal de localidades
-        function inicializarModalLocalidades() {
-            // Remover modal existente se houver
-            const modalExistente = document.getElementById('modalLocalidades');
-            if (modalExistente) {
-                modalExistente.remove();
-            }
-
-            // Adicionar novo modal ao documento
-            document.body.insertAdjacentHTML('beforeend', modalLocalidadesHtml);
-            
-            // Inicializar o modal do Bootstrap
-            modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
-        }
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial data load is handled by the Firebase listener
+            initializeCalendar();
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+    <script>
+        // Modal instances
+        let serviceModal;
+        let congregationSearchModal;
+        let currentServiceId = null;
+
+        // Initialize modals
+        document.addEventListener('DOMContentLoaded', () => {
+            serviceModal = new bootstrap.Modal(document.getElementById('serviceModal'));
+            congregationSearchModal = new bootstrap.Modal(document.getElementById('congregationSearchModal'));
+            
+            // Show/hide regional supervisor field based on service type
+            document.getElementById('serviceType').addEventListener('change', (e) => {
+                const regionalSupervisorField = document.getElementById('regionalSupervisorField');
+                regionalSupervisorField.style.display = e.target.value === 'ENSAIOS_REGIONAIS' ? 'block' : 'none';
+            });
+        });
+
+        // Open new service modal
+        function openNewServiceModal() {
+            currentServiceId = null;
+            document.getElementById('serviceModalLabel').textContent = 'Novo Serviço';
+            document.getElementById('serviceForm').reset();
+            serviceModal.show();
+        }
+
+        // Open congregation search modal
+        function openCongregationSearch() {
+            congregationSearchModal.show();
+        }
+
+        // Search congregations
+        function searchCongregations() {
+            const searchTerm = document.getElementById('congregationSearchInput').value;
+            const resultsContainer = document.getElementById('congregationSearchResults');
+            
+            congregationsRef.orderByChild('name')
+                .startAt(searchTerm)
+                .endAt(searchTerm + '\uf8ff')
+                .once('value')
+                .then((snapshot) => {
+                    resultsContainer.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        const item = document.createElement('button');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-building"></i>
+                                    ${congregation.name}
+                                </div>
+                                <span class="badge bg-primary rounded-pill">${congregation.number}</span>
+                            </div>
+                        `;
+                        item.onclick = () => selectCongregation(congregation);
+                        resultsContainer.appendChild(item);
+                    });
+                });
+        }
+
+        // Select congregation from search results
+        function selectCongregation(congregation) {
+            document.getElementById('serviceCongregation').value = `${congregation.name} (${congregation.number})`;
+            congregationSearchModal.hide();
+        }
+
+        // Save service
+        function saveService() {
+            const form = document.getElementById('serviceForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const serviceData = {
+                type: document.getElementById('serviceType').value,
+                date: document.getElementById('serviceDate').value,
+                congregation: document.getElementById('serviceCongregation').value,
+                attendingBrother: document.getElementById('serviceAttendingBrother').value,
+                details: document.getElementById('serviceDetails').value
+            };
+
+            if (serviceData.type === 'ENSAIOS_REGIONAIS') {
+                serviceData.regionalSupervisor = document.getElementById('regionalSupervisor').value;
+            }
+
+            if (currentServiceId) {
+                updateService(currentServiceId, serviceData)
+                    .then(() => {
+                        showToast('Serviço atualizado com sucesso!');
+                        serviceModal.hide();
+                    })
+                    .catch(error => {
+                        showToast('Erro ao atualizar serviço: ' + error.message, 'danger');
+                    });
+            } else {
+                createService(serviceData)
+                    .then(() => {
+                        showToast('Serviço cadastrado com sucesso!');
+                        serviceModal.hide();
+                    })
+                    .catch(error => {
+                        showToast('Erro ao cadastrar serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
+
+        // Edit service
+        function editService(serviceId) {
+            currentServiceId = serviceId;
+            document.getElementById('serviceModalLabel').textContent = 'Editar Serviço';
+            
+            servicesRef.child(serviceId).once('value')
+                .then((snapshot) => {
+                    const service = snapshot.val();
+                    document.getElementById('serviceType').value = service.type;
+                    document.getElementById('serviceDate').value = service.date;
+                    document.getElementById('serviceCongregation').value = service.congregation;
+                    document.getElementById('serviceAttendingBrother').value = service.attendingBrother;
+                    document.getElementById('serviceDetails').value = service.details || '';
+                    
+                    const regionalSupervisorField = document.getElementById('regionalSupervisorField');
+                    if (service.type === 'ENSAIOS_REGIONAIS') {
+                        regionalSupervisorField.style.display = 'block';
+                        document.getElementById('regionalSupervisor').value = service.regionalSupervisor || '';
+                    } else {
+                        regionalSupervisorField.style.display = 'none';
+                    }
+                    
+                    serviceModal.show();
+                });
+        }
+
+        // Confirm service deletion
+        function confirmDeleteService(serviceId) {
+            if (confirm('Tem certeza que deseja excluir este serviço?')) {
+                deleteService(serviceId)
+                    .then(() => {
+                        showToast('Serviço excluído com sucesso!');
+                    })
+                    .catch(error => {
+                        showToast('Erro ao excluir serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
+
+        // Initialize calendar
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                eventClick: function(info) {
+                    editService(info.event.id);
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    const start = fetchInfo.start.toISOString().split('T')[0];
+                    const end = fetchInfo.end.toISOString().split('T')[0];
+                    
+                    getServicesByDateRange(start, end)
+                        .then((snapshot) => {
+                            const events = [];
+                            snapshot.forEach((child) => {
+                                const service = child.val();
+                                events.push({
+                                    id: child.key,
+                                    title: `${SERVICE_TYPES[service.type].name} - ${service.congregation}`,
+                                    start: service.date,
+                                    backgroundColor: `var(--${SERVICE_TYPES[service.type].color}-color)`,
+                                    borderColor: `var(--${SERVICE_TYPES[service.type].color}-color)`
+                                });
+                            });
+                            successCallback(events);
+                        })
+                        .catch(failureCallback);
+                }
+            });
+
+            calendar.render();
+        }
+    </script>
 </body>
-</html> 
+</html>
