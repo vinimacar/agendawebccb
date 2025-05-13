@@ -1123,7 +1123,18 @@
         // Função para excluir agendamento
         window.excluirAgendamento = async function (index) {
             const agendamento = agendamentos[index];
-            agendamentoParaExcluir = agendamento;
+            if (!agendamento || !agendamento.id) {
+                mostrarAlerta("Erro: Agendamento inválido.", "danger");
+                return;
+            }
+            
+            agendamentoParaExcluir = {
+                id: agendamento.id,
+                congregacao: agendamento.congregacao,
+                data: agendamento.data,
+                irmao: agendamento.irmao,
+                tipo: agendamento.tipo
+            };
             
             // Formatar a data
             const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR", {
@@ -1145,6 +1156,11 @@
 
         // Evento para a primeira confirmação
         document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', () => {
+            if (!agendamentoParaExcluir || !agendamentoParaExcluir.id) {
+                mostrarAlerta("Erro: Dados do agendamento inválidos.", "danger");
+                modalExclusao.hide();
+                return;
+            }
             modalExclusao.hide(); // Esconde o primeiro modal
             setTimeout(() => {
                 modalConfirmacaoFinal.show(); // Mostra o segundo modal após um pequeno delay
@@ -1153,24 +1169,26 @@
 
         // Evento para a confirmação final
         document.getElementById('btnConfirmacaoFinal').addEventListener('click', async () => {
-            if (agendamentoParaExcluir && agendamentoParaExcluir.id) {
-                try {
-                    await remove(ref(db, "agendamentos/" + agendamentoParaExcluir.id));
-                    modalConfirmacaoFinal.hide();
-                    agendamentoParaExcluir = null;
-                    mostrarAlerta("Agendamento excluído com sucesso!", "success");
-                    // Atualizar a interface
-                    carregarAgendamentos();
-                } catch (error) {
-                    console.error("Erro ao excluir:", error);
-                    modalConfirmacaoFinal.hide();
-                    agendamentoParaExcluir = null;
-                    mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
-                }
-            } else {
+            if (!agendamentoParaExcluir || !agendamentoParaExcluir.id) {
+                mostrarAlerta("Erro: Dados do agendamento inválidos.", "danger");
+                modalConfirmacaoFinal.hide();
+                return;
+            }
+
+            try {
+                const agendamentoRef = ref(db, `agendamentos/${agendamentoParaExcluir.id}`);
+                await remove(agendamentoRef);
+                modalConfirmacaoFinal.hide();
+                mostrarAlerta("Agendamento excluído com sucesso!", "success");
+                
+                // Atualizar a interface
+                await carregarAgendamentos();
+            } catch (error) {
+                console.error("Erro ao excluir:", error);
+                mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
+            } finally {
                 modalConfirmacaoFinal.hide();
                 agendamentoParaExcluir = null;
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
             }
         });
 
