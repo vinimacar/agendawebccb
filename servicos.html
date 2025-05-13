@@ -391,25 +391,39 @@
 
                         <div class="mb-3">
                             <label for="localServico" class="form-label">Local</label>
-                            <input type="text" class="form-control" id="localServico" placeholder="Digite o local do serviço" required>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="localServico" 
+                                    placeholder="Digite para buscar local" 
+                                    required
+                                    list="localidadesList"
+                                    autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" onclick="abrirModalLocalidades()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <datalist id="localidadesList">
+                                <!-- Será preenchido via JavaScript -->
+                            </datalist>
                             <div class="invalid-feedback">
                                 Por favor, informe o local do serviço.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="irmaoAtendente" class="form-label">Irmão que Atende</label>
+                            <input type="text" class="form-control" id="irmaoAtendente" 
+                                placeholder="Nome do irmão que atende" required>
+                            <div class="invalid-feedback">
+                                Por favor, informe o irmão que atende.
                             </div>
                         </div>
 
                         <!-- Campos específicos para Ensaios Regionais -->
                         <div id="camposEnsaiosRegionais" style="display: none;">
                             <div class="mb-3">
-                                <label for="irmaoAtendente" class="form-label">Irmão que Atende</label>
-                                <input type="text" class="form-control" id="irmaoAtendente" placeholder="Nome do irmão que atende">
-                                <div class="invalid-feedback">
-                                    Por favor, informe o irmão que atende.
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
                                 <label for="encarregadoRegional" class="form-label">Encarregado Regional</label>
-                                <input type="text" class="form-control" id="encarregadoRegional" placeholder="Nome do encarregado regional">
+                                <input type="text" class="form-control" id="encarregadoRegional" 
+                                    placeholder="Nome do encarregado regional">
                                 <div class="invalid-feedback">
                                     Por favor, informe o encarregado regional.
                                 </div>
@@ -418,7 +432,8 @@
 
                         <div class="mb-3">
                             <label for="observacoesServico" class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesServico" rows="3" placeholder="Observações adicionais (opcional)"></textarea>
+                            <textarea class="form-control" id="observacoesServico" rows="3" 
+                                placeholder="Observações adicionais (opcional)"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -448,6 +463,34 @@
                     <button type="button" class="btn btn-success" onclick="exportarRelatorio()">
                         <i class="bi bi-file-earmark-pdf me-2"></i>Exportar Relatório
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Localidades -->
+    <div class="modal fade" id="modalLocalidades" tabindex="-1" aria-labelledby="modalLocalidadesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLocalidadesLabel">
+                        <i class="bi bi-geo-alt me-2"></i>
+                        Selecionar Localidade
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="buscaLocalidade" 
+                            placeholder="Digite para filtrar localidades"
+                            oninput="filtrarLocalidades(this.value)">
+                    </div>
+                    <div id="listaLocalidades" class="list-group">
+                        <!-- Será preenchido via JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -553,13 +596,12 @@
                         tipo: document.getElementById('tipoServico').value,
                         data: document.getElementById('dataServico').value,
                         local: document.getElementById('localServico').value,
+                        irmaoAtendente: document.getElementById('irmaoAtendente').value,
                         observacoes: document.getElementById('observacoesServico').value,
                         ultimaAtualizacao: serverTimestamp()
                     };
 
-                    // Adicionar campos específicos para Ensaios Regionais
                     if (servico.tipo === 'ENSAIOS REGIONAIS') {
-                        servico.irmaoAtendente = document.getElementById('irmaoAtendente').value;
                         servico.encarregadoRegional = document.getElementById('encarregadoRegional').value;
                     }
 
@@ -685,10 +727,9 @@
         // Função para criar um item de serviço
         window.criarItemServico = function(servico) {
             let infoAdicional = '';
-            if (servico.tipo === 'ENSAIOS REGIONAIS' && (servico.irmaoAtendente || servico.encarregadoRegional)) {
+            if (servico.tipo === 'ENSAIOS REGIONAIS') {
                 infoAdicional = `
                     <div class="mt-2">
-                        ${servico.irmaoAtendente ? `<div><i class="bi bi-person me-2"></i>Irmão que atende: ${servico.irmaoAtendente}</div>` : ''}
                         ${servico.encarregadoRegional ? `<div><i class="bi bi-person-badge me-2"></i>Encarregado Regional: ${servico.encarregadoRegional}</div>` : ''}
                     </div>
                 `;
@@ -705,6 +746,10 @@
                             <div class="mb-2">
                                 <i class="bi bi-geo-alt me-2"></i>
                                 ${servico.local}
+                            </div>
+                            <div class="mb-2">
+                                <i class="bi bi-person me-2"></i>
+                                Irmão que atende: ${servico.irmaoAtendente}
                             </div>
                             ${infoAdicional}
                             ${servico.observacoes ? `
@@ -774,12 +819,11 @@
                     document.getElementById('tipoServico').value = servico.tipo;
                     document.getElementById('dataServico').value = servico.data;
                     document.getElementById('localServico').value = servico.local;
+                    document.getElementById('irmaoAtendente').value = servico.irmaoAtendente || '';
                     document.getElementById('observacoesServico').value = servico.observacoes || '';
 
-                    // Mostrar/ocultar e preencher campos específicos
                     toggleCamposAdicionais();
                     if (servico.tipo === 'ENSAIOS REGIONAIS') {
-                        document.getElementById('irmaoAtendente').value = servico.irmaoAtendente || '';
                         document.getElementById('encarregadoRegional').value = servico.encarregadoRegional || '';
                     }
                     
@@ -928,6 +972,71 @@
                 irmaoAtendente.required = false;
                 encarregadoRegional.required = false;
             }
+        }
+
+        // Variável global para armazenar as localidades
+        let localidades = [];
+        let modalLocalidades = null;
+
+        // Função para carregar localidades do index.html
+        async function carregarLocalidades() {
+            try {
+                const response = await fetch('index.html');
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Encontrar todas as localidades no index.html
+                const elementos = doc.querySelectorAll('[data-local]');
+                localidades = Array.from(elementos).map(el => el.getAttribute('data-local'));
+                
+                // Remover duplicatas e ordenar
+                localidades = [...new Set(localidades)].sort();
+                
+                // Preencher o datalist
+                const datalist = document.getElementById('localidadesList');
+                datalist.innerHTML = localidades.map(local => `<option value="${local}">`).join('');
+                
+                // Preencher a lista no modal
+                atualizarListaLocalidades(localidades);
+            } catch (error) {
+                console.error('Erro ao carregar localidades:', error);
+                mostrarToast('Erro ao carregar lista de localidades', 'danger');
+            }
+        }
+
+        // Função para abrir modal de localidades
+        function abrirModalLocalidades() {
+            if (!modalLocalidades) {
+                modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
+            }
+            modalLocalidades.show();
+        }
+
+        // Função para filtrar localidades
+        function filtrarLocalidades(termo) {
+            const termoLower = termo.toLowerCase();
+            const localidadesFiltradas = localidades.filter(local => 
+                local.toLowerCase().includes(termoLower)
+            );
+            atualizarListaLocalidades(localidadesFiltradas);
+        }
+
+        // Função para atualizar a lista de localidades no modal
+        function atualizarListaLocalidades(lista) {
+            const listaEl = document.getElementById('listaLocalidades');
+            listaEl.innerHTML = lista.map(local => `
+                <button type="button" class="list-group-item list-group-item-action"
+                    onclick="selecionarLocalidade('${local}')">
+                    <i class="bi bi-geo-alt me-2"></i>${local}
+                </button>
+            `).join('');
+        }
+
+        // Função para selecionar localidade
+        function selecionarLocalidade(local) {
+            document.getElementById('localServico').value = local;
+            modalLocalidades.hide();
         }
     </script>
 
