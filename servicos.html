@@ -395,7 +395,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+        import { getDatabase, ref, onValue, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
@@ -414,6 +414,7 @@
         window.ref = ref;
         window.push = push;
         window.set = set;
+        window.serverTimestamp = serverTimestamp;
 
         // Função para formatar a data
         window.formatarData = function(data) {
@@ -429,15 +430,25 @@
         // Função para criar um item de serviço
         window.criarItemServico = function(servico) {
             return `
-                <div class="service-item">
+                <div class="service-item" data-id="${servico.id || ''}">
                     <div class="service-date mb-2">
                         <i class="bi bi-calendar3 me-2"></i>${formatarData(servico.data)}
                     </div>
                     <div class="service-location mb-2">
                         <i class="bi bi-geo-alt me-2"></i>${servico.local}
                     </div>
-                    <div class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'} mb-2">
-                        ${servico.status}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="badge bg-${servico.status === 'Confirmado' ? 'success' : 'warning'} mb-2">
+                            ${servico.status}
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-warning" onclick="editarServico('${servico.id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirServico('${servico.id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     ${servico.observacoes ? `
                     <div class="service-obs mt-2">
@@ -472,7 +483,8 @@
                 const mesSelecionado = document.getElementById('monthSelector').value;
                 
                 // Preencher cada tipo de serviço
-                Object.values(servicos).forEach(servico => {
+                Object.entries(servicos).forEach(([id, servico]) => {
+                    servico.id = id; // Adicionar ID ao objeto do serviço
                     const servicoData = new Date(servico.data);
                     if (servicoData.getMonth() + 1 === parseInt(mesSelecionado)) {
                         const elementId = servico.tipo.toLowerCase().replace(/\s+/g, '-') + '-list';
@@ -491,10 +503,118 @@
             });
         }
 
+        // Função para salvar serviço
+        window.salvarServico = async function() {
+            const tipo = document.getElementById('tipoServico').value;
+            const data = document.getElementById('dataServico').value;
+            const local = document.getElementById('localServico').value;
+            const status = document.getElementById('statusServico').value;
+            const observacoes = document.getElementById('observacoesServico').value;
+
+            if (!tipo || !data || !local || !status) {
+                mostrarToast('Preencha todos os campos obrigatórios', 'danger');
+                return;
+            }
+
+            try {
+                const servicosRef = ref(db, 'servicos');
+                const novoServico = {
+                    tipo,
+                    data,
+                    local,
+                    status,
+                    observacoes,
+                    dataCadastro: serverTimestamp(),
+                    ultimaAtualizacao: serverTimestamp()
+                };
+
+                await push(servicosRef, novoServico);
+                modalServico.hide();
+                mostrarToast('Serviço cadastrado com sucesso!', 'success');
+                document.getElementById('formServico').reset();
+            } catch (error) {
+                console.error('Erro ao salvar:', error);
+                mostrarToast('Erro ao cadastrar serviço: ' + error.message, 'danger');
+            }
+        }
+
+        // Função para editar serviço
+        window.editarServico = async function(id) {
+            const servicoRef = ref(db, `servicos/${id}`);
+            
+            try {
+                const snapshot = await get(servicoRef);
+                const servico = snapshot.val();
+                
+                if (servico) {
+                    document.getElementById('tipoServico').value = servico.tipo;
+                    document.getElementById('dataServico').value = servico.data;
+                    document.getElementById('localServico').value = servico.local;
+                    document.getElementById('statusServico').value = servico.status;
+                    document.getElementById('observacoesServico').value = servico.observacoes || '';
+                    
+                    // Armazenar ID para atualização
+                    document.getElementById('formServico').dataset.editId = id;
+                    
+                    modalServico.show();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar serviço:', error);
+                mostrarToast('Erro ao carregar serviço: ' + error.message, 'danger');
+            }
+        }
+
+        // Função para excluir serviço
+        window.excluirServico = async function(id) {
+            if (confirm('Tem certeza que deseja excluir este serviço?')) {
+                try {
+                    const servicoRef = ref(db, `servicos/${id}`);
+                    await remove(servicoRef);
+                    mostrarToast('Serviço excluído com sucesso!', 'success');
+                } catch (error) {
+                    console.error('Erro ao excluir:', error);
+                    mostrarToast('Erro ao excluir serviço: ' + error.message, 'danger');
+                }
+            }
+        }
+
         // Inicializar
         window.addEventListener('DOMContentLoaded', () => {
             carregarServicos();
             document.getElementById('monthSelector').addEventListener('change', carregarServicos);
+            
+            // Listener para o formulário
+            document.getElementById('formServico').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const editId = e.target.dataset.editId;
+                
+                if (editId) {
+                    // Atualizar serviço existente
+                    try {
+                        const servicoRef = ref(db, `servicos/${editId}`);
+                        const servico = {
+                            tipo: document.getElementById('tipoServico').value,
+                            data: document.getElementById('dataServico').value,
+                            local: document.getElementById('localServico').value,
+                            status: document.getElementById('statusServico').value,
+                            observacoes: document.getElementById('observacoesServico').value,
+                            ultimaAtualizacao: serverTimestamp()
+                        };
+                        
+                        await set(servicoRef, servico);
+                        modalServico.hide();
+                        mostrarToast('Serviço atualizado com sucesso!', 'success');
+                        e.target.dataset.editId = '';
+                        e.target.reset();
+                    } catch (error) {
+                        console.error('Erro ao atualizar:', error);
+                        mostrarToast('Erro ao atualizar serviço: ' + error.message, 'danger');
+                    }
+                } else {
+                    // Criar novo serviço
+                    await salvarServico();
+                }
+            });
         });
     </script>
 
@@ -522,39 +642,6 @@
             }
             
             modalDetalhes.show();
-        }
-
-        window.salvarServico = async function() {
-            const tipo = document.getElementById('tipoServico').value;
-            const data = document.getElementById('dataServico').value;
-            const local = document.getElementById('localServico').value;
-            const status = document.getElementById('statusServico').value;
-            const observacoes = document.getElementById('observacoesServico').value;
-
-            if (!tipo || !data || !local || !status) {
-                mostrarToast('Preencha todos os campos obrigatórios', 'danger');
-                return;
-            }
-
-            const servico = {
-                tipo,
-                data,
-                local,
-                status,
-                observacoes,
-                dataCadastro: new Date().toISOString()
-            };
-
-            try {
-                const servicosRef = ref(db, 'servicos');
-                await push(servicosRef, servico);
-                modalServico.hide();
-                mostrarToast('Serviço cadastrado com sucesso!', 'success');
-                carregarServicos();
-            } catch (error) {
-                console.error('Erro ao salvar:', error);
-                mostrarToast('Erro ao cadastrar serviço', 'danger');
-            }
         }
 
         window.mostrarToast = function(mensagem, tipo) {
