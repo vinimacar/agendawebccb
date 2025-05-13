@@ -9,302 +9,345 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
 
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --info-color: #2980b9;
+            --primary-color: #1a237e;
+            --secondary-color: #283593;
+            --accent-color: #3949ab;
+            --success-color: #2e7d32;
+            --warning-color: #f57f17;
+            --danger-color: #c62828;
+            --info-color: #0277bd;
             --light-bg: #f5f6fa;
             --card-bg: #ffffff;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
         }
 
         body {
             background-color: var(--light-bg);
             font-family: 'Inter', sans-serif;
+            padding-bottom: 80px;
         }
 
         .app-header {
-            background-color: var(--card-bg);
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid #e1e8ef;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2.5rem 0;
             margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .app-title {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
             font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
         }
 
         .service-card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            border: none;
+            height: 100%;
         }
 
         .service-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .service-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+        .service-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-bg);
         }
 
-        .service-title i {
-            margin-right: 0.5rem;
-            font-size: 1.4rem;
+        .service-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .service-date {
-            color: var(--secondary-color);
+        .service-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .service-count {
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .service-location {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .badge {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
             font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
         }
 
-        .back-button {
+        .calendar-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .filters-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 0 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            padding: 1rem;
-            border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-section {
-            background: var(--card-bg);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-        }
-
-        .month-selector {
-            max-width: 200px;
-        }
-
-        .add-service-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 6rem;
-            padding: 1rem;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            gap: 1rem;
             z-index: 1000;
         }
 
-        .add-service-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .export-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 10rem;
-            padding: 1rem;
+        .action-button {
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: var(--transition);
         }
 
-        .service-item {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            background-color: #f8f9fa;
-            transition: background-color 0.2s;
+        .action-button:hover {
+            transform: scale(1.1);
         }
 
-        .service-item:hover {
-            background-color: #e9ecef;
+        .modal-content {
+            border-radius: var(--border-radius);
+            overflow: hidden;
         }
 
         .modal-header {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            padding: 1.5rem;
         }
 
-        .modal-title {
-            font-family: 'Poppins', sans-serif;
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
         }
 
         .toast-container {
             position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            z-index: 1050;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
         }
     </style>
 </head>
 <body>
     <header class="app-header">
-        <h1 class="app-title">AGENDA DE SERVIÇOS</h1>
-        <div class="text-muted mb-3">Administração de Ituiutaba-MG</div>
-        <div class="filter-section">
-            <div class="row align-items-center justify-content-center">
-                <div class="col-auto">
-                    <select class="form-select month-selector" id="monthSelector">
+        <div class="container">
+            <h1 class="app-title text-center">AGENDA DE SERVIÇOS</h1>
+            <p class="text-center mb-4">Administração de Ituiutaba-MG</p>
+            
+            <div class="filters-container">
+                <div class="input-group" style="max-width: 200px;">
+                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                    <select class="form-select" id="monthSelector">
                         <option value="6">Junho/2025</option>
                         <option value="7">Julho/2025</option>
                         <option value="8">Agosto/2025</option>
                     </select>
                 </div>
+                
+                <div class="input-group" style="max-width: 200px;">
+                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                    <select class="form-select" id="tipoFiltro">
+                        <option value="">Todos os Tipos</option>
+                        <option value="BATISMOS">Batismos</option>
+                        <option value="SANTAS-CEIAS">Santas Ceias</option>
+                        <option value="REUNIÃO PARA MOCIDADE">Reunião para Mocidade</option>
+                        <option value="ENSAIOS REGIONAIS">Ensaios Regionais</option>
+                        <option value="ENSAIOS LOCAIS">Ensaios Locais</option>
+                        <option value="REUNIÃO DE CONSELHO DA MOCIDADE">Reunião de Conselho</option>
+                        <option value="REUNIÃO DA OBRA DA PIEDADE">Reunião da Piedade</option>
+                        <option value="EVANGELIZAÇÃO">Evangelização</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-outline-light" onclick="toggleView()">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    Alternar Visualização
+                </button>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="service-card" onclick="mostrarDetalhesServico('BATISMOS')">
-                    <div class="service-title">
-                        <div>
-                            <i class="bi bi-water text-primary"></i>
-                            BATISMOS
-                        </div>
-                        <span class="badge bg-primary" id="batismos-count">0</span>
-                    </div>
-                    <div id="batismos-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
-                </div>
+    <div class="container-fluid">
+        <!-- Visualização de Calendário -->
+        <div id="calendarView" class="calendar-container" style="display: none;">
+            <div id="calendar"></div>
+        </div>
 
-                <div class="service-card" onclick="mostrarDetalhesServico('SANTAS-CEIAS')">
+        <!-- Visualização em Cards -->
+        <div id="cardsView" class="dashboard-container">
+            <!-- Batismos -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-cup-hot text-danger"></i>
-                            SANTAS-CEIAS
+                        <div class="service-icon">
+                            <i class="bi bi-water"></i>
                         </div>
-                        <span class="badge bg-danger" id="santas-ceias-count">0</span>
+                        <span>Batismos</span>
                     </div>
-                    <div id="santas-ceias-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-primary" id="batismos-count">0</span>
                 </div>
-
-                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO PARA MOCIDADE')">
-                    <div class="service-title">
-                        <div>
-                            <i class="bi bi-people-fill text-success"></i>
-                            REUNIÃO PARA MOCIDADE
-                        </div>
-                        <span class="badge bg-success" id="mocidade-count">0</span>
-                    </div>
-                    <div id="mocidade-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
-                </div>
-
-                <div class="service-card" onclick="mostrarDetalhesServico('ENSAIOS REGIONAIS')">
-                    <div class="service-title">
-                        <div>
-                            <i class="bi bi-music-note-list text-warning"></i>
-                            ENSAIOS REGIONAIS
-                        </div>
-                        <span class="badge bg-warning" id="ensaios-regionais-count">0</span>
-                    </div>
-                    <div id="ensaios-regionais-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
-                </div>
+                <div id="batismos-list" class="service-list"></div>
             </div>
 
-            <div class="col-md-6">
-                <div class="service-card" onclick="mostrarDetalhesServico('ENSAIOS LOCAIS')">
+            <!-- Santas Ceias -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-music-note text-info"></i>
-                            ENSAIOS LOCAIS
+                        <div class="service-icon">
+                            <i class="bi bi-cup-hot"></i>
                         </div>
-                        <span class="badge bg-info" id="ensaios-locais-count">0</span>
+                        <span>Santas Ceias</span>
                     </div>
-                    <div id="ensaios-locais-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-danger" id="santas-ceias-count">0</span>
                 </div>
+                <div id="santas-ceias-list" class="service-list"></div>
+            </div>
 
-                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO DE CONSELHO DA MOCIDADE')">
+            <!-- Reunião para Mocidade -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-people text-primary"></i>
-                            REUNIÃO DE CONSELHO DA MOCIDADE
+                        <div class="service-icon">
+                            <i class="bi bi-people-fill"></i>
                         </div>
-                        <span class="badge bg-primary" id="conselho-mocidade-count">0</span>
+                        <span>Reunião para Mocidade</span>
                     </div>
-                    <div id="conselho-mocidade-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-success" id="mocidade-count">0</span>
                 </div>
+                <div id="mocidade-list" class="service-list"></div>
+            </div>
 
-                <div class="service-card" onclick="mostrarDetalhesServico('CULTOS PARA JOVENS')">
+            <!-- Ensaios Regionais -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-person-heart text-danger"></i>
-                            CULTOS PARA JOVENS
+                        <div class="service-icon">
+                            <i class="bi bi-music-note-list"></i>
                         </div>
-                        <span class="badge bg-danger" id="cultos-jovens-count">0</span>
+                        <span>Ensaios Regionais</span>
                     </div>
-                    <div id="cultos-jovens-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-warning" id="ensaios-regionais-count">0</span>
                 </div>
+                <div id="ensaios-regionais-list" class="service-list"></div>
+            </div>
 
-                <div class="service-card" onclick="mostrarDetalhesServico('REUNIÃO DA OBRA DA PIEDADE')">
+            <!-- Ensaios Locais -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-heart-fill text-success"></i>
-                            REUNIÃO DA OBRA DA PIEDADE
+                        <div class="service-icon">
+                            <i class="bi bi-music-note"></i>
                         </div>
-                        <span class="badge bg-success" id="obra-piedade-count">0</span>
+                        <span>Ensaios Locais</span>
                     </div>
-                    <div id="obra-piedade-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-info" id="ensaios-locais-count">0</span>
                 </div>
+                <div id="ensaios-locais-list" class="service-list"></div>
+            </div>
 
-                <div class="service-card" onclick="mostrarDetalhesServico('EVANGELIZAÇÃO')">
+            <!-- Reunião de Conselho -->
+            <div class="service-card">
+                <div class="service-header">
                     <div class="service-title">
-                        <div>
-                            <i class="bi bi-megaphone text-warning"></i>
-                            EVANGELIZAÇÃO
+                        <div class="service-icon">
+                            <i class="bi bi-people"></i>
                         </div>
-                        <span class="badge bg-warning" id="evangelizacao-count">0</span>
+                        <span>Reunião de Conselho</span>
                     </div>
-                    <div id="evangelizacao-list">
-                        <!-- Será preenchido via JavaScript -->
-                    </div>
+                    <span class="service-count badge bg-primary" id="conselho-mocidade-count">0</span>
                 </div>
+                <div id="conselho-mocidade-list" class="service-list"></div>
+            </div>
+
+            <!-- Reunião da Piedade -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-heart-fill"></i>
+                        </div>
+                        <span>Reunião da Piedade</span>
+                    </div>
+                    <span class="service-count badge bg-danger" id="obra-piedade-count">0</span>
+                </div>
+                <div id="obra-piedade-list" class="service-list"></div>
+            </div>
+
+            <!-- Evangelização -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-megaphone"></i>
+                        </div>
+                        <span>Evangelização</span>
+                    </div>
+                    <span class="service-count badge bg-success" id="evangelizacao-count">0</span>
+                </div>
+                <div id="evangelizacao-list" class="service-list"></div>
             </div>
         </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="action-buttons">
+        <button class="action-button btn btn-info" onclick="exportarTodosServicos()" data-bs-toggle="tooltip" data-bs-placement="left" title="Exportar Relatório">
+            <i class="bi bi-file-earmark-pdf"></i>
+        </button>
+        <button class="action-button btn btn-success" onclick="abrirModalCadastro()" data-bs-toggle="tooltip" data-bs-placement="left" title="Agendar Novo Serviço">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+        <a href="index.html" class="action-button btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="left" title="Voltar">
+            <i class="bi bi-arrow-left"></i>
+        </a>
     </div>
 
     <!-- Modal de Cadastro de Serviço -->
@@ -386,18 +429,6 @@
     </div>
 
     <div class="toast-container"></div>
-
-    <a href="index.html" class="btn btn-primary back-button">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-
-    <button class="btn btn-success add-service-btn" onclick="abrirModalCadastro()" data-bs-toggle="tooltip" data-bs-placement="left" title="Agendar Novo Serviço">
-        <i class="bi bi-plus-lg"></i>
-    </button>
-
-    <button class="btn btn-info export-btn" onclick="exportarTodosServicos()">
-        <i class="bi bi-file-earmark-pdf"></i>
-    </button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
