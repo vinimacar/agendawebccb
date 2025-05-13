@@ -458,7 +458,7 @@
 
         .ticker-wrapper {
             display: flex;
-            animation: ticker 10s linear infinite;
+            animation: ticker 3s linear infinite;
             white-space: nowrap;
             padding: 0 50px;
         }
@@ -1306,7 +1306,7 @@
 
             // Ajustar a animação com base no número de itens
             const tickerWidth = tickerWrapper.scrollWidth;
-            tickerWrapper.style.animation = `ticker ${tickerWidth * 0.003}s linear infinite`;
+            tickerWrapper.style.animation = `ticker ${tickerWidth * 0.001}s linear infinite`;
         }
 
         function mostrarAlerta(mensagem, tipo) {
