@@ -628,16 +628,17 @@
     </script>
 
     <script>
-        // Modal de cadastro
+        // Definições globais
         const modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
         const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhes'));
 
-        window.abrirModalCadastro = function() {
+        function abrirModalCadastro() {
             document.getElementById('formServico').reset();
+            document.getElementById('formServico').dataset.editId = '';
             modalServico.show();
         }
 
-        window.mostrarDetalhesServico = function(tipo) {
+        function mostrarDetalhesServico(tipo) {
             const titulo = document.getElementById('detalhesTitulo');
             const conteudo = document.getElementById('detalhesConteudo');
             
@@ -653,7 +654,7 @@
             modalDetalhes.show();
         }
 
-        window.mostrarToast = function(mensagem, tipo) {
+        function mostrarToast(mensagem, tipo) {
             const toastContainer = document.querySelector('.toast-container');
             const toast = document.createElement('div');
             toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
@@ -679,7 +680,7 @@
             });
         }
 
-        window.exportarRelatorio = function() {
+        function exportarRelatorio() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -699,7 +700,7 @@
             doc.save(`relatorio_${titulo.toLowerCase().replace(/\s+/g, '_')}.pdf`);
         }
 
-        window.exportarTodosServicos = function() {
+        function exportarTodosServicos() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
@@ -740,7 +741,7 @@
             doc.save("relatorio_completo_servicos.pdf");
         }
 
-        // Inicializar tooltips
+        // Inicializar tooltips quando o DOM estiver carregado
         document.addEventListener('DOMContentLoaded', function() {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
