@@ -674,36 +674,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalConfirmacaoFinal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Confirmação Final
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="alert alert-danger mb-3">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i>
-                        <strong>Última Verificação!</strong>
-                    </div>
-                    <p>Tem certeza absoluta que deseja excluir este agendamento?</p>
-                    <p class="text-danger"><small>Esta ação é irreversível!</small></p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancelar
-                    </button>
-                    <button type="button" class="btn btn-danger" id="btnConfirmacaoFinal">
-                        <i class="bi bi-trash me-2"></i>Confirmar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
@@ -1119,7 +1089,6 @@
 
         // Criar referências aos modais
         const modalExclusao = new bootstrap.Modal(document.getElementById('modalConfirmacaoExclusao'));
-        const modalConfirmacaoFinal = new bootstrap.Modal(document.getElementById('modalConfirmacaoFinal'));
 
         // Função para excluir agendamento
         window.excluirAgendamento = async function (id) {
@@ -1138,7 +1107,7 @@
                 weekday: 'long'
             });
 
-            // Preencher os dados no primeiro modal
+            // Preencher os dados no modal
             document.getElementById('congExclusao').textContent = agendamento.congregacao;
             document.getElementById('dataExclusao').textContent = dataFormatada;
             document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
@@ -1148,28 +1117,15 @@
             agendamentoParaExcluir = agendamento;
             idParaExcluir = id;
 
-            // Mostrar o primeiro modal
+            // Mostrar o modal
             modalExclusao.show();
         };
 
-        // Evento para a primeira confirmação
-        document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', () => {
+        // Evento para confirmação de exclusão
+        document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', async () => {
             if (!agendamentoParaExcluir || !idParaExcluir) {
                 mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
                 modalExclusao.hide();
-                return;
-            }
-            modalExclusao.hide(); // Esconde o primeiro modal
-            setTimeout(() => {
-                modalConfirmacaoFinal.show(); // Mostra o segundo modal após um pequeno delay
-            }, 500);
-        });
-
-        // Evento para a confirmação final
-        document.getElementById('btnConfirmacaoFinal').addEventListener('click', async () => {
-            if (!agendamentoParaExcluir || !idParaExcluir) {
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
-                modalConfirmacaoFinal.hide();
                 return;
             }
 
@@ -1184,24 +1140,11 @@
                 console.error("Erro ao excluir:", error);
                 mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
             } finally {
-                modalConfirmacaoFinal.hide();
+                modalExclusao.hide();
                 // Limpar as referências
                 agendamentoParaExcluir = null;
                 idParaExcluir = null;
             }
-        });
-
-        // Limpar referências quando os modais forem fechados
-        document.getElementById('modalConfirmacaoExclusao').addEventListener('hidden.bs.modal', () => {
-            if (!document.getElementById('modalConfirmacaoFinal').classList.contains('show')) {
-                agendamentoParaExcluir = null;
-                idParaExcluir = null;
-            }
-        });
-
-        document.getElementById('modalConfirmacaoFinal').addEventListener('hidden.bs.modal', () => {
-            agendamentoParaExcluir = null;
-            idParaExcluir = null;
         });
 
         function carregarAgendamentos() {
