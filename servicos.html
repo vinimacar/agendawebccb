@@ -1084,6 +1084,104 @@
 
             calendar.render();
         }
+
+        // Update service lists
+        function updateServiceLists(services) {
+            // Clear all lists first
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                if (listElement) {
+                    listElement.innerHTML = '';
+                }
+            });
+
+            // Sort services by date
+            const sortedServices = Object.entries(services || {}).sort((a, b) => {
+                return new Date(a[1].date) - new Date(b[1].date);
+            });
+
+            // Group services by type
+            const servicesByType = {};
+            sortedServices.forEach(([id, service]) => {
+                if (!servicesByType[service.type]) {
+                    servicesByType[service.type] = [];
+                }
+                servicesByType[service.type].push([id, service]);
+            });
+
+            // Update each service type list
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                const typeServices = servicesByType[type] || [];
+                
+                if (listElement) {
+                    listElement.innerHTML = typeServices
+                        .map(([id, service]) => createServiceCard(id, service))
+                        .join('');
+                    
+                    // Update counter
+                    const countElement = document.getElementById(`${type.toLowerCase()}-count`);
+                    if (countElement) {
+                        countElement.textContent = typeServices.length;
+                    }
+                }
+            });
+        }
+
+        // Create service card HTML
+        function createServiceCard(id, service) {
+            const date = new Date(service.date).toLocaleDateString('pt-BR');
+            const typeInfo = SERVICE_TYPES[service.type];
+            
+            return `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-subtitle text-muted">
+                                <i class="bi bi-calendar-event"></i> ${date}
+                            </h6>
+                            <span class="badge bg-${typeInfo.color}">
+                                <i class="bi ${typeInfo.icon}"></i>
+                            </span>
+                        </div>
+                        <p class="card-text">
+                            <strong><i class="bi bi-building"></i> ${service.congregation}</strong><br>
+                            <i class="bi bi-person"></i> ${service.attendingBrother}
+                            ${service.regionalSupervisor ? `<br><i class="bi bi-person-badge"></i> ${service.regionalSupervisor}` : ''}
+                            ${service.details ? `<br><small class="text-muted"><i class="bi bi-info-circle"></i> ${service.details}</small>` : ''}
+                        </p>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editService('${id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteService('${id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Listen for service changes
+        servicesRef.on('value', (snapshot) => {
+            const services = snapshot.val();
+            updateServiceLists(services);
+            updateCalendar(services);
+        });
+
+        // Confirm service deletion
+        function confirmDeleteService(serviceId) {
+            if (confirm('Tem certeza que deseja excluir este serviço?')) {
+                deleteService(serviceId)
+                    .then(() => {
+                        showToast('Serviço excluído com sucesso!');
+                    })
+                    .catch(error => {
+                        showToast('Erro ao excluir serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
     </script>
 </body>
 </html>
