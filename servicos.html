@@ -3,1524 +3,1194 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Agenda de Coletas - CCB</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            /* Cores principais */
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            
-            /* Cores de status */
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --info-color: #2980b9;
-            
-            /* Cores de fundo */
-            --light-bg: #f5f6fa;
-            --card-bg: #ffffff;
-            --hover-bg: #edf2f7;
-            
-            /* Cores de texto */
-            --text-primary: #2c3e50;
-            --text-secondary: #576574;
-            --text-muted: #95a5a6;
-            --text-light: #ffffff;
-        }
-
-        body {
-            background-color: var(--light-bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-primary);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-
-        .app-header {
-            background-color: var(--card-bg);
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid #e1e8ef;
-            margin-bottom: 2rem;
-        }
-
-        .app-title {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .app-subtitle {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .main-container {
-            display: flex;
-            gap: 2rem;
-            padding: 0 2rem;
-        }
-
-        .congregacoes-section {
-            flex: 1;
-            max-width: 50%;
-        }
-
-        .agendamentos-section {
-            flex: 1;
-        }
-
-        .congregacoes-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.2rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .congregacoes-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid #e1e8ef;
-        }
-
-        .congregacoes-list {
-            max-height: 70vh;
-            overflow-y: auto;
-            padding-right: 0.5rem;
-            scrollbar-width: thin;
-            scrollbar-color: var(--text-muted) transparent;
-        }
-
-        .congregacoes-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .congregacoes-list::-webkit-scrollbar-thumb {
-            background-color: var(--text-muted);
-            border-radius: 2px;
-        }
-
-        .congregacoes-list::-webkit-scrollbar-track {
-            background-color: transparent;
-        }
-
-        .botao-congregacao {
-            white-space: normal;
-            text-align: left;
-            padding: 0.8rem 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--card-bg);
-            border: 1px solid #e1e8ef;
-            font-weight: 500;
-            font-size: 0.9rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .botao-congregacao:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-            border-color: var(--accent-color);
-            background-color: rgba(52, 152, 219, 0.02);
-        }
-
-        .badge {
-            padding: 0.35rem 0.6rem;
-            font-weight: 500;
-            font-size: 0.75rem;
-            border-radius: 6px;
-            letter-spacing: 0.3px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .badge.bg-success {
-            background-color: #2ecc71 !important;
-        }
-
-        .badge.bg-primary {
-            background-color: #3498db !important;
-        }
-
-        .badge.bg-info {
-            background-color: #00b8d4 !important;
-        }
-
-        .badge.bg-warning {
-            background-color: #f1c40f !important;
-            color: #2c3e50 !important;
-        }
-
-        .badge.bg-secondary {
-            background-color: #95a5a6 !important;
-        }
-
-        .badge i {
-            font-size: 0.8rem;
-            margin-right: 2px;
-        }
-
-        .export-buttons {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e1e8ef;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .table-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .container {
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            letter-spacing: -0.5px;
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            color: var(--secondary-color);
-            font-size: 1.5rem;
-            margin: 2rem 0 1rem;
-            font-weight: 600;
-        }
-
-        .agendamento-futuro {
-            background-color: #e8f6f0;
-            transition: background-color 0.3s ease;
-        }
-
-        .agendamento-futuro:hover {
-            background-color: #d1f2e4;
-        }
-
-        .table {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-        }
-
-        .table thead th {
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            border: none;
-            padding: 1.2rem 1rem;
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table td {
-            padding: 1.2rem 1rem;
-            vertical-align: middle;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            border-color: #edf2f7;
-        }
-
-        .btn {
-            border-radius: 8px;
-            padding: 0.6rem 1.2rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .btn-primary {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .btn-success {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
-        }
-
-        .btn-warning {
-            background-color: var(--warning-color);
-            border-color: var(--warning-color);
-        }
-
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-
-        .modal-content {
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-
-        .modal-header {
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-            padding: 1.5rem;
-        }
-
-        .modal-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-        }
-
-        .form-label {
-            color: var(--text-secondary);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control {
-            border-radius: 8px;
-            padding: 0.7rem 1rem;
-            border-color: #e1e8ef;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-
-        .alert-info {
-            background-color: #e8f4fd;
-            border-color: #bde0fe;
-            border-radius: 12px;
-            padding: 1.2rem;
-            color: var(--info-color);
-        }
-
-        .alert-info ul {
-            margin-bottom: 0;
-            padding-left: 1.2rem;
-        }
-
-        .alert-info li {
-            margin: 0.6rem 0;
-            color: var(--text-secondary);
-        }
-
-        .toast-container {
-            z-index: 9999;
-        }
-
-        .toast {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .toast-body {
-            font-size: 0.95rem;
-            padding: 1rem 1.2rem;
-        }
-
-        .export-buttons {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #edf2f7;
-        }
-
-        .bi {
-            font-size: 1.1rem;
-            vertical-align: -0.125em;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            .botao-congregacao {
-                font-size: 0.9rem;
-                padding: 1rem;
-            }
-
-            .table td, .table th {
-                padding: 0.8rem;
-            }
-
-            .badge {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .main-container {
-                flex-direction: column;
-                padding: 0 1rem;
-            }
-
-            .congregacoes-section {
-                max-width: 100%;
-            }
-
-            .congregacoes-list {
-                max-height: 40vh;
-            }
-
-            .app-title {
-                font-size: 1.5rem;
-            }
-
-            .app-subtitle {
-                font-size: 1rem;
-            }
-        }
-
-        .legend {
-            font-size: 0.8rem;
-            line-height: 1.4;
-        }
-
-        .legend i {
-            font-size: 0.75rem;
-            margin-right: 3px;
-        }
-
-        /* Estilos para o ticker de agendamentos */
-        .ticker-container {
-            background-color: var(--primary-color);
-            padding: 0.5rem 0;
-            margin-bottom: 2rem;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .ticker-container::before,
-        .ticker-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            width: 50px;
-            height: 100%;
-            z-index: 2;
-        }
-
-        .ticker-container::before {
-            left: 0;
-            background: linear-gradient(to right, var(--primary-color), transparent);
-        }
-
-        .ticker-container::after {
-            right: 0;
-            background: linear-gradient(to left, var(--primary-color), transparent);
-        }
-
-        .ticker-wrapper {
-            display: flex;
-            animation: ticker 3s linear infinite;
-            white-space: nowrap;
-            padding: 0 50px;
-        }
-
-        .ticker-wrapper:hover {
-            animation-play-state: paused;
-        }
-
-        .ticker-item {
-            display: inline-flex;
-            align-items: center;
-            color: white;
-            padding: 0 2rem;
-            font-size: 0.9rem;
-            border-right: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .ticker-item:last-child {
-            border-right: none;
-        }
-
-        .ticker-item i {
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .ticker-item .badge {
-            margin-left: 0.5rem;
-            font-size: 0.7rem;
-            padding: 0.25rem 0.5rem;
-        }
-
-        @keyframes ticker {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-50%);
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="app-header">
-        <h1 class="app-title">AGENDA DE REFORÇOS DE COLETAS</h1>
-        <div class="app-subtitle">Administração de Ituiutaba-MG</div>
-        <div class="app-subtitle">Referente ao mês de : JUNHO/2025</div>
-        <div class="mt-3">
-            <a href="servicos.html" class="btn btn-primary btn-lg">
-                <i class="bi bi-calendar2-week me-2"></i>
-                AGENDA DE SERVIÇOS
-            </a>
-        </div>
-    </header>
-
-    <div class="ticker-container">
-        <div class="ticker-wrapper" id="ticker-wrapper">
-            <!-- Os itens do ticker serão inseridos aqui via JavaScript -->
-        </div>
-    </div>
-
-    <div class="main-container">
-        <!-- Seção de Congregações -->
-        <section class="congregacoes-section">
-            <div class="congregacoes-container">
-                <div class="congregacoes-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-building me-2"></i>Congregações
-                    </h5>
-                    <div class="legend">
-                        <small class="text-muted d-block">
-                            <i class="bi bi-check-circle-fill text-success"></i> Agendado
-                        </small>
-                        <small class="text-muted d-block">
-                            <i class="bi bi-circle text-muted"></i> Disponível
-                        </small>
-                    </div>
-                </div>
-                
-                <div class="congregacoes-list" id="congregacoes"></div>
-
-                <div class="export-buttons">
-                    <button id="btnExportPDF" class="btn btn-success">
-                        <i class="bi bi-file-pdf me-2"></i>Baixar PDF
-                    </button>
-                    <button id="btnExportXLS" class="btn btn-primary">
-                        <i class="bi bi-file-excel me-2"></i>Baixar XLS
-                    </button>
-                    <button id="btnExportPNG" class="btn btn-info">
-                        <i class="bi bi-file-image me-2"></i>Baixar PNG
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Seção de Agendamentos -->
-        <section class="agendamentos-section">
-            <div class="table-container">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="mb-0">
-                        <i class="bi bi-calendar-check me-2"></i>Agendamentos
-                    </h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="tabela-agendamentos">
-                        <thead class="table-dark">
-                            <tr>
-                                <th><i class="bi bi-building me-2"></i>Congregação</th>
-                                <th><i class="bi bi-calendar3 me-2"></i>Data</th>
-                                <th><i class="bi bi-person me-2"></i>Irmão</th>
-                                <th><i class="bi bi-tag me-2"></i>Tipo</th>
-                                <th><i class="bi bi-gear me-2"></i>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-agendamentos"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="formAgendamento" class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-calendar-plus me-2"></i>
-                        Agendar Coleta
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-4">
-                        <label class="form-label">
-                            <i class="bi bi-building me-2"></i>
-                            Congregação
-                        </label>
-                        <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
-                    </div>
-                    <div class="mb-4">
-                        <label for="dataColeta" class="form-label">
-                            <i class="bi bi-calendar-date me-2"></i>
-                            Data
-                        </label>
-                        <input type="date" class="form-control" id="dataColeta" required />
-                    </div>
-                    <div class="mb-4">
-                        <label for="irmaoNome" class="form-label">
-                            <i class="bi bi-person me-2"></i>
-                            Nome do Irmão
-                        </label>
-                        <input type="text" class="form-control" id="irmaoNome" required />
-                    </div>
-                    <div class="mb-4">
-                        <label for="tipoAgendamento" class="form-label">
-                            <i class="bi bi-tag me-2"></i>
-                            Tipo de Agendamento
-                        </label>
-                        <select class="form-select" id="tipoAgendamento" required>
-                            <option value="">Selecione</option>
-                            <option value="Culto Oficial">Culto Oficial</option>
-                            <option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-info">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Horários Disponíveis:</strong>
-                        </div>
-                        <ul id="horarios-lista" class="mb-0"></ul>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalConfirmacaoExclusao" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Confirmar Exclusão
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-danger mb-3">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i>
-                        <strong>Atenção!</strong> Esta ação não poderá ser desfeita.
-                    </div>
-                    <p>Você está prestes a excluir o seguinte agendamento:</p>
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <p class="mb-2"><strong>Congregação:</strong> <span id="congExclusao"></span></p>
-                            <p class="mb-2"><strong>Data:</strong> <span id="dataExclusao"></span></p>
-                            <p class="mb-2"><strong>Irmão:</strong> <span id="irmaoExclusao"></span></p>
-                            <p class="mb-0"><strong>Tipo:</strong> <span id="tipoExclusao"></span></p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-2"></i>Cancelar
-                    </button>
-                    <button type="button" class="btn btn-danger" id="btnPrimeiraConfirmacao">
-                        <i class="bi bi-trash me-2"></i>Confirmar Exclusão
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
+    <title>Agenda de Serviços - CCB</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
             authDomain: "agendawebccb.firebaseapp.com",
             databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
             projectId: "agendawebccb",
-            storageBucket: "agendawebccb.firebasestorage.app",
-            messagingSenderId: "1002090805726",
-            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+            storageBucket: "agendawebccb.appspot.com",
+            messagingSenderId: "1027981883218",
+            appId: "1:1027981883218:web:23c0fe509f755f1e0d4805"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        const congregacoes = [
-            "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
-            "Chaveslândia", "Chico Mendes", "Dom Alexandre", "Eldorado",
-            "Flor de Minas", "Gurinhatã", "Ipiaçu", "Ipiranga", "Ituiutaba - Central",
-            "Jerônimo Mendonça", "Marta Helena", "Natal", "Novo Tempo II",
-            "Recanto das Acácias", "Santa Vitória - Central", "Satélite Andradina",
-            "Setor Norte"
-        ].sort();
+        // Database References
+        const servicesRef = database.ref('services');
+        const congregationsRef = database.ref('congregations');
 
-        let agendamentos = [];
-        let congregacaoAtual = "";
-        let indexEdicao = null;
-        let agendamentoParaExcluir = null;
-        let idParaExcluir = null;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
-
-        // Horários fixos para cada congregação
-        const horariosCongregacoes = {
-            "Alvorada": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-                ]
+        // Service Types
+        const SERVICE_TYPES = {
+            BATISMOS: {
+                name: 'Batismos',
+                icon: 'bi-water',
+                color: 'primary'
             },
-            "Buritis": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-                ]
-                
+            SANTAS_CEIAS: {
+                name: 'Santas Ceias',
+                icon: 'bi-cup-hot',
+                color: 'danger'
             },
-            "Capinópolis - Central": {
-                "Culto Oficial": [
-                    { dia: "Quinta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
+            REUNIAO_MOCIDADE: {
+                name: 'Reunião para Mocidade',
+                icon: 'bi-people',
+                color: 'success'
             },
-            "Cachoeira Dourada": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-                ]
+            ENSAIOS_REGIONAIS: {
+                name: 'Ensaios Regionais',
+                icon: 'bi-music-note-beamed',
+                color: 'info'
             },
-            "Chaveslândia": {
-                "Culto Oficial": [
-                    { dia: "Sábado", hora: "19:30" },
-                
-                ]
+            ENSAIOS_LOCAIS: {
+                name: 'Ensaios Locais',
+                icon: 'bi-music-note',
+                color: 'secondary'
             },
-            "Chico Mendes": {
-                "Culto Oficial": [
-                    { dia: "Sábado - 1º e 3º ao mês", hora: "19:30" },
-              
-                ]
+            REUNIAO_CONSELHO: {
+                name: 'Reunião de Conselho',
+                icon: 'bi-clipboard-data',
+                color: 'warning'
             },
-            "Dom Alexandre": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-            
-                ]
+            OBRA_PIEDADE: {
+                name: 'Reunião da Piedade',
+                icon: 'bi-heart',
+                color: 'danger'
             },
-            "Eldorado": {
-                "Culto Oficial": [
-                    { dia: "Domingo", hora: "18:30" },
-                    { dia: "Quinta-Feira", hora: "19:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Flor de Minas": {
-                "Culto Oficial": [
-                    { dia: "Sábado", hora: "19:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Gurinhatã": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Sábado", hora: "19:30" }
-                ]
-            },
-            "Ipiaçu": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-            
-                ]
-            },
-            "Ipiranga": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Ituiutaba - Central": {
-                "Culto Oficial": [
-                    { dia: "Domingo", hora: "18:30" },
-                    { dia: "Quarta-feira", hora: "19:30" },
-                     { dia: "Quinta-feira", hora: "15:00" },
-                    { dia: "Sábado", hora: "19:30" }
-                    
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Jerônimo Mendonça": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-    
-                ]
-            },
-            "Marta Helena": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Sexta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Natal": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Quinta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Novo Tempo II": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Recanto das Acácias": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Sexta-Feira", hora: "19:30" }
-                ]
-            },
-            "Santa Vitória - Central": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Satélite Andradina": {
-                "Culto Oficial": [
-                    { dia: "Quinta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ]
-            },
-            "Setor Norte": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ]
+            EVANGELIZACAO: {
+                name: 'Evangelização',
+                icon: 'bi-book',
+                color: 'success'
             }
         };
 
-        // Lista de congregações que têm reunião de jovens
-        const congregacoesComReuniaoJovens = [
-            "Ituiutaba - Central",
-            "Ipiranga",
-            "Eldorado",
-            "Marta Helena",
-            "Natal",
-            "Novo Tempo II",
-            "Gurinhatã",
-            "Flor de Minas",
-            "Santa Vitória - Central",
-            "Capinópolis - Central"
-        ];
+        // Get services by date range
+        function getServicesByDateRange(startDate, endDate) {
+            return servicesRef
+                .orderByChild('date')
+                .startAt(startDate)
+                .endAt(endDate)
+                .once('value');
+        }
 
-        window.abrirFormulario = function (cong, index = null) {
-            if (index !== null) {
-                const agendamento = agendamentos[index];
-                const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
-                
-                const mensagem = `Deseja editar este agendamento?\n\n` +
-                    `Congregação: ${agendamento.congregacao}\n` +
-                    `Data: ${dataFormatada}\n` +
-                    `Irmão: ${agendamento.irmao}\n` +
-                    `Tipo: ${agendamento.tipo}`;
-
-                if (!confirm(mensagem)) {
-                    return; // Se o usuário cancelar, não abre o modal
-                }
-            }
-
-            congregacaoAtual = cong;
-            indexEdicao = index;
-            document.getElementById("congregacaoSelecionada").value = cong;
-            document.getElementById("dataColeta").value = "";
-            document.getElementById("irmaoNome").value = "";
-            
-            // Atualizar opções do tipo de agendamento
-            const tipoSelect = document.getElementById("tipoAgendamento");
-            tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
-            
-            // Adicionar opção de Reunião de Jovens apenas para congregações específicas
-            if (congregacoesComReuniaoJovens.includes(cong)) {
-                tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
-            }
-
-            tipoSelect.value = "";
-
-            if (index !== null) {
-                const ag = agendamentos[index];
-                document.getElementById("dataColeta").value = ag.data;
-                document.getElementById("irmaoNome").value = ag.irmao;
-                document.getElementById("tipoAgendamento").value = ag.tipo;
-            }
-
-            // Atualiza os horários exibidos
-            const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
-            horariosDiv.innerHTML = "";
-            const horarios = horariosCongregacoes[cong];
-            Object.entries(horarios).forEach(([tipo, lista]) => {
-                if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
-                    lista.forEach(h => {
-                        horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
-                    });
-                }
+        // Create new service
+        function createService(serviceData) {
+            const newServiceRef = servicesRef.push();
+            return newServiceRef.set({
+                ...serviceData,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
+        }
 
-            modal.show();
-        };
-
-        document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const data = document.getElementById("dataColeta").value;
-            const irmao = document.getElementById("irmaoNome").value;
-            const tipo = document.getElementById("tipoAgendamento").value;
-            const hoje = new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
-
-            if (!tipo) {
-                alert("Por favor, selecione o tipo de agendamento.");
-                return;
-            }
-
-            if (data < hoje) {
-                alert("Não é permitido agendar uma data passada.");
-                return;
-            }
-
-            // Criar data sem dependência de fuso horário
-            const [ano, mes, dia] = data.split('-');
-            const dataSelecionada = new Date(ano, mes - 1, dia);
-            const diaSemana = dataSelecionada.getDay(); // 0 = Domingo, 4 = Quinta-feira
-
-            // Validação especial para Ituiutaba - Central
-            if (congregacaoAtual === "Ituiutaba - Central" && tipo === "Culto Oficial") {
-                const cultosItuiutaba = agendamentos.filter(a => 
-                    a.congregacao === "Ituiutaba - Central" && 
-                    a.tipo === "Culto Oficial" &&
-                    new Date(a.data).getMonth() === dataSelecionada.getMonth() &&
-                    new Date(a.data).getFullYear() === dataSelecionada.getFullYear() &&
-                    a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null)
-                );
-
-                if (cultosItuiutaba.length >= 2) {
-                    alert("A Congregação Central de Ituiutaba já possui dois cultos agendados neste mês.");
-                    return;
-                }
-
-                const temCultoQuinta = cultosItuiutaba.some(a => new Date(a.data).getDay() === 4);
-                
-                if (cultosItuiutaba.length === 1 && !temCultoQuinta && diaSemana !== 4) {
-                    alert("O segundo culto deve ser obrigatoriamente na quinta-feira.");
-                    return;
-                }
-
-                if (cultosItuiutaba.length === 0 && diaSemana === 4) {
-                    // Permitir o primeiro agendamento na quinta-feira
-                } else if (cultosItuiutaba.length === 0) {
-                    // Permitir o primeiro agendamento em qualquer dia
-                } else if (cultosItuiutaba.length === 1 && temCultoQuinta && diaSemana === 4) {
-                    alert("Já existe um culto agendado para quinta-feira.");
-                    return;
-                }
-            } else {
-                // Validação normal para outras congregações
-                const duplicado = agendamentos.some((a, i) => {
-                    const dataAgendamento = new Date(a.data);
-                    return (
-                        a.congregacao === congregacaoAtual &&
-                        dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
-                        dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
-                        a.tipo === tipo &&
-                        i !== indexEdicao
-                    );
-                });
-
-                if (duplicado) {
-                    alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
-                    return;
-                }
-            }
-
-            const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
-
-            try {
-                if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-                    const id = agendamentos[indexEdicao].id;
-                    await set(ref(db, "agendamentos/" + id), novo);
-                    mostrarAlerta("Agendamento atualizado com sucesso!", "success");
-                } else {
-                    await push(ref(db, "agendamentos"), novo);
-                    mostrarAlerta("Novo agendamento criado com sucesso!", "success");
-                }
-                modal.hide();
-            } catch (error) {
-                mostrarAlerta("Erro ao salvar o agendamento. Tente novamente.", "danger");
-            }
-        });
-
-        function atualizarTabela() {
-            const corpo = document.getElementById("lista-agendamentos");
-            corpo.innerHTML = "";
-            const hoje = new Date();
-
-            // Ordenar agendamentos por data
-            agendamentos.sort((a, b) => {
-                const [anoA, mesA, diaA] = a.data.split('-');
-                const [anoB, mesB, diaB] = b.data.split('-');
-                return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+        // Update existing service
+        function updateService(serviceId, serviceData) {
+            return servicesRef.child(serviceId).update({
+                ...serviceData,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
+        }
 
-            agendamentos.forEach((a, index) => {
-                const [ano, mes, dia] = a.data.split('-');
-                const dataObj = new Date(ano, mes - 1, dia);
-                const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-                const futura = dataObj >= new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+        // Delete service
+        function deleteService(serviceId) {
+            return servicesRef.child(serviceId).remove();
+        }
+    </script>
 
-                const linha = `
-                  <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
-                    <td>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #283593;
+            --accent-color: #3949ab;
+            --success-color: #2e7d32;
+            --warning-color: #f57f17;
+            --danger-color: #c62828;
+            --info-color: #0277bd;
+            --light-bg: #f5f6fa;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 80px;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .service-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            border: none;
+            height: 100%;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .service-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .service-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .service-count {
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .calendar-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .filters-container {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 0 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .action-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: var(--transition);
+        }
+
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+
+        .modal-content {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <h1 class="app-title text-center">AGENDA DE SERVIÇOS</h1>
+            <p class="text-center mb-4">Administração de Ituiutaba-MG</p>
+            
+            <div class="filters-container">
+                <div class="input-group" style="max-width: 200px;">
+                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                    <select class="form-select" id="monthSelector">
+                        <option value="6">Junho/2025</option>
+                        <option value="7">Julho/2025</option>
+                        <option value="8">Agosto/2025</option>
+                    </select>
+                </div>
+                
+                <div class="input-group" style="max-width: 200px;">
+                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                    <select class="form-select" id="tipoFiltro">
+                        <option value="">Todos os Tipos</option>
+                        <option value="BATISMOS">Batismos</option>
+                        <option value="SANTAS-CEIAS">Santas Ceias</option>
+                        <option value="REUNIÃO PARA MOCIDADE">Reunião para Mocidade</option>
+                        <option value="ENSAIOS REGIONAIS">Ensaios Regionais</option>
+                        <option value="ENSAIOS LOCAIS">Ensaios Locais</option>
+                        <option value="REUNIÃO DE CONSELHO DA MOCIDADE">Reunião de Conselho</option>
+                        <option value="REUNIÃO DA OBRA DA PIEDADE">Reunião da Piedade</option>
+                        <option value="EVANGELIZAÇÃO">Evangelização</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-outline-light" onclick="toggleView()">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    Alternar Visualização
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <!-- Visualização de Calendário -->
+        <div id="calendarView" class="calendar-container" style="display: none;">
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Visualização em Cards -->
+        <div id="cardsView" class="dashboard-container">
+            <!-- Batismos -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-water"></i>
+                        </div>
+                        <span>Batismos</span>
+                    </div>
+                    <span class="service-count badge bg-primary" id="batismos-count">0</span>
+                </div>
+                <div id="batismos-list" class="service-list"></div>
+            </div>
+
+            <!-- Santas Ceias -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-cup-hot"></i>
+                        </div>
+                        <span>Santas Ceias</span>
+                    </div>
+                    <span class="service-count badge bg-danger" id="santas_ceias-list-count">0</span>
+                </div>
+                <div id="santas_ceias-list" class="service-list"></div>
+            </div>
+
+            <!-- Reunião para Mocidade -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <span>Reunião para Mocidade</span>
+                    </div>
+                    <span class="service-count badge bg-success" id="reuniao_mocidade-list-count">0</span>
+                </div>
+                <div id="reuniao_mocidade-list" class="service-list"></div>
+            </div>
+
+            <!-- Ensaios Regionais -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-music-note-list"></i>
+                        </div>
+                        <span>Ensaios Regionais</span>
+                    </div>
+                    <span class="service-count badge bg-warning" id="ensaios_regionais-list-count">0</span>
+                </div>
+                <div id="ensaios_regionais-list" class="service-list"></div>
+            </div>
+
+            <!-- Ensaios Locais -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-music-note"></i>
+                        </div>
+                        <span>Ensaios Locais</span>
+                    </div>
+                    <span class="service-count badge bg-info" id="ensaios_locais-list-count">0</span>
+                </div>
+                <div id="ensaios_locais-list" class="service-list"></div>
+            </div>
+
+            <!-- Reunião de Conselho -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <span>Reunião de Conselho</span>
+                    </div>
+                    <span class="service-count badge bg-primary" id="reuniao_conselho-list-count">0</span>
+                </div>
+                <div id="reuniao_conselho-list" class="service-list"></div>
+            </div>
+
+            <!-- Reunião da Piedade -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-heart-fill"></i>
+                        </div>
+                        <span>Reunião da Piedade</span>
+                    </div>
+                    <span class="service-count badge bg-danger" id="obra_piedade-list-count">0</span>
+                </div>
+                <div id="obra_piedade-list" class="service-list"></div>
+            </div>
+
+            <!-- Evangelização -->
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-title">
+                        <div class="service-icon">
+                            <i class="bi bi-megaphone"></i>
+                        </div>
+                        <span>Evangelização</span>
+                    </div>
+                    <span class="service-count badge bg-success" id="evangelizacao-list-count">0</span>
+                </div>
+                <div id="evangelizacao-list" class="service-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="action-buttons">
+        <button class="action-button btn btn-primary" onclick="openNewServiceModal()">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+
+    <!-- Modal de Cadastro de Serviço -->
+    <div class="modal fade" id="modalServico" tabindex="-1" aria-labelledby="modalServicoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalServicoLabel">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        Agendar Serviço
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <form id="formServico" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="tipoServico" class="form-label">Tipo de Serviço</label>
+                            <select class="form-select" id="tipoServico" required>
+                                <option value="">Selecione o tipo de serviço</option>
+                                <option value="BATISMOS">Batismos</option>
+                                <option value="SANTAS_CEIAS">Santas Ceias</option>
+                                <option value="REUNIAO_MOCIDADE">Reunião para Mocidade</option>
+                                <option value="ENSAIOS_REGIONAIS">Ensaios Regionais</option>
+                                <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
+                                <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
+                                <option value="OBRA_PIEDADE">Reunião da Piedade</option>
+                                <option value="EVANGELIZACAO">Evangelização</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor, selecione o tipo de serviço.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dataServico" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="dataServico" required>
+                            <div class="invalid-feedback">
+                                Por favor, selecione a data do serviço.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="localServico" class="form-label">Local</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="localServico" 
+                                    placeholder="Selecione a congregação"
+                                    required
+                                    list="localidadesList"
+                                    autocomplete="off">
+                                <button class="btn btn-outline-primary" type="button" onclick="abrirModalLocalidades()"
+                                    data-bs-toggle="tooltip" data-bs-placement="top" title="Buscar congregação">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <datalist id="localidadesList"></datalist>
+                            <div class="invalid-feedback">
+                                Por favor, selecione uma congregação.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="irmaoAtendente" class="form-label">Irmão que Atende</label>
+                            <input type="text" class="form-control" id="irmaoAtendente" 
+                                placeholder="Nome do irmão que atende" required>
+                            <div class="invalid-feedback">
+                                Por favor, informe o irmão que atende.
+                            </div>
+                        </div>
+
+                        <div id="campoEncarregadoRegional" class="mb-3" style="display: none;">
+                            <label for="encarregadoRegional" class="form-label">Encarregado Regional</label>
+                            <input type="text" class="form-control" id="encarregadoRegional" 
+                                placeholder="Nome do encarregado regional">
+                            <div class="invalid-feedback">
+                                Por favor, informe o encarregado regional.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="observacoesServico" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoesServico" rows="3" 
+                                placeholder="Observações adicionais (opcional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Serviço -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detalhesTitulo"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detalhesConteudo"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" onclick="exportarRelatorio()">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar Relatório
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Localidades -->
+    <div class="modal fade" id="modalLocalidades" tabindex="-1" aria-labelledby="modalLocalidadesLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLocalidadesLabel">
                         <i class="bi bi-building me-2"></i>
-                        ${a.congregacao}
-                    </td>
-                    <td>
-                        <i class="bi bi-calendar3 me-1"></i>
-                        <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
-                    </td>
-                    <td>
-                        <i class="bi bi-person me-2"></i>
-                        ${a.irmao}
-                    </td>
-                    <td>
-                        <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
-                            <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
-                            ${a.tipo}
+                        Selecionar Congregação
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
                         </span>
-                    </td>
-                    <td>
-                        <div class="btn-group" role="group" aria-label="Ações">
-                            <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                        <input type="text" class="form-control" id="buscaLocalidade" 
+                            placeholder="Buscar por nome ou número"
+                            oninput="filtrarLocalidades(this.value)">
+                    </div>
+                    <div id="listaLocalidades" class="list-group">
+                        <!-- Será preenchido via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Service Modal -->
+    <div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serviceModalLabel">Novo Serviço</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="serviceForm">
+                        <div class="mb-3">
+                            <label for="serviceType" class="form-label">Tipo de Serviço</label>
+                            <select class="form-select" id="serviceType" required>
+                                <option value="">Selecione o tipo...</option>
+                                <option value="BATISMOS">Batismos</option>
+                                <option value="SANTAS_CEIAS">Santas Ceias</option>
+                                <option value="REUNIAO_MOCIDADE">Reunião para Mocidade</option>
+                                <option value="ENSAIOS_REGIONAIS">Ensaios Regionais</option>
+                                <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
+                                <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
+                                <option value="OBRA_PIEDADE">Reunião da Piedade</option>
+                                <option value="EVANGELIZACAO">Evangelização</option>
+                            </select>
                         </div>
-                    </td>
-                  </tr>
-                `;
-                corpo.innerHTML += linha;
+
+                        <div class="mb-3">
+                            <label for="serviceDate" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="serviceDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceCongregation" class="form-label">Congregação</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="serviceCongregation" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="openCongregationSearch()">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceAttendingBrother" class="form-label">Irmão Atendente</label>
+                            <input type="text" class="form-control" id="serviceAttendingBrother" required>
+                        </div>
+
+                        <div id="regionalSupervisorField" class="mb-3" style="display: none;">
+                            <label for="regionalSupervisor" class="form-label">Encarregado Regional</label>
+                            <input type="text" class="form-control" id="regionalSupervisor">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="serviceDetails" class="form-label">Observações</label>
+                            <textarea class="form-control" id="serviceDetails" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveService()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Congregation Search Modal -->
+    <div class="modal fade" id="congregationSearchModal" tabindex="-1" aria-labelledby="congregationSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="congregationSearchModalLabel">Buscar Congregação</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="congregationSearchInput" placeholder="Digite o nome ou número...">
+                        <button class="btn btn-outline-secondary" type="button" onclick="searchCongregations()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div id="congregationSearchResults" class="list-group">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let modalServico;
+        let modalLocalidades;
+        let servicoAtual = null;
+
+        // Initialize modals and form handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
+            modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Inicializar tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltips.forEach(t => new bootstrap.Tooltip(t));
-
-            atualizarIconesCongregacoes();
-        }
-
-        // Criar referências aos modais
-        const modalExclusao = new bootstrap.Modal(document.getElementById('modalConfirmacaoExclusao'));
-
-        // Função para excluir agendamento
-        window.excluirAgendamento = async function (id) {
-            const agendamento = agendamentos.find(a => a.id === id);
-            
-            if (!agendamento) {
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
-                return;
-            }
-            
-            // Formatar a data
-            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR", {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                weekday: 'long'
+            // Handle service type change
+            document.getElementById('tipoServico').addEventListener('change', (e) => {
+                const campoEncarregadoRegional = document.getElementById('campoEncarregadoRegional');
+                campoEncarregadoRegional.style.display = e.target.value === 'ENSAIOS_REGIONAIS' ? 'block' : 'none';
             });
 
-            // Preencher os dados no modal
-            document.getElementById('congExclusao').textContent = agendamento.congregacao;
-            document.getElementById('dataExclusao').textContent = dataFormatada;
-            document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
-            document.getElementById('tipoExclusao').textContent = agendamento.tipo;
+            // Handle form submission
+            document.getElementById('formServico').addEventListener('submit', (e) => {
+                e.preventDefault();
+                salvarServico();
+            });
 
-            // Armazenar o agendamento e ID para exclusão
-            agendamentoParaExcluir = agendamento;
-            idParaExcluir = id;
+            // Handle congregation search input
+            document.getElementById('buscaLocalidade').addEventListener('input', (e) => {
+                filtrarLocalidades(e.target.value);
+            });
 
-            // Mostrar o modal
-            modalExclusao.show();
-        };
-
-        // Evento para confirmação de exclusão
-        document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', async () => {
-            if (!agendamentoParaExcluir || !idParaExcluir) {
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
-                modalExclusao.hide();
-                return;
-            }
-
-            try {
-                const agendamentoRef = ref(db, `agendamentos/${idParaExcluir}`);
-                await remove(agendamentoRef);
-                mostrarAlerta("Agendamento excluído com sucesso!", "success");
-                
-                // Atualizar a interface
-                await carregarAgendamentos();
-            } catch (error) {
-                console.error("Erro ao excluir:", error);
-                mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
-            } finally {
-                modalExclusao.hide();
-                // Limpar as referências
-                agendamentoParaExcluir = null;
-                idParaExcluir = null;
-            }
+            // Load congregations into datalist
+            carregarCongregacoes();
         });
 
-        function carregarAgendamentos() {
-            const agRef = ref(db, "agendamentos");
-            onValue(agRef, snapshot => {
-                agendamentos = [];
-                snapshot.forEach(child => {
-                    agendamentos.push({ ...child.val(), id: child.key });
+        // Load congregations
+        function carregarCongregacoes() {
+            const datalist = document.getElementById('localidadesList');
+            congregationsRef.once('value')
+                .then((snapshot) => {
+                    datalist.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        const option = document.createElement('option');
+                        option.value = `${congregation.name} (${congregation.number})`;
+                        datalist.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar congregações:', error);
+                    showToast('Erro ao carregar congregações: ' + error.message, 'danger');
                 });
-                atualizarTabela();
-                atualizarIconesCongregacoes();
-                atualizarTicker();
-            });
         }
 
-        function atualizarIconesCongregacoes() {
-            const container = document.getElementById("congregacoes");
-            container.innerHTML = "";
-
-            congregacoes.forEach(c => {
-                const col = document.createElement("div");
-                const botao = document.createElement("button");
-                botao.className = "btn btn-outline-primary w-100 botao-congregacao";
-
-                const agendamentosCulto = agendamentos.filter(a => 
-                    a.congregacao === c && 
-                    a.tipo === "Culto Oficial"
-                );
-                const temReuniaoJovens = congregacoesComReuniaoJovens.includes(c);
-                const agendamentoJovens = temReuniaoJovens && agendamentos.some(a => 
-                    a.congregacao === c && 
-                    a.tipo === "Reunião de Jovens e Menores"
-                );
-
-                let statusHtml = '';
-                if (c === "Ituiutaba - Central") {
-                    const cultosQuinta = agendamentosCulto.filter(a => new Date(a.data).getDay() === 4);
-                    if (agendamentosCulto.length === 2 && cultosQuinta.length > 0 && agendamentoJovens) {
-                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
-                    } else {
-                        const badges = [];
-                        if (cultosQuinta.length > 0) badges.push('<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Quinta</span>');
-                        if (agendamentosCulto.length > cultosQuinta.length) badges.push('<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto da Tarde</span>');
-                        if (agendamentoJovens) badges.push('<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>');
-                        statusHtml = badges.join(' ') || '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
-                    }
-                } else if (temReuniaoJovens) {
-                    if (agendamentosCulto.length > 0 && agendamentoJovens) {
-                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
-                    } else if (agendamentosCulto.length > 0) {
-                        statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
-                    } else if (agendamentoJovens) {
-                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
-                    } else {
-                        statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
-                    }
-                } else {
-                    if (agendamentosCulto.length > 0) {
-                        statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Agendado</span>';
-                    } else {
-                        statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
-                    }
-                }
-
-                botao.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-building me-2"></i>${c}
-                            ${c === "Ituiutaba - Central" ? 
-                                '<small class="ms-2 badge bg-warning text-dark"><i class="bi bi-star-fill"></i> 2 Cultos</small>' : ''}
-                            ${temReuniaoJovens ? '<small class="ms-2 badge bg-info"><i class="bi bi-people"></i> Jovens</small>' : ''}
-                        </div>
-                        <div class="d-flex gap-1">
-                            ${statusHtml}
-                        </div>
-                    </div>
-                `;
-                
-                botao.setAttribute('data-bs-toggle', 'tooltip');
-                const tooltipText = c === "Ituiutaba - Central" ? 
-                    'Clique para agendar (Permite 2 cultos, um na quinta-feira)' : 
-                    `Clique para agendar${temReuniaoJovens ? ' (Culto/Jovens)' : ' (Culto)'}`;
-                botao.setAttribute('title', tooltipText);
-                botao.onclick = () => abrirFormulario(c);
-                
-                col.appendChild(botao);
-                container.appendChild(col);
-            });
-
-            // Inicializar tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltips.forEach(t => new bootstrap.Tooltip(t));
+        // Open congregation search modal
+        function abrirModalLocalidades() {
+            const searchInput = document.getElementById('buscaLocalidade');
+            searchInput.value = '';
+            filtrarLocalidades('');
+            modalLocalidades.show();
         }
 
-        function atualizarTicker() {
-            const tickerWrapper = document.getElementById('ticker-wrapper');
-            tickerWrapper.innerHTML = '';
-
-            // Ordenar agendamentos por data
-            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
-
-            // Duplicar os agendamentos para criar um efeito contínuo
-            const todosAgendamentos = [...agendamentosOrdenados, ...agendamentosOrdenados];
-
-            todosAgendamentos.forEach(agendamento => {
-                const dataObj = new Date(agendamento.data + "T00:00");
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
-                    day: '2-digit',
-                    month: '2-digit',
-                    weekday: 'short'
+        // Filter congregations
+        function filtrarLocalidades(termo) {
+            const listaLocalidades = document.getElementById('listaLocalidades');
+            
+            congregationsRef.orderByChild('name')
+                .once('value')
+                .then((snapshot) => {
+                    listaLocalidades.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        if (!termo || congregation.name.toLowerCase().includes(termo.toLowerCase()) || 
+                            congregation.number.includes(termo)) {
+                            const item = document.createElement('button');
+                            item.className = 'list-group-item list-group-item-action';
+                            item.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-building"></i>
+                                        ${congregation.name}
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">${congregation.number}</span>
+                                </div>
+                            `;
+                            item.onclick = () => selecionarLocalidade(congregation);
+                            listaLocalidades.appendChild(item);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao filtrar congregações:', error);
+                    showToast('Erro ao filtrar congregações: ' + error.message, 'danger');
                 });
-
-                const tickerItem = document.createElement('div');
-                tickerItem.className = 'ticker-item';
-
-                const tipoIcone = agendamento.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people';
-                const tipoBadge = agendamento.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success';
-
-                tickerItem.innerHTML = `
-                    <i class="bi bi-calendar-event"></i>
-                    <span>${dataFormatada} - ${agendamento.congregacao} - ${agendamento.irmao}</span>
-                    <span class="badge ${tipoBadge}">
-                        <i class="bi ${tipoIcone}"></i>
-                        ${agendamento.tipo}
-                    </span>
-                `;
-
-                tickerWrapper.appendChild(tickerItem);
-            });
-
-            // Ajustar a animação com base no número de itens
-            const tickerWidth = tickerWrapper.scrollWidth;
-            tickerWrapper.style.animation = `ticker ${tickerWidth * 0.001}s linear infinite`;
         }
 
-        function mostrarAlerta(mensagem, tipo) {
+        // Select congregation
+        function selecionarLocalidade(congregation) {
+            document.getElementById('localServico').value = `${congregation.name} (${congregation.number})`;
+            modalLocalidades.hide();
+        }
+
+        // Save service
+        function salvarServico() {
+            const form = document.getElementById('formServico');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const tipo = document.getElementById('tipoServico').value;
+            const serviceData = {
+                type: tipo,
+                date: document.getElementById('dataServico').value,
+                congregation: document.getElementById('localServico').value,
+                attendingBrother: document.getElementById('irmaoAtendente').value,
+                details: document.getElementById('observacoesServico').value || ''
+            };
+
+            if (tipo === 'ENSAIOS_REGIONAIS') {
+                serviceData.regionalSupervisor = document.getElementById('encarregadoRegional').value;
+            }
+
+            const savePromise = servicoAtual
+                ? updateService(servicoAtual, serviceData)
+                : createService(serviceData);
+
+            savePromise
+                .then(() => {
+                    showToast(servicoAtual ? 'Serviço atualizado com sucesso!' : 'Serviço cadastrado com sucesso!');
+                    modalServico.hide();
+                    form.reset();
+                })
+                .catch(error => {
+                    showToast('Erro ao salvar serviço: ' + error.message, 'danger');
+                });
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
             const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.className = `toast show bg-${type} text-white`;
             toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            
-            const icon = tipo === 'success' ? 'bi-check-circle' : 
-                         tipo === 'danger' ? 'bi-exclamation-circle' : 'bi-info-circle';
-            
             toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi ${icon} me-2"></i>
-                        ${mensagem}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+                <div class="toast-body">
+                    ${message}
                 </div>
             `;
-            
-            let toastContainer = document.querySelector('.toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                document.body.appendChild(toastContainer);
-            }
-            
             toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, {
-                delay: 3000
-            });
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
+            setTimeout(() => {
                 toast.remove();
-            });
+            }, 3000);
         }
 
-        carregarAgendamentos();
-        atualizarIconesCongregacoes();
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial data load is handled by the Firebase listener
+            initializeCalendar();
+            initializeCongregations();
+        });
 
-        document.getElementById("btnExportPDF").addEventListener("click", async () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Configurações iniciais
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("AGENDA DE REFORÇOS DE COLETAS", 105, 20, { align: "center" });
-            
-            doc.setFontSize(12);
-            doc.text("Administração de Ituiutaba-MG", 105, 30, { align: "center" });
-            
-            // Separar agendamentos por tipo
-            const cultosOficiais = agendamentos
-                .filter(a => a.tipo === "Culto Oficial")
-                .sort((a, b) => new Date(a.data) - new Date(b.data));
-            
-            const reunioesJovens = agendamentos
-                .filter(a => a.tipo === "Reunião de Jovens e Menores")
-                .sort((a, b) => new Date(a.data) - new Date(b.data));
+        // Initialize congregations in Firebase
+        function initializeCongregations() {
+            const congregations = [
+                { name: "Alvorada", number: "01" },
+                { name: "Buritis", number: "02" },
+                { name: "Capinópolis - Central", number: "03" },
+                { name: "Cachoeira Dourada", number: "04" },
+                { name: "Chaveslândia", number: "05" },
+                { name: "Chico Mendes", number: "06" },
+                { name: "Dom Alexandre", number: "07" },
+                { name: "Eldorado", number: "08" },
+                { name: "Flor de Minas", number: "09" },
+                { name: "Gurinhatã", number: "10" },
+                { name: "Ipiaçu", number: "11" },
+                { name: "Ipiranga", number: "12" },
+                { name: "Ituiutaba - Central", number: "13" },
+                { name: "Jerônimo Mendonça", number: "14" },
+                { name: "Marta Helena", number: "15" },
+                { name: "Natal", number: "16" },
+                { name: "Novo Tempo II", number: "17" },
+                { name: "Recanto das Acácias", number: "18" },
+                { name: "Santa Vitória - Central", number: "19" },
+                { name: "Satélite Andradina", number: "20" },
+                { name: "Setor Norte", number: "21" }
+            ];
 
-            // Função para formatar a data
-            const formatarData = (data) => {
-                const dataObj = new Date(data + "T00:00");
-                const dia = dataObj.getDate().toString().padStart(2, '0');
-                const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
-                const diaSemana = dataObj.toLocaleDateString("pt-BR", { weekday: "long" });
-                return `${dia}/${mes} - ${diaSemana}`;
-            };
-
-            // Configurações da tabela
-            const margemEsquerda = 15;
-            const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
-            const alturaLinha = 7;
-            const alturaCabecalho = 5; // Altura reduzida do cabeçalho
-            const colunas = {
-                data: { titulo: "Data", largura: larguraUtil * 0.35, x: margemEsquerda },
-                local: { titulo: "Localidade", largura: larguraUtil * 0.35, x: margemEsquerda + (larguraUtil * 0.35) },
-                irmao: { titulo: "Irmão", largura: larguraUtil * 0.30, x: margemEsquerda + (larguraUtil * 0.70) }
-            };
-
-            // Função para desenhar retângulo de fundo
-            const desenharFundo = (y, altura) => {
-                doc.setFillColor(240, 240, 240); // Cinza claro
-                doc.rect(margemEsquerda, y - 4, larguraUtil, altura, 'F');
-            };
-
-            // Função para adicionar cabeçalho da tabela
-            const adicionarCabecalhoTabela = (y) => {
-                // Fundo do cabeçalho
-                doc.setFillColor(51, 51, 51); // Cinza escuro quase preto
-                doc.rect(margemEsquerda, y - 4, larguraUtil, alturaCabecalho, 'F');
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(10); // Tamanho reduzido para o cabeçalho
-                doc.setTextColor(255, 255, 255); // Texto branco para o cabeçalho
-                
-                // Adicionar títulos das colunas
-                Object.values(colunas).forEach(coluna => {
-                    doc.text(coluna.titulo, coluna.x + 2, y);
-                });
-                
-                doc.setTextColor(0, 0, 0); // Voltar para texto preto
-                return y + alturaCabecalho;
-            };
-
-            // Função para adicionar uma seção com tabela
-            const adicionarSecaoTabela = (titulo, dados, yInicial) => {
-                let y = yInicial;
-                
-                // Título da seção
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.text(titulo, margemEsquerda, y);
-                y += 10;
-
-                // Adicionar cabeçalho da tabela
-                y = adicionarCabecalhoTabela(y);
-                y += 3; // Espaço adicional após o cabeçalho
-
-                // Adicionar dados
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-
-                dados.forEach((item, index) => {
-                    // Verificar se precisa de nova página
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 20;
-                        y = adicionarCabecalhoTabela(y);
-                        y += 3; // Espaço adicional após o cabeçalho na nova página
+            // Check if congregations already exist
+            congregationsRef.once('value')
+                .then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        // Create congregation entries
+                        congregations.forEach(congregation => {
+                            congregationsRef.push(congregation);
+                        });
+                        showToast('Congregações inicializadas com sucesso!', 'success');
                     }
-
-                    // Adicionar fundo cinza para linhas alternadas
-                    if (index % 2 === 1) {
-                        desenharFundo(y, alturaLinha);
-                    }
-
-                    // Adicionar texto
-                    doc.text(formatarData(item.data), colunas.data.x + 2, y);
-                    doc.text(item.congregacao, colunas.local.x + 2, y);
-                    doc.text(item.irmao, colunas.irmao.x + 2, y);
-
-                    y += alturaLinha;
+                })
+                .catch(error => {
+                    console.error('Erro ao inicializar congregações:', error);
+                    showToast('Erro ao inicializar congregações: ' + error.message, 'danger');
                 });
+        }
 
-                return y + 10;
-            };
-
-            // Adicionar seção de Cultos Oficiais
-            let proximoY = adicionarSecaoTabela("CULTOS OFICIAIS", cultosOficiais, 50);
-
-            // Adicionar seção de Reuniões de Jovens e Menores
-            if (reunioesJovens.length > 0) {
-                // Se não houver espaço suficiente, adicionar nova página
-                if (proximoY > 240) {
-                    doc.addPage();
-                    proximoY = 20;
-                }
-                adicionarSecaoTabela("REUNIÕES DE JOVENS E MENORES", reunioesJovens, proximoY);
-            }
-
-            // Adicionar rodapé com data de geração
-            const dataGeracao = new Date().toLocaleDateString("pt-BR");
-            doc.setFontSize(8);
-            doc.text(`Relatório gerado em: ${dataGeracao}`, 105, 290, { align: "center" });
-
-            doc.save("agenda_coletas.pdf");
-        });
-
-        document.getElementById("btnExportXLS").addEventListener("click", () => {
-            const dados = agendamentos.map(a => {
-                const dataObj = new Date(a.data + "T00:00");
-                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-
-                return {
-                    Congregação: a.congregacao,
-                    Data: `${diaAbrev} - ${dataFormatada}`,
-                    Irmão: a.irmao,
-                    Tipo: a.tipo
-                };
-            });
-
-            const ws = XLSX.utils.json_to_sheet(dados);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
-
-            XLSX.writeFile(wb, "agendamentos.xlsx");
-        });
-
-        document.getElementById("btnExportPNG").addEventListener("click", () => {
-            // Ocultar a coluna de ações temporariamente
-            const acoesHeaders = document.querySelectorAll('th:last-child');
-            const acoesCells = document.querySelectorAll('td:last-child');
-            
-            // Guardar o display original
-            const headerDisplays = Array.from(acoesHeaders).map(el => el.style.display);
-            const cellDisplays = Array.from(acoesCells).map(el => el.style.display);
-            
-            // Ocultar elementos
-            acoesHeaders.forEach(el => el.style.display = 'none');
-            acoesCells.forEach(el => el.style.display = 'none');
-
-            html2canvas(document.getElementById("tabela-agendamentos")).then(canvas => {
-                // Restaurar a visibilidade dos elementos
-                acoesHeaders.forEach((el, i) => el.style.display = headerDisplays[i] || '');
-                acoesCells.forEach((el, i) => el.style.display = cellDisplays[i] || '');
-
-                const link = document.createElement("a");
-                link.download = "agendamentos.png";
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        });
-
-        const alertaDiv = document.createElement('div');
-        alertaDiv.id = 'mensagem-alerta';
-        alertaDiv.className = 'alert alert-dismissible fade show d-none';
-        alertaDiv.setAttribute('role', 'alert');
-        alertaDiv.innerHTML = '<span id="texto-alerta"></span><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>';
-        document.querySelector('.container').prepend(alertaDiv);
+        // Open new service modal
+        function openNewServiceModal() {
+            servicoAtual = null;
+            document.getElementById('modalServicoLabel').textContent = 'Novo Serviço';
+            document.getElementById('formServico').reset();
+            document.getElementById('campoEncarregadoRegional').style.display = 'none';
+            modalServico.show();
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+
+    <script>
+        // Modal instances
+        let serviceModal;
+        let congregationSearchModal;
+        let currentServiceId = null;
+
+        // Initialize modals
+        document.addEventListener('DOMContentLoaded', () => {
+            serviceModal = new bootstrap.Modal(document.getElementById('serviceModal'));
+            congregationSearchModal = new bootstrap.Modal(document.getElementById('congregationSearchModal'));
+            
+            // Show/hide regional supervisor field based on service type
+            document.getElementById('serviceType').addEventListener('change', (e) => {
+                const regionalSupervisorField = document.getElementById('regionalSupervisorField');
+                regionalSupervisorField.style.display = e.target.value === 'ENSAIOS_REGIONAIS' ? 'block' : 'none';
+            });
+        });
+
+        // Open new service modal
+        function openNewServiceModal() {
+            currentServiceId = null;
+            document.getElementById('serviceModalLabel').textContent = 'Novo Serviço';
+            document.getElementById('serviceForm').reset();
+            serviceModal.show();
+        }
+
+        // Open congregation search modal
+        function openCongregationSearch() {
+            congregationSearchModal.show();
+        }
+
+        // Search congregations
+        function searchCongregations() {
+            const searchTerm = document.getElementById('congregationSearchInput').value;
+            const resultsContainer = document.getElementById('congregationSearchResults');
+            
+            congregationsRef.orderByChild('name')
+                .startAt(searchTerm)
+                .endAt(searchTerm + '\uf8ff')
+                .once('value')
+                .then((snapshot) => {
+                    resultsContainer.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        const item = document.createElement('button');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-building"></i>
+                                    ${congregation.name}
+                                </div>
+                                <span class="badge bg-primary rounded-pill">${congregation.number}</span>
+                            </div>
+                        `;
+                        item.onclick = () => selectCongregation(congregation);
+                        resultsContainer.appendChild(item);
+                    });
+                });
+        }
+
+        // Select congregation from search results
+        function selectCongregation(congregation) {
+            document.getElementById('serviceCongregation').value = `${congregation.name} (${congregation.number})`;
+            congregationSearchModal.hide();
+        }
+
+        // Save service
+        function saveService() {
+            const form = document.getElementById('serviceForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const serviceData = {
+                type: document.getElementById('serviceType').value,
+                date: document.getElementById('serviceDate').value,
+                congregation: document.getElementById('serviceCongregation').value,
+                attendingBrother: document.getElementById('serviceAttendingBrother').value,
+                details: document.getElementById('serviceDetails').value
+            };
+
+            if (serviceData.type === 'ENSAIOS_REGIONAIS') {
+                serviceData.regionalSupervisor = document.getElementById('regionalSupervisor').value;
+            }
+
+            if (currentServiceId) {
+                updateService(currentServiceId, serviceData)
+                    .then(() => {
+                        showToast('Serviço atualizado com sucesso!');
+                        serviceModal.hide();
+                    })
+                    .catch(error => {
+                        showToast('Erro ao atualizar serviço: ' + error.message, 'danger');
+                    });
+            } else {
+                createService(serviceData)
+                    .then(() => {
+                        showToast('Serviço cadastrado com sucesso!');
+                        serviceModal.hide();
+                    })
+                    .catch(error => {
+                        showToast('Erro ao cadastrar serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
+
+        // Edit service
+        function editService(serviceId) {
+            currentServiceId = serviceId;
+            document.getElementById('serviceModalLabel').textContent = 'Editar Serviço';
+            
+            servicesRef.child(serviceId).once('value')
+                .then((snapshot) => {
+                    const service = snapshot.val();
+                    document.getElementById('serviceType').value = service.type;
+                    document.getElementById('serviceDate').value = service.date;
+                    document.getElementById('serviceCongregation').value = service.congregation;
+                    document.getElementById('serviceAttendingBrother').value = service.attendingBrother;
+                    document.getElementById('serviceDetails').value = service.details || '';
+                    
+                    const regionalSupervisorField = document.getElementById('regionalSupervisorField');
+                    if (service.type === 'ENSAIOS_REGIONAIS') {
+                        regionalSupervisorField.style.display = 'block';
+                        document.getElementById('regionalSupervisor').value = service.regionalSupervisor || '';
+                    } else {
+                        regionalSupervisorField.style.display = 'none';
+                    }
+                    
+                    serviceModal.show();
+                });
+        }
+
+        // Confirm service deletion
+        function confirmDeleteService(serviceId) {
+            if (confirm('Tem certeza que deseja excluir este serviço?')) {
+                deleteService(serviceId)
+                    .then(() => {
+                        showToast('Serviço excluído com sucesso!');
+                    })
+                    .catch(error => {
+                        showToast('Erro ao excluir serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
+
+        // Initialize calendar
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                eventClick: function(info) {
+                    editService(info.event.id);
+                },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    const start = fetchInfo.start.toISOString().split('T')[0];
+                    const end = fetchInfo.end.toISOString().split('T')[0];
+                    
+                    getServicesByDateRange(start, end)
+                        .then((snapshot) => {
+                            const events = [];
+                            snapshot.forEach((child) => {
+                                const service = child.val();
+                                events.push({
+                                    id: child.key,
+                                    title: `${SERVICE_TYPES[service.type].name} - ${service.congregation}`,
+                                    start: service.date,
+                                    backgroundColor: `var(--${SERVICE_TYPES[service.type].color}-color)`,
+                                    borderColor: `var(--${SERVICE_TYPES[service.type].color}-color)`
+                                });
+                            });
+                            successCallback(events);
+                        })
+                        .catch(failureCallback);
+                }
+            });
+
+            calendar.render();
+        }
+
+        // Update service lists
+        function updateServiceLists(services) {
+            // Clear all lists first
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                const countElement = document.getElementById(`${type.toLowerCase()}-list-count`);
+                if (listElement) {
+                    listElement.innerHTML = '';
+                }
+                if (countElement) {
+                    countElement.textContent = '0';
+                }
+            });
+
+            if (!services) return;
+
+            // Sort services by date
+            const sortedServices = Object.entries(services).sort((a, b) => {
+                return new Date(a[1].date) - new Date(b[1].date);
+            });
+
+            // Group services by type
+            const servicesByType = {};
+            sortedServices.forEach(([id, service]) => {
+                if (!servicesByType[service.type]) {
+                    servicesByType[service.type] = [];
+                }
+                servicesByType[service.type].push([id, service]);
+            });
+
+            // Update each service type list
+            Object.keys(SERVICE_TYPES).forEach(type => {
+                const listId = `${type.toLowerCase()}-list`;
+                const countId = `${type.toLowerCase()}-list-count`;
+                const listElement = document.getElementById(listId);
+                const countElement = document.getElementById(countId);
+                const typeServices = servicesByType[type] || [];
+                
+                if (listElement) {
+                    listElement.innerHTML = typeServices
+                        .map(([id, service]) => createServiceCard(id, service))
+                        .join('');
+                }
+                
+                if (countElement) {
+                    countElement.textContent = typeServices.length;
+                }
+            });
+        }
+
+        // Create service card HTML
+        function createServiceCard(id, service) {
+            const date = new Date(service.date).toLocaleDateString('pt-BR');
+            const typeInfo = SERVICE_TYPES[service.type];
+            
+            return `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-subtitle text-muted">
+                                <i class="bi bi-calendar-event"></i> ${date}
+                            </h6>
+                            <span class="badge bg-${typeInfo.color}">
+                                <i class="bi ${typeInfo.icon}"></i>
+                            </span>
+                        </div>
+                        <p class="card-text">
+                            <strong><i class="bi bi-building"></i> ${service.congregation}</strong><br>
+                            <i class="bi bi-person"></i> ${service.attendingBrother}
+                            ${service.regionalSupervisor ? `<br><i class="bi bi-person-badge"></i> ${service.regionalSupervisor}` : ''}
+                            ${service.details ? `<br><small class="text-muted"><i class="bi bi-info-circle"></i> ${service.details}</small>` : ''}
+                        </p>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editService('${id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteService('${id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Listen for service changes
+        servicesRef.on('value', (snapshot) => {
+            const services = snapshot.val();
+            updateServiceLists(services);
+            updateCalendar(services);
+        });
+
+        // Confirm service deletion
+        function confirmDeleteService(serviceId) {
+            if (confirm('Tem certeza que deseja excluir este serviço?')) {
+                deleteService(serviceId)
+                    .then(() => {
+                        showToast('Serviço excluído com sucesso!');
+                    })
+                    .catch(error => {
+                        showToast('Erro ao excluir serviço: ' + error.message, 'danger');
+                    });
+            }
+        }
+    </script>
 </body>
 </html>
