@@ -67,23 +67,15 @@
                 icon: 'bi-heart',
                 color: 'danger'
             },
-            EVANGELIZACAO_REUNIAO_FAMILIAR: {
-                name: 'Reunião Familiar',
-                icon: 'bi-house-heart',
-                color: 'success',
-                category: 'evangelizacao'
-            },
-            EVANGELIZACAO_REUNIAO_ENFERMOS: {
-                name: 'Reunião para Enfermos',
-                icon: 'bi-heart-pulse',
-                color: 'danger',
-                category: 'evangelizacao'
-            },
-            EVANGELIZACAO_GERAL: {
+            EVANGELIZACAO: {
                 name: 'Evangelização',
                 icon: 'bi-book',
-                color: 'primary',
-                category: 'evangelizacao'
+                color: 'success',
+                subtypes: {
+                    REUNIAO_FAMILIAR: 'Reunião Familiar',
+                    REUNIAO_ENFERMO: 'Reunião para Enfermo',
+                    REUNIAO_EVANGELIZACAO: 'Reunião de Evangelização'
+                }
             }
         };
 
@@ -483,14 +475,23 @@
                                 <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
                                 <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
                                 <option value="OBRA_PIEDADE">Reunião da Piedade</option>
-                                <optgroup label="Evangelização">
-                                    <option value="EVANGELIZACAO_REUNIAO_FAMILIAR">Reunião Familiar</option>
-                                    <option value="EVANGELIZACAO_REUNIAO_ENFERMOS">Reunião para Enfermos</option>
-                                    <option value="EVANGELIZACAO_GERAL">Evangelização</option>
-                                </optgroup>
+                                <option value="EVANGELIZACAO">Evangelização</option>
                             </select>
                             <div class="invalid-feedback">
                                 Por favor, selecione o tipo de serviço.
+                            </div>
+                        </div>
+
+                        <div id="campoTipoEvangelizacao" class="mb-3" style="display: none;">
+                            <label for="tipoEvangelizacao" class="form-label">Tipo de Atendimento</label>
+                            <select class="form-select" id="tipoEvangelizacao">
+                                <option value="">Selecione o tipo de atendimento</option>
+                                <option value="REUNIAO_FAMILIAR">Reunião Familiar</option>
+                                <option value="REUNIAO_ENFERMO">Reunião para Enfermo</option>
+                                <option value="REUNIAO_EVANGELIZACAO">Reunião de Evangelização</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor, selecione o tipo de atendimento.
                             </div>
                         </div>
 
@@ -723,7 +724,19 @@
             // Handle service type change
             document.getElementById('tipoServico').addEventListener('change', (e) => {
                 const campoEncarregadoRegional = document.getElementById('campoEncarregadoRegional');
+                const campoTipoEvangelizacao = document.getElementById('campoTipoEvangelizacao');
+                const tipoEvangelizacao = document.getElementById('tipoEvangelizacao');
+                
                 campoEncarregadoRegional.style.display = e.target.value === 'ENSAIOS_REGIONAIS' ? 'block' : 'none';
+                
+                if (e.target.value === 'EVANGELIZACAO') {
+                    campoTipoEvangelizacao.style.display = 'block';
+                    tipoEvangelizacao.required = true;
+                } else {
+                    campoTipoEvangelizacao.style.display = 'none';
+                    tipoEvangelizacao.required = false;
+                    tipoEvangelizacao.value = '';
+                }
             });
 
             // Handle form submission
@@ -831,6 +844,10 @@
 
             if (tipo === 'ENSAIOS_REGIONAIS') {
                 serviceData.regionalSupervisor = document.getElementById('encarregadoRegional').value;
+            }
+
+            if (tipo === 'EVANGELIZACAO') {
+                serviceData.evangelizationType = document.getElementById('tipoEvangelizacao').value;
             }
 
             const savePromise = servicoAtual
@@ -1039,17 +1056,31 @@
         // Edit service
         function editService(serviceId) {
             currentServiceId = serviceId;
-            document.getElementById('serviceModalLabel').textContent = 'Editar Serviço';
+            document.getElementById('modalServicoLabel').textContent = 'Editar Serviço';
             
             servicesRef.child(serviceId).once('value')
                 .then((snapshot) => {
                     const service = snapshot.val();
-                    document.getElementById('serviceType').value = service.type;
-                    document.getElementById('serviceDate').value = service.date;
+                    const tipoServico = document.getElementById('tipoServico');
+                    const tipoEvangelizacao = document.getElementById('tipoEvangelizacao');
+                    const campoTipoEvangelizacao = document.getElementById('campoTipoEvangelizacao');
+                    
+                    tipoServico.value = service.type;
+                    document.getElementById('dataServico').value = service.date;
                     document.getElementById('horaServico').value = service.time || '';
-                    document.getElementById('serviceCongregation').value = service.congregation;
-                    document.getElementById('serviceAttendingBrother').value = service.attendingBrother;
-                    document.getElementById('serviceDetails').value = service.details || '';
+                    document.getElementById('localServico').value = service.congregation;
+                    document.getElementById('irmaoAtendente').value = service.attendingBrother;
+                    document.getElementById('observacoesServico').value = service.details || '';
+                    
+                    if (service.type === 'EVANGELIZACAO') {
+                        campoTipoEvangelizacao.style.display = 'block';
+                        tipoEvangelizacao.required = true;
+                        tipoEvangelizacao.value = service.evangelizationType || '';
+                    } else {
+                        campoTipoEvangelizacao.style.display = 'none';
+                        tipoEvangelizacao.required = false;
+                        tipoEvangelizacao.value = '';
+                    }
                     
                     const regionalSupervisorField = document.getElementById('regionalSupervisorField');
                     if (service.type === 'ENSAIOS_REGIONAIS') {
@@ -1059,7 +1090,7 @@
                         regionalSupervisorField.style.display = 'none';
                     }
                     
-                    serviceModal.show();
+                    modalServico.show();
                 });
         }
 
@@ -1174,6 +1205,11 @@
             const time = service.time ? new Date(service.date + 'T' + service.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
             const typeInfo = SERVICE_TYPES[service.type];
             
+            let title = typeInfo.name;
+            if (service.type === 'EVANGELIZACAO' && service.evangelizationType) {
+                title = SERVICE_TYPES.EVANGELIZACAO.subtypes[service.evangelizationType];
+            }
+            
             return `
                 <div class="card mb-3">
                     <div class="card-body">
@@ -1184,6 +1220,7 @@
                             </h6>
                             <span class="badge bg-${typeInfo.color}">
                                 <i class="bi ${typeInfo.icon}"></i>
+                                ${title}
                             </span>
                         </div>
                         <p class="card-text">
