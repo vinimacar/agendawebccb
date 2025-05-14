@@ -527,6 +527,44 @@
                 transform: translateX(-50%);
             }
         }
+
+        #modalLogin .modal-content {
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        #modalLogin .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        #modalLogin .modal-body {
+            padding: 2rem;
+        }
+
+        #modalLogin .form-control {
+            padding: 0.75rem;
+            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+        }
+
+        #modalLogin .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        #modalLogin .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            padding: 0.75rem 1.5rem;
+        }
+
+        #modalLogin .btn-secondary {
+            background-color: #95a5a6;
+            border-color: #95a5a6;
+            padding: 0.75rem 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -707,6 +745,30 @@
                     <button type="button" class="btn btn-danger" id="btnPrimeiraConfirmacao">
                         <i class="bi bi-trash me-2"></i>Confirmar Exclusão
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Login -->
+    <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Autenticação</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formLogin">
+                        <div class="mb-3">
+                            <label for="senha" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="senha" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarLogin">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -1374,165 +1436,114 @@
         carregarAgendamentos();
         atualizarIconesCongregacoes();
 
+        // Configuração de autenticação
+        const SENHA_CORRETA = "123456"; // Altere para a senha desejada
+        let estaAutenticado = false;
+        const modalLogin = new bootstrap.Modal(document.getElementById("modalLogin"));
+
+        // Função para verificar autenticação
+        function verificarAutenticacao() {
+            if (!estaAutenticado) {
+                modalLogin.show();
+                return false;
+            }
+            return true;
+        }
+
+        // Função para autenticar
+        function autenticar(senha) {
+            if (senha === SENHA_CORRETA) {
+                estaAutenticado = true;
+                modalLogin.hide();
+                mostrarAlerta("Autenticação realizada com sucesso!", "success");
+                return true;
+            } else {
+                mostrarAlerta("Senha incorreta!", "danger");
+                return false;
+            }
+        }
+
+        // Modifique os event listeners dos botões de exportação
         document.getElementById("btnExportPDF").addEventListener("click", async () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            if (!verificarAutenticacao()) return;
             
-            // Configurações iniciais
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("AGENDA DE REFORÇOS DE COLETAS", 105, 20, { align: "center" });
-            
-            doc.setFontSize(12);
-            doc.text("Administração de Ituiutaba-MG", 105, 30, { align: "center" });
-            
-            // Separar agendamentos por tipo
-            const cultosOficiais = agendamentos
-                .filter(a => a.tipo === "Culto Oficial")
-                .sort((a, b) => {
-                    const [anoA, mesA, diaA] = a.data.split('-');
-                    const [anoB, mesB, diaB] = b.data.split('-');
-                    return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
-                });
-            
-            const reunioesJovens = agendamentos
-                .filter(a => a.tipo === "Reunião de Jovens e Menores")
-                .sort((a, b) => {
-                    const [anoA, mesA, diaA] = a.data.split('-');
-                    const [anoB, mesB, diaB] = b.data.split('-');
-                    return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
-                });
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
 
-            // Função para formatar a data
-            const formatarData = (data) => {
-                const [ano, mes, dia] = data.split('-');
-                const dataObj = new Date(ano, mes - 1, dia);
-                const diaFormatado = dia.padStart(2, '0');
-                const mesFormatado = mes.padStart(2, '0');
-                const diaSemana = dataObj.toLocaleDateString("pt-BR", { weekday: "long" });
-                return `${diaFormatado}/${mesFormatado} - ${diaSemana}`;
-            };
+                doc.text("Agenda de Coletas - CCB", 10, 10);
 
-            // Configurações da tabela
-            const margemEsquerda = 15;
-            const larguraUtil = doc.internal.pageSize.width - (2 * margemEsquerda);
-            const alturaLinha = 7;
-            const alturaCabecalho = 5; // Altura reduzida do cabeçalho
-            const colunas = {
-                data: { titulo: "Data", largura: larguraUtil * 0.35, x: margemEsquerda },
-                local: { titulo: "Localidade", largura: larguraUtil * 0.35, x: margemEsquerda + (larguraUtil * 0.35) },
-                irmao: { titulo: "Irmão", largura: larguraUtil * 0.30, x: margemEsquerda + (larguraUtil * 0.70) }
-            };
+                let y = 20;
+                agendamentos.forEach((a, index) => {
+                    const dataObj = new Date(a.data + "T00:00");
+                    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-            // Função para desenhar retângulo de fundo
-            const desenharFundo = (y, altura) => {
-                doc.setFillColor(240, 240, 240); // Cinza claro
-                doc.rect(margemEsquerda, y - 4, larguraUtil, altura, 'F');
-            };
+                    const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao} (${a.tipo})`;
+                    doc.text(linha, 10, y);
+                    y += 7;
 
-            // Função para adicionar cabeçalho da tabela
-            const adicionarCabecalhoTabela = (y) => {
-                // Fundo do cabeçalho
-                doc.setFillColor(51, 51, 51); // Cinza escuro quase preto
-                doc.rect(margemEsquerda, y - 4, larguraUtil, alturaCabecalho, 'F');
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(10); // Tamanho reduzido para o cabeçalho
-                doc.setTextColor(255, 255, 255); // Texto branco para o cabeçalho
-                
-                // Adicionar títulos das colunas
-                Object.values(colunas).forEach(coluna => {
-                    doc.text(coluna.titulo, coluna.x + 2, y);
-                });
-                
-                doc.setTextColor(0, 0, 0); // Voltar para texto preto
-                return y + alturaCabecalho;
-            };
-
-            // Função para adicionar uma seção com tabela
-            const adicionarSecaoTabela = (titulo, dados, yInicial) => {
-                let y = yInicial;
-                
-                // Título da seção
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.text(titulo, margemEsquerda, y);
-                y += 10;
-
-                // Adicionar cabeçalho da tabela
-                y = adicionarCabecalhoTabela(y);
-                y += 3; // Espaço adicional após o cabeçalho
-
-                // Adicionar dados
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-
-                dados.forEach((item, index) => {
-                    // Verificar se precisa de nova página
                     if (y > 270) {
                         doc.addPage();
-                        y = 20;
-                        y = adicionarCabecalhoTabela(y);
-                        y += 3; // Espaço adicional após o cabeçalho na nova página
+                        y = 10;
                     }
-
-                    // Adicionar fundo cinza para linhas alternadas
-                    if (index % 2 === 1) {
-                        desenharFundo(y, alturaLinha);
-                    }
-
-                    // Adicionar texto
-                    doc.text(formatarData(item.data), colunas.data.x + 2, y);
-                    doc.text(item.congregacao, colunas.local.x + 2, y);
-                    doc.text(item.irmao, colunas.irmao.x + 2, y);
-
-                    y += alturaLinha;
                 });
 
-                return y + 10;
-            };
-
-            // Adicionar seção de Cultos Oficiais
-            let proximoY = adicionarSecaoTabela("CULTOS OFICIAIS", cultosOficiais, 50);
-
-            // Adicionar seção de Reuniões de Jovens e Menores
-            if (reunioesJovens.length > 0) {
-                // Se não houver espaço suficiente, adicionar nova página
-                if (proximoY > 240) {
-                    doc.addPage();
-                    proximoY = 20;
-                }
-                adicionarSecaoTabela("REUNIÕES DE JOVENS E MENORES", reunioesJovens, proximoY);
+                doc.save("agendamentos.pdf");
+                mostrarAlerta("PDF gerado com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao gerar PDF:", error);
+                mostrarAlerta("Erro ao gerar PDF: " + error.message, "danger");
             }
-
-            // Adicionar rodapé com data de geração
-            const dataGeracao = new Date().toLocaleDateString("pt-BR");
-            doc.setFontSize(8);
-            doc.text(`Relatório gerado em: ${dataGeracao}`, 105, 290, { align: "center" });
-
-            doc.save("agenda_coletas.pdf");
         });
 
         document.getElementById("btnExportXLS").addEventListener("click", () => {
-            const dados = agendamentos.map(a => {
-                const [ano, mes, dia] = a.data.split('-');
-                const dataObj = new Date(ano, mes - 1, dia);
-                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            if (!verificarAutenticacao()) return;
+            
+            try {
+                const dados = agendamentos.map(a => {
+                    const dataObj = new Date(a.data + "T00:00");
+                    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-                return {
-                    Congregação: a.congregacao,
-                    Data: `${diaAbrev} - ${dataFormatada}`,
-                    Irmão: a.irmao,
-                    Tipo: a.tipo
-                };
-            });
+                    return {
+                        Congregação: a.congregacao,
+                        Data: `${diaAbrev} - ${dataFormatada}`,
+                        Irmão: a.irmao,
+                        Tipo: a.tipo
+                    };
+                });
 
-            const ws = XLSX.utils.json_to_sheet(dados);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+                const ws = XLSX.utils.json_to_sheet(dados);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
 
-            XLSX.writeFile(wb, "agendamentos.xlsx");
+                XLSX.writeFile(wb, "agendamentos.xlsx");
+                mostrarAlerta("XLS gerado com sucesso!", "success");
+            } catch (error) {
+                console.error("Erro ao gerar XLS:", error);
+                mostrarAlerta("Erro ao gerar XLS: " + error.message, "danger");
+            }
+        });
+
+        // Adicione os event listeners para o login
+        document.getElementById("btnConfirmarLogin").addEventListener("click", () => {
+            const senha = document.getElementById("senha").value;
+            if (autenticar(senha)) {
+                document.getElementById("senha").value = "";
+            }
+        });
+
+        document.getElementById("formLogin").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const senha = document.getElementById("senha").value;
+            if (autenticar(senha)) {
+                document.getElementById("senha").value = "";
+            }
+        });
+
+        document.getElementById("modalLogin").addEventListener("hidden.bs.modal", () => {
+            document.getElementById("senha").value = "";
         });
 
         document.getElementById("btnExportPNG").addEventListener("click", () => {
