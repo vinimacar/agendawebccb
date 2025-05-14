@@ -184,6 +184,34 @@
             gap: 0.5rem;
         }
 
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .nav-button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid #e1e8ef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+            background-color: var(--hover-bg);
+        }
+
         .table-container {
             background-color: var(--card-bg);
             border-radius: 12px;
@@ -503,13 +531,16 @@
 </head>
 <body>
     <header class="app-header">
-        <h1 class="app-title">AGENDA DE REFORÇOS DE COLETAS</h1>
-        <div class="app-subtitle">Administração de Ituiutaba-MG</div>
-        <div class="app-subtitle">Referente ao mês de : JUNHO/2025</div>
-        <div class="mt-3">
-            <a href="servicos.html" class="btn btn-primary btn-lg">
-                <i class="bi bi-calendar2-week me-2"></i>
-                AGENDA DE SERVIÇOS
+        <h1 class="app-title">Agenda de Coletas</h1>
+        <p class="app-subtitle">Administração de Ituiutaba-MG</p>
+        <div class="nav-buttons">
+            <a href="servicos.html" class="nav-button">
+                <i class="bi bi-calendar-check"></i>
+                Agenda de Serviços
+            </a>
+            <a href="darpe.html" class="nav-button">
+                <i class="bi bi-file-text"></i>
+                DARPE
             </a>
         </div>
     </header>
