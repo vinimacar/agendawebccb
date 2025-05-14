@@ -67,10 +67,23 @@
                 icon: 'bi-heart',
                 color: 'danger'
             },
-            EVANGELIZACAO: {
+            EVANGELIZACAO_REUNIAO_FAMILIAR: {
+                name: 'Reunião Familiar',
+                icon: 'bi-house-heart',
+                color: 'success',
+                category: 'evangelizacao'
+            },
+            EVANGELIZACAO_REUNIAO_ENFERMOS: {
+                name: 'Reunião para Enfermos',
+                icon: 'bi-heart-pulse',
+                color: 'danger',
+                category: 'evangelizacao'
+            },
+            EVANGELIZACAO_GERAL: {
                 name: 'Evangelização',
                 icon: 'bi-book',
-                color: 'success'
+                color: 'primary',
+                category: 'evangelizacao'
             }
         };
 
@@ -470,18 +483,31 @@
                                 <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
                                 <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
                                 <option value="OBRA_PIEDADE">Reunião da Piedade</option>
-                                <option value="EVANGELIZACAO">Evangelização</option>
+                                <optgroup label="Evangelização">
+                                    <option value="EVANGELIZACAO_REUNIAO_FAMILIAR">Reunião Familiar</option>
+                                    <option value="EVANGELIZACAO_REUNIAO_ENFERMOS">Reunião para Enfermos</option>
+                                    <option value="EVANGELIZACAO_GERAL">Evangelização</option>
+                                </optgroup>
                             </select>
                             <div class="invalid-feedback">
                                 Por favor, selecione o tipo de serviço.
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="dataServico" class="form-label">Data</label>
-                            <input type="date" class="form-control" id="dataServico" required>
-                            <div class="invalid-feedback">
-                                Por favor, selecione a data do serviço.
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="dataServico" class="form-label">Data</label>
+                                <input type="date" class="form-control" id="dataServico" required>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione a data do serviço.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="horaServico" class="form-label">Horário</label>
+                                <input type="time" class="form-control" id="horaServico" required>
+                                <div class="invalid-feedback">
+                                    Por favor, selecione o horário do serviço.
+                                </div>
                             </div>
                         </div>
 
@@ -791,9 +817,13 @@
             }
 
             const tipo = document.getElementById('tipoServico').value;
+            const data = document.getElementById('dataServico').value;
+            const hora = document.getElementById('horaServico').value;
+            
             const serviceData = {
                 type: tipo,
-                date: document.getElementById('dataServico').value,
+                date: data,
+                time: hora,
                 congregation: document.getElementById('localServico').value,
                 attendingBrother: document.getElementById('irmaoAtendente').value,
                 details: document.getElementById('observacoesServico').value || ''
@@ -1016,6 +1046,7 @@
                     const service = snapshot.val();
                     document.getElementById('serviceType').value = service.type;
                     document.getElementById('serviceDate').value = service.date;
+                    document.getElementById('horaServico').value = service.time || '';
                     document.getElementById('serviceCongregation').value = service.congregation;
                     document.getElementById('serviceAttendingBrother').value = service.attendingBrother;
                     document.getElementById('serviceDetails').value = service.details || '';
@@ -1139,7 +1170,8 @@
 
         // Create service card HTML
         function createServiceCard(id, service) {
-            const date = new Date(service.date).toLocaleDateString('pt-BR');
+            const date = new Date(service.date + 'T' + (service.time || '00:00')).toLocaleDateString('pt-BR');
+            const time = service.time ? new Date(service.date + 'T' + service.time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
             const typeInfo = SERVICE_TYPES[service.type];
             
             return `
@@ -1148,6 +1180,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="card-subtitle text-muted">
                                 <i class="bi bi-calendar-event"></i> ${date}
+                                ${time ? `<i class="bi bi-clock ms-2"></i> ${time}` : ''}
                             </h6>
                             <span class="badge bg-${typeInfo.color}">
                                 <i class="bi ${typeInfo.icon}"></i>
