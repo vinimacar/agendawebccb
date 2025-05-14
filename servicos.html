@@ -348,9 +348,9 @@
                         </div>
                         <span>Santas Ceias</span>
                     </div>
-                    <span class="service-count badge bg-danger" id="santas-ceias-count">0</span>
+                    <span class="service-count badge bg-danger" id="santas_ceias-list-count">0</span>
                 </div>
-                <div id="santas-ceias-list" class="service-list"></div>
+                <div id="santas_ceias-list" class="service-list"></div>
             </div>
 
             <!-- Reunião para Mocidade -->
@@ -362,9 +362,9 @@
                         </div>
                         <span>Reunião para Mocidade</span>
                     </div>
-                    <span class="service-count badge bg-success" id="mocidade-count">0</span>
+                    <span class="service-count badge bg-success" id="reuniao_mocidade-list-count">0</span>
                 </div>
-                <div id="mocidade-list" class="service-list"></div>
+                <div id="reuniao_mocidade-list" class="service-list"></div>
             </div>
 
             <!-- Ensaios Regionais -->
@@ -376,9 +376,9 @@
                         </div>
                         <span>Ensaios Regionais</span>
                     </div>
-                    <span class="service-count badge bg-warning" id="ensaios-regionais-count">0</span>
+                    <span class="service-count badge bg-warning" id="ensaios_regionais-list-count">0</span>
                 </div>
-                <div id="ensaios-regionais-list" class="service-list"></div>
+                <div id="ensaios_regionais-list" class="service-list"></div>
             </div>
 
             <!-- Ensaios Locais -->
@@ -390,9 +390,9 @@
                         </div>
                         <span>Ensaios Locais</span>
                     </div>
-                    <span class="service-count badge bg-info" id="ensaios-locais-count">0</span>
+                    <span class="service-count badge bg-info" id="ensaios_locais-list-count">0</span>
                 </div>
-                <div id="ensaios-locais-list" class="service-list"></div>
+                <div id="ensaios_locais-list" class="service-list"></div>
             </div>
 
             <!-- Reunião de Conselho -->
@@ -404,9 +404,9 @@
                         </div>
                         <span>Reunião de Conselho</span>
                     </div>
-                    <span class="service-count badge bg-primary" id="conselho-mocidade-count">0</span>
+                    <span class="service-count badge bg-primary" id="reuniao_conselho-list-count">0</span>
                 </div>
-                <div id="conselho-mocidade-list" class="service-list"></div>
+                <div id="reuniao_conselho-list" class="service-list"></div>
             </div>
 
             <!-- Reunião da Piedade -->
@@ -418,9 +418,9 @@
                         </div>
                         <span>Reunião da Piedade</span>
                     </div>
-                    <span class="service-count badge bg-danger" id="obra-piedade-count">0</span>
+                    <span class="service-count badge bg-danger" id="obra_piedade-list-count">0</span>
                 </div>
-                <div id="obra-piedade-list" class="service-list"></div>
+                <div id="obra_piedade-list" class="service-list"></div>
             </div>
 
             <!-- Evangelização -->
@@ -432,7 +432,7 @@
                         </div>
                         <span>Evangelização</span>
                     </div>
-                    <span class="service-count badge bg-success" id="evangelizacao-count">0</span>
+                    <span class="service-count badge bg-success" id="evangelizacao-list-count">0</span>
                 </div>
                 <div id="evangelizacao-list" class="service-list"></div>
             </div>
@@ -790,15 +790,16 @@
                 return;
             }
 
+            const tipo = document.getElementById('tipoServico').value;
             const serviceData = {
-                type: document.getElementById('tipoServico').value,
+                type: tipo,
                 date: document.getElementById('dataServico').value,
                 congregation: document.getElementById('localServico').value,
                 attendingBrother: document.getElementById('irmaoAtendente').value,
                 details: document.getElementById('observacoesServico').value || ''
             };
 
-            if (serviceData.type === 'ENSAIOS_REGIONAIS') {
+            if (tipo === 'ENSAIOS_REGIONAIS') {
                 serviceData.regionalSupervisor = document.getElementById('encarregadoRegional').value;
             }
 
@@ -810,6 +811,7 @@
                 .then(() => {
                     showToast(servicoAtual ? 'Serviço atualizado com sucesso!' : 'Serviço cadastrado com sucesso!');
                     modalServico.hide();
+                    form.reset();
                 })
                 .catch(error => {
                     showToast('Erro ao salvar serviço: ' + error.message, 'danger');
@@ -1090,13 +1092,19 @@
             // Clear all lists first
             Object.keys(SERVICE_TYPES).forEach(type => {
                 const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                const countElement = document.getElementById(`${type.toLowerCase()}-list-count`);
                 if (listElement) {
                     listElement.innerHTML = '';
                 }
+                if (countElement) {
+                    countElement.textContent = '0';
+                }
             });
 
+            if (!services) return;
+
             // Sort services by date
-            const sortedServices = Object.entries(services || {}).sort((a, b) => {
+            const sortedServices = Object.entries(services).sort((a, b) => {
                 return new Date(a[1].date) - new Date(b[1].date);
             });
 
@@ -1111,19 +1119,20 @@
 
             // Update each service type list
             Object.keys(SERVICE_TYPES).forEach(type => {
-                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
+                const listId = `${type.toLowerCase()}-list`;
+                const countId = `${type.toLowerCase()}-list-count`;
+                const listElement = document.getElementById(listId);
+                const countElement = document.getElementById(countId);
                 const typeServices = servicesByType[type] || [];
                 
                 if (listElement) {
                     listElement.innerHTML = typeServices
                         .map(([id, service]) => createServiceCard(id, service))
                         .join('');
-                    
-                    // Update counter
-                    const countElement = document.getElementById(`${type.toLowerCase()}-count`);
-                    if (countElement) {
-                        countElement.textContent = typeServices.length;
-                    }
+                }
+                
+                if (countElement) {
+                    countElement.textContent = typeServices.length;
                 }
             });
         }
