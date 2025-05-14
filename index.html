@@ -953,10 +953,11 @@
 
         document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
             e.preventDefault();
-            const data = document.getElementById("dataColeta").value;
+            const dataInput = document.getElementById("dataColeta");
+            const data = dataInput.value;
             const irmao = document.getElementById("irmaoNome").value;
             const tipo = document.getElementById("tipoAgendamento").value;
-            const hoje = new Date().toISOString().split("T")[0];
+            const hoje = new Date().toLocaleDateString('en-CA');
 
             if (!tipo) {
                 alert("Por favor, selecione o tipo de agendamento.");
@@ -968,50 +969,53 @@
                 return;
             }
 
-            const dataSelecionada = new Date(data + "T00:00");
-            const diaSemana = dataSelecionada.getDay(); // 0 = Domingo, 4 = Quinta-feira
+            // Ajuste para garantir que a data seja mantida corretamente
+            const [ano, mes, dia] = data.split('-');
+            const dataSelecionada = new Date(Date.UTC(ano, mes - 1, dia));
+            const diaSemana = dataSelecionada.getDay();
 
             // Validação especial para Ituiutaba - Central
             if (congregacaoAtual === "Ituiutaba - Central" && tipo === "Culto Oficial") {
-                const cultosItuiutaba = agendamentos.filter(a => 
-                    a.congregacao === "Ituiutaba - Central" && 
-                    a.tipo === "Culto Oficial" &&
-                    new Date(a.data).getMonth() === dataSelecionada.getMonth() &&
-                    new Date(a.data).getFullYear() === dataSelecionada.getFullYear() &&
-                    a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null)
-                );
+                const cultosItuiutaba = agendamentos.filter(a => {
+                    if (a.congregacao === "Ituiutaba - Central" && a.tipo === "Culto Oficial") {
+                        const [anoA, mesA, diaA] = a.data.split('-');
+                        const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
+                        return dataA.getUTCMonth() === dataSelecionada.getUTCMonth() &&
+                               dataA.getUTCFullYear() === dataSelecionada.getUTCFullYear() &&
+                               a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+                    }
+                    return false;
+                });
 
                 if (cultosItuiutaba.length >= 2) {
                     alert("A Congregação Central de Ituiutaba já possui dois cultos agendados neste mês.");
                     return;
                 }
 
-                const temCultoQuinta = cultosItuiutaba.some(a => new Date(a.data).getDay() === 4);
-                
+                const temCultoQuinta = cultosItuiutaba.some(a => {
+                    const [anoA, mesA, diaA] = a.data.split('-');
+                    const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
+                    return dataA.getUTCDay() === 4;
+                });
+
                 if (cultosItuiutaba.length === 1 && !temCultoQuinta && diaSemana !== 4) {
                     alert("O segundo culto deve ser obrigatoriamente na quinta-feira.");
                     return;
                 }
 
-                if (cultosItuiutaba.length === 0 && diaSemana === 4) {
-                    // Permitir o primeiro agendamento na quinta-feira
-                } else if (cultosItuiutaba.length === 0) {
-                    // Permitir o primeiro agendamento em qualquer dia
-                } else if (cultosItuiutaba.length === 1 && temCultoQuinta && diaSemana === 4) {
+                if (cultosItuiutaba.length === 1 && temCultoQuinta && diaSemana === 4) {
                     alert("Já existe um culto agendado para quinta-feira.");
                     return;
                 }
             } else {
-                // Validação normal para outras congregações
                 const duplicado = agendamentos.some((a, i) => {
-                    const dataAgendamento = new Date(a.data);
-                    return (
-                        a.congregacao === congregacaoAtual &&
-                        dataAgendamento.getMonth() === dataSelecionada.getMonth() &&
-                        dataAgendamento.getFullYear() === dataSelecionada.getFullYear() &&
-                        a.tipo === tipo &&
-                        i !== indexEdicao
-                    );
+                    if (a.congregacao === congregacaoAtual && a.tipo === tipo && i !== indexEdicao) {
+                        const [anoA, mesA, diaA] = a.data.split('-');
+                        const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
+                        return dataA.getUTCMonth() === dataSelecionada.getUTCMonth() &&
+                               dataA.getUTCFullYear() === dataSelecionada.getUTCFullYear();
+                    }
+                    return false;
                 });
 
                 if (duplicado) {
@@ -1043,10 +1047,16 @@
             const hoje = new Date();
 
             // Ordenar agendamentos por data
-            agendamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+            agendamentos.sort((a, b) => {
+                const [anoA, mesA, diaA] = a.data.split('-');
+                const [anoB, mesB, diaB] = b.data.split('-');
+                const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
+                return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+            });
 
             agendamentos.forEach((a, index) => {
-                const dataObj = new Date(a.data + "T00:00");
+                const [ano, mes, dia] = a.data.split('-');
+                const dataObj = new Date(ano, mes - 1, dia);
                 const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
                 const dataFormatada = dataObj.toLocaleDateString("pt-BR");
                 const futura = dataObj >= new Date(hoje.toDateString());
@@ -1250,13 +1260,18 @@
             tickerWrapper.innerHTML = '';
 
             // Ordenar agendamentos por data
-            const agendamentosOrdenados = [...agendamentos].sort((a, b) => new Date(a.data) - new Date(b.data));
+            const agendamentosOrdenados = [...agendamentos].sort((a, b) => {
+                const [anoA, mesA, diaA] = a.data.split('-');
+                const [anoB, mesB, diaB] = b.data.split('-');
+                return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+            });
 
             // Duplicar os agendamentos para criar um efeito contínuo
             const todosAgendamentos = [...agendamentosOrdenados, ...agendamentosOrdenados];
 
             todosAgendamentos.forEach(agendamento => {
-                const dataObj = new Date(agendamento.data + "T00:00");
+                const [ano, mes, dia] = agendamento.data.split('-');
+                const dataObj = new Date(ano, mes - 1, dia);
                 const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
                     day: '2-digit',
                     month: '2-digit',
@@ -1342,19 +1357,28 @@
             // Separar agendamentos por tipo
             const cultosOficiais = agendamentos
                 .filter(a => a.tipo === "Culto Oficial")
-                .sort((a, b) => new Date(a.data) - new Date(b.data));
+                .sort((a, b) => {
+                    const [anoA, mesA, diaA] = a.data.split('-');
+                    const [anoB, mesB, diaB] = b.data.split('-');
+                    return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+                });
             
             const reunioesJovens = agendamentos
                 .filter(a => a.tipo === "Reunião de Jovens e Menores")
-                .sort((a, b) => new Date(a.data) - new Date(b.data));
+                .sort((a, b) => {
+                    const [anoA, mesA, diaA] = a.data.split('-');
+                    const [anoB, mesB, diaB] = b.data.split('-');
+                    return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+                });
 
             // Função para formatar a data
             const formatarData = (data) => {
-                const dataObj = new Date(data + "T00:00");
-                const dia = dataObj.getDate().toString().padStart(2, '0');
-                const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+                const [ano, mes, dia] = data.split('-');
+                const dataObj = new Date(ano, mes - 1, dia);
+                const diaFormatado = dia.padStart(2, '0');
+                const mesFormatado = mes.padStart(2, '0');
                 const diaSemana = dataObj.toLocaleDateString("pt-BR", { weekday: "long" });
-                return `${dia}/${mes} - ${diaSemana}`;
+                return `${diaFormatado}/${mesFormatado} - ${diaSemana}`;
             };
 
             // Configurações da tabela
@@ -1459,7 +1483,8 @@
 
         document.getElementById("btnExportXLS").addEventListener("click", () => {
             const dados = agendamentos.map(a => {
-                const dataObj = new Date(a.data + "T00:00");
+                const [ano, mes, dia] = a.data.split('-');
+                const dataObj = new Date(ano, mes - 1, dia);
                 const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
                 const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
