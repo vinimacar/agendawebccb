@@ -284,6 +284,31 @@
             background-color: var(--primary-color);
         }
 
+        .btn-voltar {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-left: 1rem;
+        }
+
+        .btn-voltar:hover {
+            background-color: var(--light-bg);
+            transform: translateX(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        @media (max-width: 768px) {
+            .btn-voltar {
+                position: relative !important;
+                transform: none !important;
+                margin-bottom: 1rem;
+                display: inline-block;
+            }
+        }
+
         .modal-content {
             border-radius: var(--border-radius);
             overflow: hidden;
@@ -426,7 +451,11 @@
 </head>
 <body>
     <header class="app-header">
-        <div class="container">
+        <div class="container position-relative">
+            <a href="index.html" class="btn btn-voltar position-absolute start-0 top-50 translate-middle-y">
+                <i class="bi bi-arrow-left me-2"></i>
+                Voltar
+            </a>
             <h1 class="app-title text-center">AGENDA DE SERVIÇOS</h1>
             <p class="text-center mb-4">Administração de Ituiutaba-MG</p>
             
