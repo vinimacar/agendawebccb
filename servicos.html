@@ -6,9 +6,9 @@
     <title>Agenda de Serviços - CCB</title>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
     <script>
         // Firebase configuration
@@ -23,8 +23,88 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+
+        // Database References
+        const servicesRef = database.ref('services');
+        const congregationsRef = database.ref('congregations');
+
+        // Service Types
+        const SERVICE_TYPES = {
+            BATISMOS: {
+                name: 'Batismos',
+                icon: 'bi-water',
+                color: 'primary'
+            },
+            SANTAS_CEIAS: {
+                name: 'Santas Ceias',
+                icon: 'bi-cup-hot',
+                color: 'danger'
+            },
+            REUNIAO_MOCIDADE: {
+                name: 'Reunião para Mocidade',
+                icon: 'bi-people',
+                color: 'success'
+            },
+            ENSAIOS_REGIONAIS: {
+                name: 'Ensaios Regionais',
+                icon: 'bi-music-note-beamed',
+                color: 'info'
+            },
+            ENSAIOS_LOCAIS: {
+                name: 'Ensaios Locais',
+                icon: 'bi-music-note',
+                color: 'secondary'
+            },
+            REUNIAO_CONSELHO: {
+                name: 'Reunião de Conselho',
+                icon: 'bi-clipboard-data',
+                color: 'warning'
+            },
+            OBRA_PIEDADE: {
+                name: 'Reunião da Piedade',
+                icon: 'bi-heart',
+                color: 'danger'
+            },
+            EVANGELIZACAO: {
+                name: 'Evangelização',
+                icon: 'bi-book',
+                color: 'success'
+            }
+        };
+
+        // Get services by date range
+        function getServicesByDateRange(startDate, endDate) {
+            return servicesRef
+                .orderByChild('date')
+                .startAt(startDate)
+                .endAt(endDate)
+                .once('value');
+        }
+
+        // Create new service
+        function createService(serviceData) {
+            const newServiceRef = servicesRef.push();
+            return newServiceRef.set({
+                ...serviceData,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
+        // Update existing service
+        function updateService(serviceId, serviceData) {
+            return servicesRef.child(serviceId).update({
+                ...serviceData,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
+        // Delete service
+        function deleteService(serviceId) {
+            return servicesRef.child(serviceId).remove();
+        }
     </script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css" rel="stylesheet" />
@@ -626,6 +706,11 @@
                 salvarServico();
             });
 
+            // Handle congregation search input
+            document.getElementById('buscaLocalidade').addEventListener('input', (e) => {
+                filtrarLocalidades(e.target.value);
+            });
+
             // Load congregations into datalist
             carregarCongregacoes();
         });
@@ -633,7 +718,7 @@
         // Load congregations
         function carregarCongregacoes() {
             const datalist = document.getElementById('localidadesList');
-            database.ref('congregations').once('value')
+            congregationsRef.once('value')
                 .then((snapshot) => {
                     datalist.innerHTML = '';
                     snapshot.forEach((child) => {
@@ -649,15 +734,6 @@
                 });
         }
 
-        // Open new service modal
-        function openNewServiceModal() {
-            servicoAtual = null;
-            document.getElementById('modalServicoLabel').textContent = 'Novo Serviço';
-            document.getElementById('formServico').reset();
-            document.getElementById('campoEncarregadoRegional').style.display = 'none';
-            modalServico.show();
-        }
-
         // Open congregation search modal
         function abrirModalLocalidades() {
             const searchInput = document.getElementById('buscaLocalidade');
@@ -670,7 +746,7 @@
         function filtrarLocalidades(termo) {
             const listaLocalidades = document.getElementById('listaLocalidades');
             
-            database.ref('congregations').orderByChild('name')
+            congregationsRef.orderByChild('name')
                 .once('value')
                 .then((snapshot) => {
                     listaLocalidades.innerHTML = '';
@@ -693,6 +769,10 @@
                             listaLocalidades.appendChild(item);
                         }
                     });
+                })
+                .catch(error => {
+                    console.error('Erro ao filtrar congregações:', error);
+                    showToast('Erro ao filtrar congregações: ' + error.message, 'danger');
                 });
         }
 
@@ -787,12 +867,12 @@
             ];
 
             // Check if congregations already exist
-            database.ref('congregations').once('value')
+            congregationsRef.once('value')
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
                         // Create congregation entries
                         congregations.forEach(congregation => {
-                            database.ref('congregations').push(congregation);
+                            congregationsRef.push(congregation);
                         });
                         showToast('Congregações inicializadas com sucesso!', 'success');
                     }
@@ -801,6 +881,15 @@
                     console.error('Erro ao inicializar congregações:', error);
                     showToast('Erro ao inicializar congregações: ' + error.message, 'danger');
                 });
+        }
+
+        // Open new service modal
+        function openNewServiceModal() {
+            servicoAtual = null;
+            document.getElementById('modalServicoLabel').textContent = 'Novo Serviço';
+            document.getElementById('formServico').reset();
+            document.getElementById('campoEncarregadoRegional').style.display = 'none';
+            modalServico.show();
         }
     </script>
 
@@ -843,7 +932,7 @@
             const searchTerm = document.getElementById('congregationSearchInput').value;
             const resultsContainer = document.getElementById('congregationSearchResults');
             
-            database.ref('congregations').orderByChild('name')
+            congregationsRef.orderByChild('name')
                 .startAt(searchTerm)
                 .endAt(searchTerm + '\uf8ff')
                 .once('value')
@@ -920,7 +1009,7 @@
             currentServiceId = serviceId;
             document.getElementById('serviceModalLabel').textContent = 'Editar Serviço';
             
-            database.ref('services').child(serviceId).once('value')
+            servicesRef.child(serviceId).once('value')
                 .then((snapshot) => {
                     const service = snapshot.val();
                     document.getElementById('serviceType').value = service.type;
