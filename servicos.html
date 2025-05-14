@@ -381,16 +381,16 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="tipoServico" class="form-label">Tipo de Serviço</label>
-                            <select class="form-select" id="tipoServico" required onchange="toggleCamposAdicionais()">
+                            <select class="form-select" id="tipoServico" required>
                                 <option value="">Selecione o tipo de serviço</option>
                                 <option value="BATISMOS">Batismos</option>
-                                <option value="SANTAS-CEIAS">Santas Ceias</option>
-                                <option value="REUNIÃO PARA MOCIDADE">Reunião para Mocidade</option>
-                                <option value="ENSAIOS REGIONAIS">Ensaios Regionais</option>
-                                <option value="ENSAIOS LOCAIS">Ensaios Locais</option>
-                                <option value="REUNIÃO DE CONSELHO DA MOCIDADE">Reunião de Conselho da Mocidade</option>
-                                <option value="REUNIÃO DA OBRA DA PIEDADE">Reunião da Obra da Piedade</option>
-                                <option value="EVANGELIZAÇÃO">Evangelização</option>
+                                <option value="SANTAS_CEIAS">Santas Ceias</option>
+                                <option value="REUNIAO_MOCIDADE">Reunião para Mocidade</option>
+                                <option value="ENSAIOS_REGIONAIS">Ensaios Regionais</option>
+                                <option value="ENSAIOS_LOCAIS">Ensaios Locais</option>
+                                <option value="REUNIAO_CONSELHO">Reunião de Conselho</option>
+                                <option value="OBRA_PIEDADE">Reunião da Piedade</option>
+                                <option value="EVANGELIZACAO">Evangelização</option>
                             </select>
                             <div class="invalid-feedback">
                                 Por favor, selecione o tipo de serviço.
@@ -433,15 +433,12 @@
                             </div>
                         </div>
 
-                        <!-- Campos específicos para Ensaios Regionais -->
-                        <div id="camposEnsaiosRegionais" style="display: none;">
-                            <div class="mb-3">
-                                <label for="encarregadoRegional" class="form-label">Encarregado Regional</label>
-                                <input type="text" class="form-control" id="encarregadoRegional" 
-                                    placeholder="Nome do encarregado regional">
-                                <div class="invalid-feedback">
-                                    Por favor, informe o encarregado regional.
-                                </div>
+                        <div id="campoEncarregadoRegional" class="mb-3" style="display: none;">
+                            <label for="encarregadoRegional" class="form-label">Encarregado Regional</label>
+                            <input type="text" class="form-control" id="encarregadoRegional" 
+                                placeholder="Nome do encarregado regional">
+                            <div class="invalid-feedback">
+                                Por favor, informe o encarregado regional.
                             </div>
                         </div>
 
@@ -602,151 +599,141 @@
     </div>
 
     <script>
-        // Database References
-        const servicesRef = database.ref('services');
-        const congregationsRef = database.ref('congregations');
+        let modalServico;
+        let modalLocalidades;
+        let servicoAtual = null;
 
-        // Service Types
-        const SERVICE_TYPES = {
-            BATISMOS: {
-                name: 'Batismos',
-                icon: 'bi-water',
-                color: 'primary'
-            },
-            SANTAS_CEIAS: {
-                name: 'Santas Ceias',
-                icon: 'bi-cup-hot',
-                color: 'danger'
-            },
-            REUNIAO_MOCIDADE: {
-                name: 'Reunião para Mocidade',
-                icon: 'bi-people',
-                color: 'success'
-            },
-            ENSAIOS_REGIONAIS: {
-                name: 'Ensaios Regionais',
-                icon: 'bi-music-note-beamed',
-                color: 'info'
-            },
-            ENSAIOS_LOCAIS: {
-                name: 'Ensaios Locais',
-                icon: 'bi-music-note',
-                color: 'secondary'
-            },
-            REUNIAO_CONSELHO: {
-                name: 'Reunião de Conselho',
-                icon: 'bi-clipboard-data',
-                color: 'warning'
-            },
-            OBRA_PIEDADE: {
-                name: 'Reunião da Piedade',
-                icon: 'bi-heart',
-                color: 'danger'
-            },
-            EVANGELIZACAO: {
-                name: 'Evangelização',
-                icon: 'bi-book',
-                color: 'success'
-            }
-        };
-
-        // Create new service
-        function createService(serviceData) {
-            const newServiceRef = servicesRef.push();
-            return newServiceRef.set({
-                ...serviceData,
-                createdAt: firebase.database.ServerValue.TIMESTAMP,
-                updatedAt: firebase.database.ServerValue.TIMESTAMP
+        // Initialize modals and form handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            modalServico = new bootstrap.Modal(document.getElementById('modalServico'));
+            modalLocalidades = new bootstrap.Modal(document.getElementById('modalLocalidades'));
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
-        }
 
-        // Update existing service
-        function updateService(serviceId, serviceData) {
-            return servicesRef.child(serviceId).update({
-                ...serviceData,
-                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            // Handle service type change
+            document.getElementById('tipoServico').addEventListener('change', (e) => {
+                const campoEncarregadoRegional = document.getElementById('campoEncarregadoRegional');
+                campoEncarregadoRegional.style.display = e.target.value === 'ENSAIOS_REGIONAIS' ? 'block' : 'none';
             });
-        }
 
-        // Delete service
-        function deleteService(serviceId) {
-            return servicesRef.child(serviceId).remove();
-        }
+            // Handle form submission
+            document.getElementById('formServico').addEventListener('submit', (e) => {
+                e.preventDefault();
+                salvarServico();
+            });
 
-        // Get services by type
-        function getServicesByType(type) {
-            return servicesRef.orderByChild('type').equalTo(type).once('value');
-        }
-
-        // Get services by date range
-        function getServicesByDateRange(startDate, endDate) {
-            return servicesRef
-                .orderByChild('date')
-                .startAt(startDate)
-                .endAt(endDate)
-                .once('value');
-        }
-
-        // Listen for service changes
-        servicesRef.on('value', (snapshot) => {
-            const services = snapshot.val();
-            updateServiceCounters(services);
-            updateServiceLists(services);
-            updateCalendar(services);
+            // Load congregations into datalist
+            carregarCongregacoes();
         });
 
-        // Update service counters
-        function updateServiceCounters(services) {
-            Object.keys(SERVICE_TYPES).forEach(type => {
-                const count = Object.values(services || {})
-                    .filter(service => service.type === type).length;
-                const countElement = document.getElementById(`${type.toLowerCase()}-count`);
-                if (countElement) {
-                    countElement.textContent = count;
-                }
-            });
+        // Load congregations
+        function carregarCongregacoes() {
+            const datalist = document.getElementById('localidadesList');
+            database.ref('congregations').once('value')
+                .then((snapshot) => {
+                    datalist.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        const option = document.createElement('option');
+                        option.value = `${congregation.name} (${congregation.number})`;
+                        datalist.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar congregações:', error);
+                    showToast('Erro ao carregar congregações: ' + error.message, 'danger');
+                });
         }
 
-        // Update service lists
-        function updateServiceLists(services) {
-            Object.keys(SERVICE_TYPES).forEach(type => {
-                const listElement = document.getElementById(`${type.toLowerCase()}-list`);
-                if (listElement) {
-                    const typeServices = Object.entries(services || {})
-                        .filter(([_, service]) => service.type === type)
-                        .sort((a, b) => new Date(a[1].date) - new Date(b[1].date));
-
-                    listElement.innerHTML = typeServices
-                        .map(([id, service]) => createServiceCard(id, service))
-                        .join('');
-                }
-            });
+        // Open new service modal
+        function openNewServiceModal() {
+            servicoAtual = null;
+            document.getElementById('modalServicoLabel').textContent = 'Novo Serviço';
+            document.getElementById('formServico').reset();
+            document.getElementById('campoEncarregadoRegional').style.display = 'none';
+            modalServico.show();
         }
 
-        // Create service card HTML
-        function createServiceCard(id, service) {
-            const date = new Date(service.date).toLocaleDateString('pt-BR');
-            const typeInfo = SERVICE_TYPES[service.type];
+        // Open congregation search modal
+        function abrirModalLocalidades() {
+            const searchInput = document.getElementById('buscaLocalidade');
+            searchInput.value = '';
+            filtrarLocalidades('');
+            modalLocalidades.show();
+        }
+
+        // Filter congregations
+        function filtrarLocalidades(termo) {
+            const listaLocalidades = document.getElementById('listaLocalidades');
             
-            return `
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">${date}</h6>
-                        <p class="card-text">
-                            <i class="bi bi-building"></i> ${service.congregation}<br>
-                            ${service.details ? `<small class="text-muted">${service.details}</small>` : ''}
-                        </p>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" onclick="editService('${id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteService('${id}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
+            database.ref('congregations').orderByChild('name')
+                .once('value')
+                .then((snapshot) => {
+                    listaLocalidades.innerHTML = '';
+                    snapshot.forEach((child) => {
+                        const congregation = child.val();
+                        if (!termo || congregation.name.toLowerCase().includes(termo.toLowerCase()) || 
+                            congregation.number.includes(termo)) {
+                            const item = document.createElement('button');
+                            item.className = 'list-group-item list-group-item-action';
+                            item.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-building"></i>
+                                        ${congregation.name}
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">${congregation.number}</span>
+                                </div>
+                            `;
+                            item.onclick = () => selecionarLocalidade(congregation);
+                            listaLocalidades.appendChild(item);
+                        }
+                    });
+                });
+        }
+
+        // Select congregation
+        function selecionarLocalidade(congregation) {
+            document.getElementById('localServico').value = `${congregation.name} (${congregation.number})`;
+            modalLocalidades.hide();
+        }
+
+        // Save service
+        function salvarServico() {
+            const form = document.getElementById('formServico');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const serviceData = {
+                type: document.getElementById('tipoServico').value,
+                date: document.getElementById('dataServico').value,
+                congregation: document.getElementById('localServico').value,
+                attendingBrother: document.getElementById('irmaoAtendente').value,
+                details: document.getElementById('observacoesServico').value || ''
+            };
+
+            if (serviceData.type === 'ENSAIOS_REGIONAIS') {
+                serviceData.regionalSupervisor = document.getElementById('encarregadoRegional').value;
+            }
+
+            const savePromise = servicoAtual
+                ? updateService(servicoAtual, serviceData)
+                : createService(serviceData);
+
+            savePromise
+                .then(() => {
+                    showToast(servicoAtual ? 'Serviço atualizado com sucesso!' : 'Serviço cadastrado com sucesso!');
+                    modalServico.hide();
+                })
+                .catch(error => {
+                    showToast('Erro ao salvar serviço: ' + error.message, 'danger');
+                });
         }
 
         // Show toast notification
@@ -800,12 +787,12 @@
             ];
 
             // Check if congregations already exist
-            congregationsRef.once('value')
+            database.ref('congregations').once('value')
                 .then((snapshot) => {
                     if (!snapshot.exists()) {
                         // Create congregation entries
                         congregations.forEach(congregation => {
-                            congregationsRef.push(congregation);
+                            database.ref('congregations').push(congregation);
                         });
                         showToast('Congregações inicializadas com sucesso!', 'success');
                     }
@@ -856,7 +843,7 @@
             const searchTerm = document.getElementById('congregationSearchInput').value;
             const resultsContainer = document.getElementById('congregationSearchResults');
             
-            congregationsRef.orderByChild('name')
+            database.ref('congregations').orderByChild('name')
                 .startAt(searchTerm)
                 .endAt(searchTerm + '\uf8ff')
                 .once('value')
@@ -933,7 +920,7 @@
             currentServiceId = serviceId;
             document.getElementById('serviceModalLabel').textContent = 'Editar Serviço';
             
-            servicesRef.child(serviceId).once('value')
+            database.ref('services').child(serviceId).once('value')
                 .then((snapshot) => {
                     const service = snapshot.val();
                     document.getElementById('serviceType').value = service.type;
