@@ -1471,23 +1471,70 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
 
-                doc.text("Agenda de Coletas - CCB", 10, 10);
+                // Configurações iniciais
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(16);
+                doc.text("Agenda de Coletas - CCB", 105, 15, { align: "center" });
+                
+                doc.setFontSize(12);
+                doc.text("Administração de Ituiutaba-MG", 105, 25, { align: "center" });
+                doc.text("Referente ao mês de: JUNHO/2025", 105, 35, { align: "center" });
 
-                let y = 20;
-                agendamentos.forEach((a, index) => {
-                    const dataObj = new Date(a.data + "T00:00");
-                    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+                // Separar agendamentos por tipo
+                const cultosOficiais = agendamentos.filter(a => a.tipo === "Culto Oficial")
+                    .sort((a, b) => new Date(a.data) - new Date(b.data));
+                const reunioesJovens = agendamentos.filter(a => a.tipo === "Reunião de Jovens e Menores")
+                    .sort((a, b) => new Date(a.data) - new Date(b.data));
 
-                    const linha = `${index + 1}. ${a.congregacao} - ${diaAbrev} - ${dataFormatada} - ${a.irmao} (${a.tipo})`;
-                    doc.text(linha, 10, y);
-                    y += 7;
+                // Função para adicionar uma seção
+                function adicionarSecao(titulo, agendamentos, yInicial) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(14);
+                    doc.text(titulo, 20, yInicial);
+                    
+                    // Cabeçalho
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Data", 20, yInicial + 10);
+                    doc.text("Congregação", 60, yInicial + 10);
+                    doc.text("Irmão", 120, yInicial + 10);
 
-                    if (y > 270) {
-                        doc.addPage();
-                        y = 10;
-                    }
-                });
+                    // Linha separadora
+                    doc.setDrawColor(200, 200, 200);
+                    doc.line(20, yInicial + 12, 190, yInicial + 12);
+
+                    // Dados
+                    doc.setFont("helvetica", "normal");
+                    let y = yInicial + 20;
+                    
+                    agendamentos.forEach((a, index) => {
+                        const dataObj = new Date(a.data + "T00:00");
+                        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+
+                        // Verifica se precisa de nova página
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+
+                        doc.text(`${diaAbrev} - ${dataFormatada}`, 20, y);
+                        doc.text(a.congregacao, 60, y);
+                        doc.text(a.irmao, 120, y);
+                        
+                        y += 8;
+                    });
+
+                    return y + 10; // Retorna a posição Y final
+                }
+
+                // Adiciona as seções
+                let yAtual = 45;
+                yAtual = adicionarSecao("Cultos Oficiais", cultosOficiais, yAtual);
+                
+                // Adiciona nova página para Reuniões de Jovens
+                doc.addPage();
+                yAtual = adicionarSecao("Reuniões de Jovens e Menores", reunioesJovens, 20);
 
                 doc.save("agendamentos.pdf");
                 mostrarAlerta("PDF gerado com sucesso!", "success");
