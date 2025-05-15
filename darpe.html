@@ -193,6 +193,10 @@
                         <i class="bi bi-calendar-plus me-2"></i>
                         Agendar Atendimento
                     </button>
+                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#cadastroColaboradorModal">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Cadastrar Colaborador
+                    </button>
                 </div>
             </div>
             <h1 class="app-title text-center mt-3">DARPE</h1>
@@ -364,6 +368,57 @@
         </div>
     </div>
 
+    <!-- Modal de Cadastro de Colaborador -->
+    <div class="modal fade" id="cadastroColaboradorModal" tabindex="-1" aria-labelledby="cadastroColaboradorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cadastroColaboradorModalLabel">Cadastro de Colaborador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="colaboradorForm" onsubmit="cadastrarColaborador(event)">
+                        <div class="mb-3">
+                            <label for="nomeColaborador" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="nomeColaborador" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cargoColaborador" class="form-label">Cargo</label>
+                            <select class="form-select" id="cargoColaborador" required>
+                                <option value="">Selecione o Cargo</option>
+                                <option value="Ancião">Ancião</option>
+                                <option value="Secretário">Secretário</option>
+                                <option value="Coordenador">Coordenador</option>
+                                <option value="Atendente">Atendente</option>
+                                <option value="Músico">Músico</option>
+                                <option value="Canto">Canto</option>
+                                <option value="Auxiliar">Auxiliar</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comumColaborador" class="form-label">Comum Congregação</label>
+                            <select class="form-select" id="comumColaborador" required>
+                                <option value="">Selecione a Comum</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="contatoColaborador" class="form-label">Contato</label>
+                            <input type="tel" class="form-control" id="contatoColaborador" required>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success">Cadastrar Colaborador</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="main-content">
         <div class="container">
             <div class="row g-4">
@@ -423,8 +478,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Cache para as unidades
+        // Cache para as unidades e comuns
         let unidadesCache = {};
+        let comunsCache = [];
 
         // Função para carregar unidades do Firebase
         function carregarUnidades() {
@@ -443,6 +499,30 @@
                             id: key,
                             ...unidade
                         });
+                    });
+                }
+            });
+        }
+
+        // Função para carregar comuns do Firebase
+        function carregarComuns() {
+            database.ref('comuns').on('value', (snapshot) => {
+                const comuns = snapshot.val();
+                if (comuns) {
+                    comunsCache = Object.entries(comuns).map(([id, comum]) => ({
+                        id,
+                        ...comum
+                    }));
+                    
+                    // Atualizar select de comuns
+                    const comumSelect = document.getElementById('comumColaborador');
+                    comumSelect.innerHTML = '<option value="">Selecione a Comum</option>';
+                    
+                    comunsCache.forEach(comum => {
+                        const option = document.createElement('option');
+                        option.value = comum.id;
+                        option.textContent = comum.nome;
+                        comumSelect.appendChild(option);
                     });
                 }
             });
@@ -515,6 +595,35 @@
                 });
         }
 
+        // Função para cadastrar colaborador
+        function cadastrarColaborador(event) {
+            event.preventDefault();
+            
+            const colaboradorData = {
+                nome: document.getElementById('nomeColaborador').value,
+                cargo: document.getElementById('cargoColaborador').value,
+                comum: {
+                    id: document.getElementById('comumColaborador').value,
+                    nome: document.getElementById('comumColaborador').options[
+                        document.getElementById('comumColaborador').selectedIndex
+                    ].text
+                },
+                contato: document.getElementById('contatoColaborador').value,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // Salvar no Firebase
+            database.ref('colaboradores').push(colaboradorData)
+                .then(() => {
+                    alert('Colaborador cadastrado com sucesso!');
+                    document.getElementById('colaboradorForm').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('cadastroColaboradorModal')).hide();
+                })
+                .catch((error) => {
+                    alert('Erro ao cadastrar colaborador: ' + error.message);
+                });
+        }
+
         // Função para submeter agendamento
         function submitAgendamento(event) {
             event.preventDefault();
@@ -560,14 +669,19 @@
                 });
         }
 
-        // Adicionar máscara ao campo de telefone
+        // Adicionar máscara aos campos de telefone
         document.getElementById('telefone').addEventListener('input', function() {
             formatarTelefone(this);
         });
 
-        // Carregar unidades ao inicializar a página
+        document.getElementById('contatoColaborador').addEventListener('input', function() {
+            formatarTelefone(this);
+        });
+
+        // Carregar dados ao inicializar a página
         document.addEventListener('DOMContentLoaded', () => {
             carregarUnidades();
+            carregarComuns();
         });
     </script>
 </body>
