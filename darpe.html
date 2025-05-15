@@ -99,6 +99,43 @@
             transform: translateY(-3px);
             box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         }
+
+        /* Estilos adicionais para os cards de setores */
+        .card .card-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .card .btn-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card .card-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Responsividade para os cards */
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -115,10 +152,60 @@
 
     <div class="main-content">
         <div class="container">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title">Bem-vindo ao DARPE</h2>
-                    <p class="card-text">Sistema de gerenciamento DARPE.</p>
+            <div class="row g-4">
+                <!-- Setor 1 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5 fw-bold mb-3">SETOR 1</h3>
+                            <p class="card-text">Unidades Prisionais Masculinas e Femininas, e para Menores</p>
+                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setor 2 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5 fw-bold mb-3">SETOR 2</h3>
+                            <p class="card-text">Clínica de Dependentes e Albergues</p>
+                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setor 3 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5 fw-bold mb-3">SETOR 3</h3>
+                            <p class="card-text">Forças de Segurança</p>
+                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setor 4 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5 fw-bold mb-3">SETOR 4</h3>
+                            <p class="card-text">Hospitais, Instituição para Idosos, Setor Educacional</p>
+                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projeto Educacional -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h3 class="card-title h5 fw-bold mb-3">PROJETO EDUCACIONAL CRISTÃO</h3>
+                            <p class="card-text">Desenvolvimento e acompanhamento do projeto educacional</p>
+                            <a href="#" class="btn btn-primary mt-2">Acessar Projeto</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
