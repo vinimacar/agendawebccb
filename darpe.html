@@ -311,7 +311,9 @@
                             <form id="setor1Form" class="scheduling-form" onsubmit="submitForm(event, 'setor1')">
                                 <div class="form-group">
                                     <label for="setor1-unidade">Unidade de Atendimento</label>
-                                    <input type="text" class="form-control" id="setor1-unidade" required>
+                                    <select class="form-control" id="setor1-unidade" required>
+                                        <option value="">Selecione a Unidade</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="setor1-data">Data do Atendimento</label>
@@ -346,7 +348,9 @@
                             <form id="setor2Form" class="scheduling-form" onsubmit="submitForm(event, 'setor2')">
                                 <div class="form-group">
                                     <label for="setor2-unidade">Unidade de Atendimento</label>
-                                    <input type="text" class="form-control" id="setor2-unidade" required>
+                                    <select class="form-control" id="setor2-unidade" required>
+                                        <option value="">Selecione a Unidade</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="setor2-data">Data do Atendimento</label>
@@ -381,7 +385,9 @@
                             <form id="setor3Form" class="scheduling-form" onsubmit="submitForm(event, 'setor3')">
                                 <div class="form-group">
                                     <label for="setor3-unidade">Unidade de Atendimento</label>
-                                    <input type="text" class="form-control" id="setor3-unidade" required>
+                                    <select class="form-control" id="setor3-unidade" required>
+                                        <option value="">Selecione a Unidade</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="setor3-data">Data do Atendimento</label>
@@ -416,7 +422,9 @@
                             <form id="setor4Form" class="scheduling-form" onsubmit="submitForm(event, 'setor4')">
                                 <div class="form-group">
                                     <label for="setor4-unidade">Unidade de Atendimento</label>
-                                    <input type="text" class="form-control" id="setor4-unidade" required>
+                                    <select class="form-control" id="setor4-unidade" required>
+                                        <option value="">Selecione a Unidade</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="setor4-data">Data do Atendimento</label>
@@ -451,7 +459,9 @@
                             <form id="projetoForm" class="scheduling-form" onsubmit="submitForm(event, 'projeto')">
                                 <div class="form-group">
                                     <label for="projeto-unidade">Unidade de Atendimento</label>
-                                    <input type="text" class="form-control" id="projeto-unidade" required>
+                                    <select class="form-control" id="projeto-unidade" required>
+                                        <option value="">Selecione a Unidade</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="projeto-data">Data do Atendimento</label>
@@ -481,18 +491,94 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Cache para as unidades
+        let unidadesCache = {};
+
+        // Função para carregar unidades do Firebase
+        function carregarUnidades() {
+            database.ref('unidades').on('value', (snapshot) => {
+                const unidades = snapshot.val();
+                if (unidades) {
+                    // Limpar cache atual
+                    unidadesCache = {};
+                    
+                    // Organizar unidades por setor
+                    Object.entries(unidades).forEach(([key, unidade]) => {
+                        if (!unidadesCache[unidade.setor]) {
+                            unidadesCache[unidade.setor] = [];
+                        }
+                        unidadesCache[unidade.setor].push({
+                            id: key,
+                            ...unidade
+                        });
+                    });
+
+                    // Atualizar todos os dropdowns
+                    atualizarDropdowns();
+                }
+            });
+        }
+
+        // Função para atualizar os dropdowns de unidades
+        function atualizarDropdowns() {
+            const setores = ['1', '2', '3', '4', '5'];
+            const setorNomes = {
+                '1': 'setor1',
+                '2': 'setor2',
+                '3': 'setor3',
+                '4': 'setor4',
+                '5': 'projeto'
+            };
+
+            setores.forEach(setor => {
+                const selectId = `${setorNomes[setor]}-unidade`;
+                const select = document.getElementById(selectId);
+                if (select) {
+                    // Limpar opções existentes
+                    select.innerHTML = '<option value="">Selecione a Unidade</option>';
+                    
+                    // Adicionar unidades do setor
+                    const unidadesDoSetor = unidadesCache[setor] || [];
+                    unidadesDoSetor.forEach(unidade => {
+                        const option = document.createElement('option');
+                        option.value = unidade.id;
+                        option.textContent = unidade.nome;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
         // Função para alternar a visibilidade do formulário
         function toggleForm(formId) {
             const form = document.getElementById(formId);
             form.classList.toggle('active');
         }
 
-        // Função para submeter o formulário
+        // Modificar a função submitForm para incluir os dados completos da unidade
         function submitForm(event, setor) {
             event.preventDefault();
             
+            const unidadeId = document.getElementById(`${setor}-unidade`).value;
+            const unidadeSelecionada = unidadesCache[setor === 'projeto' ? '5' : setor[5]]?.find(u => u.id === unidadeId);
+            
+            if (!unidadeSelecionada) {
+                alert('Por favor, selecione uma unidade válida.');
+                return;
+            }
+
             const formData = {
-                unidade: document.getElementById(`${setor}-unidade`).value,
+                unidade: {
+                    id: unidadeSelecionada.id,
+                    nome: unidadeSelecionada.nome,
+                    endereco: unidadeSelecionada.endereco,
+                    numero: unidadeSelecionada.numero,
+                    bairro: unidadeSelecionada.bairro,
+                    cidade: unidadeSelecionada.cidade,
+                    uf: unidadeSelecionada.uf,
+                    telefone: unidadeSelecionada.telefone,
+                    responsavel: unidadeSelecionada.responsavel
+                },
                 data: document.getElementById(`${setor}-data`).value,
                 horario: document.getElementById(`${setor}-horario`).value,
                 coordenador: document.getElementById(`${setor}-coordenador`).value,
@@ -563,6 +649,11 @@
                     alert('Erro ao cadastrar unidade: ' + error.message);
                 });
         }
+
+        // Carregar unidades ao inicializar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarUnidades();
+        });
     </script>
 </body>
 </html> 
