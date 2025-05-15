@@ -10,6 +10,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
+            authDomain: "agendawebccb.firebaseapp.com",
+            databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
+            projectId: "agendawebccb",
+            storageBucket: "agendawebccb.firebasestorage.app",
+            messagingSenderId: "1002090805726",
+            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+
     <style>
         :root {
             /* Cores principais */
@@ -136,6 +158,22 @@
                 margin-bottom: 1rem;
             }
         }
+
+        /* Estilos para o formulário de agendamento */
+        .scheduling-form {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e1e8ef;
+        }
+
+        .form-control {
+            margin-bottom: 1rem;
+        }
+
+        .scheduling-form.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -159,7 +197,31 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 1</h3>
                             <p class="card-text">Unidades Prisionais Masculinas e Femininas, e para Menores</p>
-                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor1Form')">Agendar Atendimento</button>
+                            
+                            <form id="setor1Form" class="scheduling-form" onsubmit="submitForm(event, 'setor1')">
+                                <div class="form-group">
+                                    <label for="setor1-unidade">Unidade de Atendimento</label>
+                                    <input type="text" class="form-control" id="setor1-unidade" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor1-data">Data do Atendimento</label>
+                                    <input type="date" class="form-control" id="setor1-data" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor1-horario">Horário do Atendimento</label>
+                                    <input type="time" class="form-control" id="setor1-horario" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor1-coordenador">Coordenador do Setor</label>
+                                    <input type="text" class="form-control" id="setor1-coordenador" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor1-atendente">Atendente</label>
+                                    <input type="text" class="form-control" id="setor1-atendente" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -170,7 +232,31 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 2</h3>
                             <p class="card-text">Clínica de Dependentes e Albergues</p>
-                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor2Form')">Agendar Atendimento</button>
+                            
+                            <form id="setor2Form" class="scheduling-form" onsubmit="submitForm(event, 'setor2')">
+                                <div class="form-group">
+                                    <label for="setor2-unidade">Unidade de Atendimento</label>
+                                    <input type="text" class="form-control" id="setor2-unidade" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor2-data">Data do Atendimento</label>
+                                    <input type="date" class="form-control" id="setor2-data" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor2-horario">Horário do Atendimento</label>
+                                    <input type="time" class="form-control" id="setor2-horario" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor2-coordenador">Coordenador do Setor</label>
+                                    <input type="text" class="form-control" id="setor2-coordenador" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor2-atendente">Atendente</label>
+                                    <input type="text" class="form-control" id="setor2-atendente" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -181,7 +267,31 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 3</h3>
                             <p class="card-text">Forças de Segurança</p>
-                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor3Form')">Agendar Atendimento</button>
+                            
+                            <form id="setor3Form" class="scheduling-form" onsubmit="submitForm(event, 'setor3')">
+                                <div class="form-group">
+                                    <label for="setor3-unidade">Unidade de Atendimento</label>
+                                    <input type="text" class="form-control" id="setor3-unidade" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor3-data">Data do Atendimento</label>
+                                    <input type="date" class="form-control" id="setor3-data" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor3-horario">Horário do Atendimento</label>
+                                    <input type="time" class="form-control" id="setor3-horario" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor3-coordenador">Coordenador do Setor</label>
+                                    <input type="text" class="form-control" id="setor3-coordenador" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor3-atendente">Atendente</label>
+                                    <input type="text" class="form-control" id="setor3-atendente" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -192,7 +302,31 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 4</h3>
                             <p class="card-text">Hospitais, Instituição para Idosos, Setor Educacional</p>
-                            <a href="#" class="btn btn-primary mt-2">Acessar Setor</a>
+                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor4Form')">Agendar Atendimento</button>
+                            
+                            <form id="setor4Form" class="scheduling-form" onsubmit="submitForm(event, 'setor4')">
+                                <div class="form-group">
+                                    <label for="setor4-unidade">Unidade de Atendimento</label>
+                                    <input type="text" class="form-control" id="setor4-unidade" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor4-data">Data do Atendimento</label>
+                                    <input type="date" class="form-control" id="setor4-data" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor4-horario">Horário do Atendimento</label>
+                                    <input type="time" class="form-control" id="setor4-horario" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor4-coordenador">Coordenador do Setor</label>
+                                    <input type="text" class="form-control" id="setor4-coordenador" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="setor4-atendente">Atendente</label>
+                                    <input type="text" class="form-control" id="setor4-atendente" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -203,7 +337,31 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">PROJETO EDUCACIONAL CRISTÃO</h3>
                             <p class="card-text">Desenvolvimento e acompanhamento do projeto educacional</p>
-                            <a href="#" class="btn btn-primary mt-2">Acessar Projeto</a>
+                            <button class="btn btn-primary mt-2" onclick="toggleForm('projetoForm')">Agendar Atendimento</button>
+                            
+                            <form id="projetoForm" class="scheduling-form" onsubmit="submitForm(event, 'projeto')">
+                                <div class="form-group">
+                                    <label for="projeto-unidade">Unidade de Atendimento</label>
+                                    <input type="text" class="form-control" id="projeto-unidade" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="projeto-data">Data do Atendimento</label>
+                                    <input type="date" class="form-control" id="projeto-data" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="projeto-horario">Horário do Atendimento</label>
+                                    <input type="time" class="form-control" id="projeto-horario" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="projeto-coordenador">Coordenador do Setor</label>
+                                    <input type="text" class="form-control" id="projeto-coordenador" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="projeto-atendente">Atendente</label>
+                                    <input type="text" class="form-control" id="projeto-atendente" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -212,5 +370,38 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Função para alternar a visibilidade do formulário
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('active');
+        }
+
+        // Função para submeter o formulário
+        function submitForm(event, setor) {
+            event.preventDefault();
+            
+            const formData = {
+                unidade: document.getElementById(`${setor}-unidade`).value,
+                data: document.getElementById(`${setor}-data`).value,
+                horario: document.getElementById(`${setor}-horario`).value,
+                coordenador: document.getElementById(`${setor}-coordenador`).value,
+                atendente: document.getElementById(`${setor}-atendente`).value,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // Salvar no Firebase
+            database.ref(`agendamentos/${setor}`).push(formData)
+                .then(() => {
+                    alert('Agendamento salvo com sucesso!');
+                    document.getElementById(`${setor}Form`).reset();
+                    toggleForm(`${setor}Form`);
+                })
+                .catch((error) => {
+                    alert('Erro ao salvar agendamento: ' + error.message);
+                });
+        }
+    </script>
 </body>
 </html> 
