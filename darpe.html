@@ -398,9 +398,49 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Setores de Atuação</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="setor1Check">
+                                <label class="form-check-label" for="setor1Check">
+                                    SETOR 1 - Unidades Prisionais
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="2" id="setor2Check">
+                                <label class="form-check-label" for="setor2Check">
+                                    SETOR 2 - Clínicas e Albergues
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="3" id="setor3Check">
+                                <label class="form-check-label" for="setor3Check">
+                                    SETOR 3 - Forças de Segurança
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="4" id="setor4Check">
+                                <label class="form-check-label" for="setor4Check">
+                                    SETOR 4 - Hospitais e Instituições
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="5" id="setor5Check">
+                                <label class="form-check-label" for="setor5Check">
+                                    PROJETO EDUCACIONAL CRISTÃO
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="comumColaborador" class="form-label">Comum Congregação</label>
                             <select class="form-select" id="comumColaborador" required>
                                 <option value="">Selecione a Comum</option>
+                                <option value="CENTRAL">CENTRAL</option>
+                                <option value="INDEPENDÊNCIA">INDEPENDÊNCIA</option>
+                                <option value="NATAL">NATAL</option>
+                                <option value="NOVO TEMPO">NOVO TEMPO</option>
+                                <option value="SATÉLITE">SATÉLITE</option>
+                                <option value="SOL NASCENTE">SOL NASCENTE</option>
                             </select>
                         </div>
 
@@ -599,15 +639,25 @@
         function cadastrarColaborador(event) {
             event.preventDefault();
             
+            // Coletar setores selecionados
+            const setores = [];
+            for (let i = 1; i <= 5; i++) {
+                const checkbox = document.getElementById(`setor${i}Check`);
+                if (checkbox.checked) {
+                    setores.push(i.toString());
+                }
+            }
+
+            if (setores.length === 0) {
+                alert('Por favor, selecione pelo menos um setor de atuação.');
+                return;
+            }
+            
             const colaboradorData = {
                 nome: document.getElementById('nomeColaborador').value,
                 cargo: document.getElementById('cargoColaborador').value,
-                comum: {
-                    id: document.getElementById('comumColaborador').value,
-                    nome: document.getElementById('comumColaborador').options[
-                        document.getElementById('comumColaborador').selectedIndex
-                    ].text
-                },
+                setores: setores,
+                comum: document.getElementById('comumColaborador').value,
                 contato: document.getElementById('contatoColaborador').value,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
@@ -686,4 +736,3 @@
     </script>
 </body>
 </html> 
-
