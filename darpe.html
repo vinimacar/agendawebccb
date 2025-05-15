@@ -303,6 +303,67 @@
         </div>
     </div>
 
+    <!-- Modal de Agendamento -->
+    <div class="modal fade" id="agendamentoModal" tabindex="-1" aria-labelledby="agendamentoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agendamentoModalLabel">Agendar Atendimento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="agendamentoForm" onsubmit="submitAgendamento(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="setor" class="form-label">Setor</label>
+                                <select class="form-control" id="setor-agendamento" required onchange="carregarUnidadesDoSetor()">
+                                    <option value="">Selecione o Setor</option>
+                                    <option value="1">SETOR 1 - Unidades Prisionais</option>
+                                    <option value="2">SETOR 2 - Clínicas e Albergues</option>
+                                    <option value="3">SETOR 3 - Forças de Segurança</option>
+                                    <option value="4">SETOR 4 - Hospitais e Instituições</option>
+                                    <option value="5">PROJETO EDUCACIONAL CRISTÃO</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="unidade-agendamento" class="form-label">Unidade de Atendimento</label>
+                                <select class="form-control" id="unidade-agendamento" required>
+                                    <option value="">Selecione a Unidade</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="data-agendamento" class="form-label">Data do Atendimento</label>
+                                <input type="date" class="form-control" id="data-agendamento" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="horario-agendamento" class="form-label">Horário do Atendimento</label>
+                                <input type="time" class="form-control" id="horario-agendamento" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="coordenador-agendamento" class="form-label">Coordenador do Setor</label>
+                                <input type="text" class="form-control" id="coordenador-agendamento" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="atendente-agendamento" class="form-label">Atendente</label>
+                                <input type="text" class="form-control" id="atendente-agendamento" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-success">Salvar Agendamento</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="main-content">
         <div class="container">
             <div class="row g-4">
@@ -312,33 +373,6 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 1</h3>
                             <p class="card-text">Unidades Prisionais Masculinas e Femininas, e para Menores</p>
-                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor1Form')">Agendar Atendimento</button>
-                            
-                            <form id="setor1Form" class="scheduling-form" onsubmit="submitForm(event, 'setor1')">
-                                <div class="form-group">
-                                    <label for="setor1-unidade">Unidade de Atendimento</label>
-                                    <select class="form-control" id="setor1-unidade" required>
-                                        <option value="">Selecione a Unidade</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor1-data">Data do Atendimento</label>
-                                    <input type="date" class="form-control" id="setor1-data" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor1-horario">Horário do Atendimento</label>
-                                    <input type="time" class="form-control" id="setor1-horario" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor1-coordenador">Coordenador do Setor</label>
-                                    <input type="text" class="form-control" id="setor1-coordenador" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor1-atendente">Atendente</label>
-                                    <input type="text" class="form-control" id="setor1-atendente" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -349,33 +383,6 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 2</h3>
                             <p class="card-text">Clínica de Dependentes e Albergues</p>
-                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor2Form')">Agendar Atendimento</button>
-                            
-                            <form id="setor2Form" class="scheduling-form" onsubmit="submitForm(event, 'setor2')">
-                                <div class="form-group">
-                                    <label for="setor2-unidade">Unidade de Atendimento</label>
-                                    <select class="form-control" id="setor2-unidade" required>
-                                        <option value="">Selecione a Unidade</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor2-data">Data do Atendimento</label>
-                                    <input type="date" class="form-control" id="setor2-data" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor2-horario">Horário do Atendimento</label>
-                                    <input type="time" class="form-control" id="setor2-horario" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor2-coordenador">Coordenador do Setor</label>
-                                    <input type="text" class="form-control" id="setor2-coordenador" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor2-atendente">Atendente</label>
-                                    <input type="text" class="form-control" id="setor2-atendente" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -386,33 +393,6 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 3</h3>
                             <p class="card-text">Forças de Segurança</p>
-                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor3Form')">Agendar Atendimento</button>
-                            
-                            <form id="setor3Form" class="scheduling-form" onsubmit="submitForm(event, 'setor3')">
-                                <div class="form-group">
-                                    <label for="setor3-unidade">Unidade de Atendimento</label>
-                                    <select class="form-control" id="setor3-unidade" required>
-                                        <option value="">Selecione a Unidade</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor3-data">Data do Atendimento</label>
-                                    <input type="date" class="form-control" id="setor3-data" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor3-horario">Horário do Atendimento</label>
-                                    <input type="time" class="form-control" id="setor3-horario" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor3-coordenador">Coordenador do Setor</label>
-                                    <input type="text" class="form-control" id="setor3-coordenador" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor3-atendente">Atendente</label>
-                                    <input type="text" class="form-control" id="setor3-atendente" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -423,33 +403,6 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">SETOR 4</h3>
                             <p class="card-text">Hospitais, Instituição para Idosos, Setor Educacional</p>
-                            <button class="btn btn-primary mt-2" onclick="toggleForm('setor4Form')">Agendar Atendimento</button>
-                            
-                            <form id="setor4Form" class="scheduling-form" onsubmit="submitForm(event, 'setor4')">
-                                <div class="form-group">
-                                    <label for="setor4-unidade">Unidade de Atendimento</label>
-                                    <select class="form-control" id="setor4-unidade" required>
-                                        <option value="">Selecione a Unidade</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor4-data">Data do Atendimento</label>
-                                    <input type="date" class="form-control" id="setor4-data" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor4-horario">Horário do Atendimento</label>
-                                    <input type="time" class="form-control" id="setor4-horario" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor4-coordenador">Coordenador do Setor</label>
-                                    <input type="text" class="form-control" id="setor4-coordenador" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="setor4-atendente">Atendente</label>
-                                    <input type="text" class="form-control" id="setor4-atendente" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -460,33 +413,6 @@
                         <div class="card-body">
                             <h3 class="card-title h5 fw-bold mb-3">PROJETO EDUCACIONAL CRISTÃO</h3>
                             <p class="card-text">Desenvolvimento e acompanhamento do projeto educacional</p>
-                            <button class="btn btn-primary mt-2" onclick="toggleForm('projetoForm')">Agendar Atendimento</button>
-                            
-                            <form id="projetoForm" class="scheduling-form" onsubmit="submitForm(event, 'projeto')">
-                                <div class="form-group">
-                                    <label for="projeto-unidade">Unidade de Atendimento</label>
-                                    <select class="form-control" id="projeto-unidade" required>
-                                        <option value="">Selecione a Unidade</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projeto-data">Data do Atendimento</label>
-                                    <input type="date" class="form-control" id="projeto-data" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projeto-horario">Horário do Atendimento</label>
-                                    <input type="time" class="form-control" id="projeto-horario" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projeto-coordenador">Coordenador do Setor</label>
-                                    <input type="text" class="form-control" id="projeto-coordenador" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="projeto-atendente">Atendente</label>
-                                    <input type="text" class="form-control" id="projeto-atendente" required>
-                                </div>
-                                <button type="submit" class="btn btn-success">Salvar Agendamento</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -518,90 +444,28 @@
                             ...unidade
                         });
                     });
-
-                    // Atualizar todos os dropdowns
-                    atualizarDropdowns();
                 }
             });
         }
 
-        // Função para atualizar os dropdowns de unidades
-        function atualizarDropdowns() {
-            const setores = ['1', '2', '3', '4', '5'];
-            const setorNomes = {
-                '1': 'setor1',
-                '2': 'setor2',
-                '3': 'setor3',
-                '4': 'setor4',
-                '5': 'projeto'
-            };
+        // Função para carregar unidades do setor selecionado
+        function carregarUnidadesDoSetor() {
+            const setorSelect = document.getElementById('setor-agendamento');
+            const unidadeSelect = document.getElementById('unidade-agendamento');
+            const setor = setorSelect.value;
 
-            setores.forEach(setor => {
-                const selectId = `${setorNomes[setor]}-unidade`;
-                const select = document.getElementById(selectId);
-                if (select) {
-                    // Limpar opções existentes
-                    select.innerHTML = '<option value="">Selecione a Unidade</option>';
-                    
-                    // Adicionar unidades do setor
-                    const unidadesDoSetor = unidadesCache[setor] || [];
-                    unidadesDoSetor.forEach(unidade => {
-                        const option = document.createElement('option');
-                        option.value = unidade.id;
-                        option.textContent = unidade.nome;
-                        select.appendChild(option);
-                    });
-                }
-            });
-        }
-
-        // Função para alternar a visibilidade do formulário
-        function toggleForm(formId) {
-            const form = document.getElementById(formId);
-            form.classList.toggle('active');
-        }
-
-        // Modificar a função submitForm para incluir os dados completos da unidade
-        function submitForm(event, setor) {
-            event.preventDefault();
+            // Limpar opções existentes
+            unidadeSelect.innerHTML = '<option value="">Selecione a Unidade</option>';
             
-            const unidadeId = document.getElementById(`${setor}-unidade`).value;
-            const unidadeSelecionada = unidadesCache[setor === 'projeto' ? '5' : setor[5]]?.find(u => u.id === unidadeId);
-            
-            if (!unidadeSelecionada) {
-                alert('Por favor, selecione uma unidade válida.');
-                return;
-            }
-
-            const formData = {
-                unidade: {
-                    id: unidadeSelecionada.id,
-                    nome: unidadeSelecionada.nome,
-                    endereco: unidadeSelecionada.endereco,
-                    numero: unidadeSelecionada.numero,
-                    bairro: unidadeSelecionada.bairro,
-                    cidade: unidadeSelecionada.cidade,
-                    uf: unidadeSelecionada.uf,
-                    telefone: unidadeSelecionada.telefone,
-                    responsavel: unidadeSelecionada.responsavel
-                },
-                data: document.getElementById(`${setor}-data`).value,
-                horario: document.getElementById(`${setor}-horario`).value,
-                coordenador: document.getElementById(`${setor}-coordenador`).value,
-                atendente: document.getElementById(`${setor}-atendente`).value,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            // Salvar no Firebase
-            database.ref(`agendamentos/${setor}`).push(formData)
-                .then(() => {
-                    alert('Agendamento salvo com sucesso!');
-                    document.getElementById(`${setor}Form`).reset();
-                    toggleForm(`${setor}Form`);
-                })
-                .catch((error) => {
-                    alert('Erro ao salvar agendamento: ' + error.message);
+            // Adicionar unidades do setor selecionado
+            if (setor && unidadesCache[setor]) {
+                unidadesCache[setor].forEach(unidade => {
+                    const option = document.createElement('option');
+                    option.value = unidade.id;
+                    option.textContent = unidade.nome;
+                    unidadeSelect.appendChild(option);
                 });
+            }
         }
 
         // Função para formatar telefone
@@ -621,11 +485,6 @@
             
             input.value = value;
         }
-
-        // Adicionar máscara ao campo de telefone
-        document.getElementById('telefone').addEventListener('input', function() {
-            formatarTelefone(this);
-        });
 
         // Função para cadastrar unidade
         function cadastrarUnidade(event) {
@@ -655,6 +514,56 @@
                     alert('Erro ao cadastrar unidade: ' + error.message);
                 });
         }
+
+        // Função para submeter agendamento
+        function submitAgendamento(event) {
+            event.preventDefault();
+            
+            const setor = document.getElementById('setor-agendamento').value;
+            const unidadeId = document.getElementById('unidade-agendamento').value;
+            const unidadeSelecionada = unidadesCache[setor]?.find(u => u.id === unidadeId);
+            
+            if (!unidadeSelecionada) {
+                alert('Por favor, selecione uma unidade válida.');
+                return;
+            }
+
+            const formData = {
+                unidade: {
+                    id: unidadeSelecionada.id,
+                    nome: unidadeSelecionada.nome,
+                    endereco: unidadeSelecionada.endereco,
+                    numero: unidadeSelecionada.numero,
+                    bairro: unidadeSelecionada.bairro,
+                    cidade: unidadeSelecionada.cidade,
+                    uf: unidadeSelecionada.uf,
+                    telefone: unidadeSelecionada.telefone,
+                    responsavel: unidadeSelecionada.responsavel
+                },
+                setor: setor,
+                data: document.getElementById('data-agendamento').value,
+                horario: document.getElementById('horario-agendamento').value,
+                coordenador: document.getElementById('coordenador-agendamento').value,
+                atendente: document.getElementById('atendente-agendamento').value,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // Salvar no Firebase
+            database.ref('agendamentos').push(formData)
+                .then(() => {
+                    alert('Agendamento salvo com sucesso!');
+                    document.getElementById('agendamentoForm').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('agendamentoModal')).hide();
+                })
+                .catch((error) => {
+                    alert('Erro ao salvar agendamento: ' + error.message);
+                });
+        }
+
+        // Adicionar máscara ao campo de telefone
+        document.getElementById('telefone').addEventListener('input', function() {
+            formatarTelefone(this);
+        });
 
         // Carregar unidades ao inicializar a página
         document.addEventListener('DOMContentLoaded', () => {
