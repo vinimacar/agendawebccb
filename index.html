@@ -632,85 +632,85 @@
                         <i class="bi bi-calendar-check me-2"></i>Agendamentos
                     </h5>
                 </div>
-                <div class="table-responsive">
+        <div class="table-responsive">
                     <table class="table table-bordered table-hover" id="tabela-agendamentos">
-                        <thead class="table-dark">
-                            <tr>
+                <thead class="table-dark">
+                    <tr>
                                 <th><i class="bi bi-building me-2"></i>Congregação</th>
                                 <th><i class="bi bi-calendar3 me-2"></i>Data</th>
                                 <th><i class="bi bi-person me-2"></i>Irmão</th>
                                 <th><i class="bi bi-tag me-2"></i>Tipo</th>
                                 <th><i class="bi bi-gear me-2"></i>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-agendamentos"></tbody>
-                    </table>
-                </div>
-            </div>
+                    </tr>
+                </thead>
+                <tbody id="lista-agendamentos"></tbody>
+            </table>
+        </div>
+        </div>
         </section>
     </div>
 
     <div class="modal fade" id="modalAgendamento" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <form id="formAgendamento" class="modal-content">
-                <div class="modal-header">
+    <div class="modal-dialog">
+        <form id="formAgendamento" class="modal-content">
+            <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-calendar-plus me-2"></i>
                         Agendar Coleta
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
                     <div class="mb-4">
                         <label class="form-label">
                             <i class="bi bi-building me-2"></i>
                             Congregação
                         </label>
-                        <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
-                    </div>
+                    <input type="text" class="form-control" id="congregacaoSelecionada" readonly />
+                </div>
                     <div class="mb-4">
                         <label for="dataColeta" class="form-label">
                             <i class="bi bi-calendar-date me-2"></i>
                             Data
                         </label>
-                        <input type="date" class="form-control" id="dataColeta" required />
-                    </div>
+                    <input type="date" class="form-control" id="dataColeta" required />
+                </div>
                     <div class="mb-4">
                         <label for="irmaoNome" class="form-label">
                             <i class="bi bi-person me-2"></i>
                             Nome do Irmão
                         </label>
-                        <input type="text" class="form-control" id="irmaoNome" required />
-                    </div>
+                    <input type="text" class="form-control" id="irmaoNome" required />
+                </div>
                     <div class="mb-4">
                         <label for="tipoAgendamento" class="form-label">
                             <i class="bi bi-tag me-2"></i>
                             Tipo de Agendamento
                         </label>
-                        <select class="form-select" id="tipoAgendamento" required>
-                            <option value="">Selecione</option>
-                            <option value="Culto Oficial">Culto Oficial</option>
-                            <option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>
-                        </select>
-                    </div>
-                    <div class="alert alert-info">
+                    <select class="form-select" id="tipoAgendamento" required>
+                        <option value="">Selecione</option>
+                        <option value="Culto Oficial">Culto Oficial</option>
+                        <option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
                         <div class="d-flex align-items-center mb-2">
                             <i class="bi bi-info-circle me-2"></i>
                             <strong>Horários Disponíveis:</strong>
                         </div>
                         <ul id="horarios-lista" class="mb-0"></ul>
-                    </div>
                 </div>
-                <div class="modal-footer">
+            </div>
+            <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-2"></i>Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle me-2"></i>Salvar
                     </button>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
+    </div>
     </div>
 
     <div class="modal fade" id="modalConfirmacaoExclusao" tabindex="-1" aria-hidden="true">
@@ -763,8 +763,8 @@
                         <div class="mb-3">
                             <label for="senha" class="form-label">Senha</label>
                             <input type="password" class="form-control" id="senha" required>
-                        </div>
-                    </form>
+</div>
+            </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1102,7 +1102,7 @@
                     return;
                 }
             } else {
-                const duplicado = agendamentos.some((a, i) => {
+            const duplicado = agendamentos.some((a, i) => {
                     if (a.congregacao === congregacaoAtual && a.tipo === tipo && i !== indexEdicao) {
                         const [anoA, mesA, diaA] = a.data.split('-');
                         const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
@@ -1110,26 +1110,26 @@
                                dataA.getUTCFullYear() === dataSelecionada.getUTCFullYear();
                     }
                     return false;
-                });
+            });
 
-                if (duplicado) {
-                    alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
-                    return;
+            if (duplicado) {
+                alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                return;
                 }
             }
 
             const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
 
             try {
-                if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-                    const id = agendamentos[indexEdicao].id;
-                    await set(ref(db, "agendamentos/" + id), novo);
+            if (indexEdicao !== null && agendamentos[indexEdicao].id) {
+                const id = agendamentos[indexEdicao].id;
+                await set(ref(db, "agendamentos/" + id), novo);
                     mostrarAlerta("Agendamento atualizado com sucesso!", "success");
-                } else {
-                    await push(ref(db, "agendamentos"), novo);
+            } else {
+                await push(ref(db, "agendamentos"), novo);
                     mostrarAlerta("Novo agendamento criado com sucesso!", "success");
-                }
-                modal.hide();
+            }
+            modal.hide();
             } catch (error) {
                 mostrarAlerta("Erro ao salvar o agendamento. Tente novamente.", "danger");
             }
@@ -1178,11 +1178,11 @@
                     <td>
                         <div class="btn-group" role="group" aria-label="Ações">
                             <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                            <i class="bi bi-pencil"></i>
+                        </button>
                             <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <i class="bi bi-trash"></i>
+                        </button>
                         </div>
                     </td>
                   </tr>
@@ -1306,7 +1306,7 @@
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
                     } else if (agendamentosCulto.length > 0) {
                         statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
-                    } else if (agendamentoJovens) {
+                } else if (agendamentoJovens) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
                     } else {
                         statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
@@ -1486,6 +1486,10 @@
                 const reunioesJovens = agendamentos.filter(a => a.tipo === "Reunião de Jovens e Menores")
                     .sort((a, b) => new Date(a.data) - new Date(b.data));
 
+                console.log("Agendamentos carregados:", agendamentos);
+                console.log("Cultos Oficiais:", cultosOficiais);
+                console.log("Reuniões de Jovens:", reunioesJovens);
+
                 // Função para adicionar uma seção
                 function adicionarSecao(titulo, agendamentos, yInicial) {
                     doc.setFont("helvetica", "bold");
@@ -1507,6 +1511,12 @@
                     doc.setFont("helvetica", "normal");
                     let y = yInicial + 20;
                     
+                    if (agendamentos.length === 0) {
+                        doc.setFont("helvetica", "italic");
+                        doc.text("Nenhum agendamento encontrado", 20, y);
+                        return y + 10;
+                    }
+
                     agendamentos.forEach((a, index) => {
                         const dataObj = new Date(a.data + "T00:00");
                         const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
@@ -1536,6 +1546,13 @@
                 doc.addPage();
                 yAtual = adicionarSecao("Reuniões de Jovens e Menores", reunioesJovens, 20);
 
+                // Adiciona data e hora da geração do PDF
+                const dataAtual = new Date().toLocaleDateString("pt-BR");
+                const horaAtual = new Date().toLocaleTimeString("pt-BR");
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "italic");
+                doc.text(`Gerado em: ${dataAtual} às ${horaAtual}`, 20, 285);
+
                 doc.save("agendamentos.pdf");
                 mostrarAlerta("PDF gerado com sucesso!", "success");
             } catch (error) {
@@ -1548,24 +1565,24 @@
             if (!verificarAutenticacao()) return;
             
             try {
-                const dados = agendamentos.map(a => {
-                    const dataObj = new Date(a.data + "T00:00");
-                    const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                    const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            const dados = agendamentos.map(a => {
+                const dataObj = new Date(a.data + "T00:00");
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
-                    return {
-                        Congregação: a.congregacao,
-                        Data: `${diaAbrev} - ${dataFormatada}`,
-                        Irmão: a.irmao,
-                        Tipo: a.tipo
-                    };
-                });
+                return {
+                    Congregação: a.congregacao,
+                    Data: `${diaAbrev} - ${dataFormatada}`,
+                    Irmão: a.irmao,
+                    Tipo: a.tipo
+                };
+            });
 
-                const ws = XLSX.utils.json_to_sheet(dados);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
+            const ws = XLSX.utils.json_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Agendamentos");
 
-                XLSX.writeFile(wb, "agendamentos.xlsx");
+            XLSX.writeFile(wb, "agendamentos.xlsx");
                 mostrarAlerta("XLS gerado com sucesso!", "success");
             } catch (error) {
                 console.error("Erro ao gerar XLS:", error);
@@ -1632,3 +1649,4 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
+
