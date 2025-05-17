@@ -217,6 +217,8 @@
             border-radius: 12px;
             padding: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            min-height: 200px;
         }
 
         .container {
@@ -263,6 +265,7 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            width: 100%;
         }
 
         .table thead th {
@@ -274,6 +277,7 @@
             font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .table td {
@@ -282,6 +286,7 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
             border-color: #edf2f7;
+            white-space: nowrap;
         }
 
         .btn {
@@ -565,6 +570,12 @@
             border-color: #95a5a6;
             padding: 0.75rem 1.5rem;
         }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -643,7 +654,16 @@
                                 <th><i class="bi bi-gear me-2"></i>Ações</th>
                     </tr>
                 </thead>
-                <tbody id="lista-agendamentos"></tbody>
+                <tbody id="lista-agendamentos">
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Carregando agendamentos...</p>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
         </div>
@@ -1155,6 +1175,19 @@
             
             console.log("Agendamentos para exibir:", agendamentos);
             corpo.innerHTML = "";
+
+            if (agendamentos.length === 0) {
+                corpo.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             const hoje = new Date();
 
             // Ordenar agendamentos por data
@@ -1280,9 +1313,11 @@
             onValue(agRef, snapshot => {
                 console.log("Dados recebidos do Firebase:", snapshot.val());
                 agendamentos = [];
-                snapshot.forEach(child => {
-                    agendamentos.push({ ...child.val(), id: child.key });
-                });
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        agendamentos.push({ ...child.val(), id: child.key });
+                    });
+                }
                 console.log("Agendamentos processados:", agendamentos);
                 
                 // Forçar atualização da tabela
@@ -1291,6 +1326,7 @@
                 atualizarTicker();
             }, error => {
                 console.error("Erro ao carregar agendamentos:", error);
+                mostrarAlerta("Erro ao carregar agendamentos: " + error.message, "danger");
             });
         }
 
@@ -1465,8 +1501,12 @@
             });
         }
 
-        carregarAgendamentos();
-        atualizarIconesCongregacoes();
+        // Inicializar a aplicação
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM carregado, iniciando aplicação...");
+            carregarAgendamentos();
+            atualizarIconesCongregacoes();
+        });
 
         // Configuração de autenticação
         const SENHA_CORRETA = "1234"; // Senha alterada para 1234
