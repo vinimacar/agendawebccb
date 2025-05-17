@@ -805,11 +805,38 @@
             projectId: "agendawebccb",
             storageBucket: "agendawebccb.firebasestorage.app",
             messagingSenderId: "1002090805726",
-            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+            appId: "1:1002090805726:web:d9aab35124d174e85d454f",
+            cors: {
+                origin: ["https://vinimacar.github.io", "http://localhost:*", "http://127.0.0.1:*"]
+            }
         };
 
+        // Inicializar Firebase com configurações de CORS
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        
+        // Configurar CORS para o Firebase
+        const corsOptions = {
+            origin: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
+            credentials: true
+        };
+
+        // Função para verificar conexão com Firebase
+        function verificarConexaoFirebase() {
+            console.log("Verificando conexão com Firebase...");
+            const connectedRef = ref(db, ".info/connected");
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    console.log("Conectado ao Firebase!");
+                    mostrarAlerta("Conectado ao Firebase com sucesso!", "success");
+                } else {
+                    console.log("Desconectado do Firebase!");
+                    mostrarAlerta("Erro de conexão com o Firebase!", "danger");
+                }
+            });
+        }
 
         const congregacoes = [
             "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
@@ -1504,6 +1531,7 @@
         // Inicializar a aplicação
         document.addEventListener('DOMContentLoaded', () => {
             console.log("DOM carregado, iniciando aplicação...");
+            verificarConexaoFirebase();
             carregarAgendamentos();
             atualizarIconesCongregacoes();
         });
@@ -1721,4 +1749,3 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
-
