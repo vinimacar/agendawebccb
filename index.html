@@ -1145,7 +1145,15 @@
         });
 
         function atualizarTabela() {
+            console.log("Iniciando atualização da tabela...");
             const corpo = document.getElementById("lista-agendamentos");
+            
+            if (!corpo) {
+                console.error("Elemento lista-agendamentos não encontrado!");
+                return;
+            }
+            
+            console.log("Agendamentos para exibir:", agendamentos);
             corpo.innerHTML = "";
             const hoje = new Date();
 
@@ -1153,7 +1161,6 @@
             agendamentos.sort((a, b) => {
                 const [anoA, mesA, diaA] = a.data.split('-');
                 const [anoB, mesB, diaB] = b.data.split('-');
-                const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
                 return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
             });
 
@@ -1165,45 +1172,45 @@
                 const futura = dataObj >= new Date(hoje.toDateString());
 
                 const linha = `
-                  <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
-                    <td>
-                        <i class="bi bi-building me-2"></i>
-                        ${a.congregacao}
-                    </td>
-                    <td>
-                        <i class="bi bi-calendar3 me-1"></i>
-                        <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
-                    </td>
-                    <td>
-                        <i class="bi bi-person me-2"></i>
-                        ${a.irmao}
-                    </td>
-                    <td>
-                        <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
-                            <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
-                            ${a.tipo}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="btn-group" role="group" aria-label="Ações">
-                            <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        </div>
-                    </td>
-                  </tr>
+                    <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
+                        <td>
+                            <i class="bi bi-building me-2"></i>
+                            ${a.congregacao}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar3 me-1"></i>
+                            <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                        </td>
+                        <td>
+                            <i class="bi bi-person me-2"></i>
+                            ${a.irmao}
+                        </td>
+                        <td>
+                            <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                                <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                                ${a.tipo}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Ações">
+                                <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
                 corpo.innerHTML += linha;
             });
 
+            console.log("Tabela atualizada com sucesso");
+            
             // Inicializar tooltips
             const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             tooltips.forEach(t => new bootstrap.Tooltip(t));
-
-            atualizarIconesCongregacoes();
         }
 
         // Criar referências aos modais
@@ -1270,33 +1277,21 @@
             console.log("Iniciando carregamento de agendamentos...");
             const agRef = ref(db, "agendamentos");
             
-            // Primeiro, vamos tentar ler os dados uma vez
-            get(agRef)
-                .then((snapshot) => {
-                    console.log("Dados iniciais do Firebase:", snapshot.val());
-                })
-                .catch((error) => {
-                    console.error("Erro ao ler dados iniciais:", error);
+            onValue(agRef, snapshot => {
+                console.log("Dados recebidos do Firebase:", snapshot.val());
+                agendamentos = [];
+                snapshot.forEach(child => {
+                    agendamentos.push({ ...child.val(), id: child.key });
                 });
-
-            // Depois, configuramos o listener
-            onValue(agRef, 
-                (snapshot) => {
-                    console.log("Dados recebidos do Firebase:", snapshot.val());
-                    agendamentos = [];
-                    snapshot.forEach(child => {
-                        agendamentos.push({ ...child.val(), id: child.key });
-                    });
-                    console.log("Agendamentos processados:", agendamentos);
-                    atualizarTabela();
-                    atualizarIconesCongregacoes();
-                    atualizarTicker();
-                }, 
-                (error) => {
-                    console.error("Erro no listener do Firebase:", error);
-                    mostrarAlerta("Erro ao carregar agendamentos: " + error.message, "danger");
-                }
-            );
+                console.log("Agendamentos processados:", agendamentos);
+                
+                // Forçar atualização da tabela
+                atualizarTabela();
+                atualizarIconesCongregacoes();
+                atualizarTicker();
+            }, error => {
+                console.error("Erro ao carregar agendamentos:", error);
+            });
         }
 
         function atualizarIconesCongregacoes() {
@@ -1497,8 +1492,8 @@
             if (!verificarAutenticacao()) return;
             
             try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
                 // Configurações iniciais
                 doc.setFont("helvetica", "bold");
@@ -1546,14 +1541,14 @@
                         return y + 10;
                     }
 
-                    agendamentos.forEach((a, index) => {
-                        const dataObj = new Date(a.data + "T00:00");
-                        const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            agendamentos.forEach((a, index) => {
+                const dataObj = new Date(a.data + "T00:00");
+                const diaAbrev = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
 
                         // Verifica se precisa de nova página
-                        if (y > 270) {
-                            doc.addPage();
+                if (y > 270) {
+                    doc.addPage();
                             y = 20;
                         }
 
@@ -1582,7 +1577,7 @@
                 doc.setFont("helvetica", "italic");
                 doc.text(`Gerado em: ${dataAtual} às ${horaAtual}`, 20, 285);
 
-                doc.save("agendamentos.pdf");
+            doc.save("agendamentos.pdf");
                 mostrarAlerta("PDF gerado com sucesso!", "success");
             } catch (error) {
                 console.error("Erro ao gerar PDF:", error);
@@ -1678,3 +1673,4 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
+
