@@ -794,240 +794,39 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+        // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
-            authDomain: "agendawebccb.firebaseapp.com",
-            databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
-            projectId: "agendawebccb",
-            storageBucket: "agendawebccb.appspot.com",
-            messagingSenderId: "1002090805726",
-            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+            apiKey: "AIzaSyD09yP3J63c894Q799090909090909090",
+            authDomain: "ccb-agendamentos.firebaseapp.com",
+            databaseURL: "https://ccb-agendamentos-default-rtdb.firebaseio.com",
+            projectId: "ccb-agendamentos",
+            storageBucket: "ccb-agendamentos.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:1234567890abcdef"
         };
 
-        // Inicializar Firebase com tratamento de erro
-        let app;
-        let db;
-        let tentativasReconexao = 0;
-        const MAX_TENTATIVAS = 5;
-        
-        async function inicializarFirebase() {
-            try {
-                console.log("Iniciando conexão com Firebase...");
-                
-                // Verificar se já existe uma instância do Firebase
-                if (!app) {
-                    console.log("Criando nova instância do Firebase...");
-                    app = initializeApp(firebaseConfig);
-                }
-                
-                // Configurar o Database com opções otimizadas
-                console.log("Configurando Database...");
-                db = getDatabase(app, {
-                    cacheSizeBytes: 50 * 1024 * 1024, // 50MB cache
-                    experimentalForceLongPolling: true,
-                    experimentalAutoDetectLongPolling: true,
-                    useFetchStreams: false,
-                    persistence: true,
-                    forceLongPolling: true
-                });
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-                // Testar a conexão
-                console.log("Testando conexão...");
-                const connectedRef = ref(db, ".info/connected");
-                return new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        console.error("Timeout na conexão com Firebase");
-                        reject(new Error("Timeout ao conectar com o Firebase"));
-                    }, 15000); // 15 segundos de timeout
+        // Estado global
+        let state = {
+            agendamentos: [],
+            congregacaoAtual: "",
+            indexEdicao: null,
+            agendamentoParaExcluir: null,
+            idParaExcluir: null
+        };
 
-                    onValue(connectedRef, (snap) => {
-                        clearTimeout(timeout);
-                        if (snap.val() === true) {
-                            console.log("Firebase conectado com sucesso!");
-                            tentativasReconexao = 0; // Resetar contador de tentativas
-                            resolve(true);
-                        } else {
-                            console.log("Firebase desconectado");
-                            resolve(false);
-                        }
-                    }, (error) => {
-                        clearTimeout(timeout);
-                        console.error("Erro na conexão:", error);
-                        reject(error);
-                    });
-                });
-            } catch (error) {
-                console.error("Erro ao inicializar Firebase:", error);
-                throw error;
-            }
-        }
-
-        // Função para tentar reconectar
-        async function tentarReconectar() {
-            if (tentativasReconexao >= MAX_TENTATIVAS) {
-                console.error("Número máximo de tentativas de reconexão atingido");
-                mostrarAlerta("Não foi possível conectar ao banco de dados após várias tentativas. Por favor, recarregue a página.", "danger");
-                return;
-            }
-
-            tentativasReconexao++;
-            console.log(`Tentativa de reconexão ${tentativasReconexao}/${MAX_TENTATIVAS}`);
-
-            try {
-                const conectado = await inicializarFirebase();
-                if (conectado) {
-                    mostrarAlerta("Conexão restabelecida com sucesso!", "success");
-                    carregarAgendamentos();
-                } else {
-                    mostrarAlerta(`Tentando reconectar... (${tentativasReconexao}/${MAX_TENTATIVAS})`, "warning");
-                    setTimeout(tentarReconectar, 5000);
-                }
-            } catch (error) {
-                console.error("Erro ao reconectar:", error);
-                mostrarAlerta(`Erro ao reconectar. Tentativa ${tentativasReconexao}/${MAX_TENTATIVAS}`, "danger");
-                setTimeout(tentarReconectar, 5000);
-            }
-        }
-
-        const congregacoes = [
-            "Alvorada", "Buritis", "Capinópolis - Central", "Cachoeira Dourada",
-            "Chaveslândia", "Chico Mendes", "Dom Alexandre", "Eldorado",
-            "Flor de Minas", "Gurinhatã", "Ipiaçu", "Ipiranga", "Ituiutaba - Central",
-            "Jerônimo Mendonça", "Marta Helena", "Natal", "Novo Tempo II",
-            "Recanto das Acácias", "Santa Vitória - Central", "Satélite Andradina",
-            "Setor Norte"
-        ].sort();
-
-        let agendamentos = [];
-        let congregacaoAtual = "";
-        let indexEdicao = null;
-        let agendamentoParaExcluir = null;
-        let idParaExcluir = null;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalAgendamento"));
-
-        // Horários fixos para cada congregação
+        // Configuração de horários
         const horariosCongregacoes = {
             "Alvorada": {
                 "Culto Oficial": [
                     { dia: "Segunda-feira", hora: "19:30" },
                     { dia: "Sábado", hora: "19:30" }
-                ]
-            },
-            "Buritis": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-                ]
-                
-            },
-            "Capinópolis - Central": {
-                "Culto Oficial": [
-                    { dia: "Quinta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Cachoeira Dourada": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-                ]
-            },
-            "Chaveslândia": {
-                "Culto Oficial": [
-                    { dia: "Sábado", hora: "19:30" },
-                
-                ]
-            },
-            "Chico Mendes": {
-                "Culto Oficial": [
-                    { dia: "Sábado - 1º e 3º ao mês", hora: "19:30" },
-              
-                ]
-            },
-            "Dom Alexandre": {
-                "Culto Oficial": [
-                    { dia: "Segunda-feira", hora: "19:30" },
-                    { dia: "Sábado", hora: "19:30" }
-            
-                ]
-            },
-            "Eldorado": {
-                "Culto Oficial": [
-                    { dia: "Domingo", hora: "18:30" },
-                    { dia: "Quinta-Feira", hora: "19:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Flor de Minas": {
-                "Culto Oficial": [
-                    { dia: "Sábado", hora: "19:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Gurinhatã": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Sábado", hora: "19:30" }
-                ]
-            },
-            "Ipiaçu": {
-                "Culto Oficial": [
-                    { dia: "Quarta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-            
-                ]
-            },
-            "Ipiranga": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Ituiutaba - Central": {
-                "Culto Oficial": [
-                    { dia: "Domingo", hora: "18:30" },
-                    { dia: "Quarta-feira", hora: "19:30" },
-                     { dia: "Quinta-feira", hora: "15:00" },
-                    { dia: "Sábado", hora: "19:30" }
-                    
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
-                ]
-            },
-            "Jerônimo Mendonça": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-    
-                ]
-            },
-            "Marta Helena": {
-                "Culto Oficial": [
-                    { dia: "Terça-feira", hora: "19:30" },
-                    { dia: "Sexta-feira", hora: "19:30" },
-                    { dia: "Domingo", hora: "18:30" }
-                ],
-                "Reunião de Jovens e Menores": [
-                    { dia: "Domingo", hora: "10:00" }
                 ]
             },
             "Natal": {
@@ -1092,352 +891,752 @@
             "Capinópolis - Central"
         ];
 
-        window.abrirFormulario = function (cong, index = null) {
-            if (index !== null) {
-                const agendamento = agendamentos[index];
-                const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
-                
-                const mensagem = `Deseja editar este agendamento?\n\n` +
-                    `Congregação: ${agendamento.congregacao}\n` +
-                    `Data: ${dataFormatada}\n` +
-                    `Irmão: ${agendamento.irmao}\n` +
-                    `Tipo: ${agendamento.tipo}`;
+        // Funções de UI
+        function mostrarErro(mensagem) {
+            const alerta = document.createElement("div");
+            alerta.className = "alert alert-danger alert-dismissible fade show";
+            alerta.innerHTML = `
+                ${mensagem}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        alerta.innerHTML = `
+            ${mensagem}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        `;
+        document.getElementById("alert-container").appendChild(alerta);
+    }
 
-                if (!confirm(mensagem)) {
-                    return; // Se o usuário cancelar, não abre o modal
-                }
-            }
+    function mostrarSucesso(mensagem) {
+        const alerta = document.createElement("div");
+        alerta.className = "alert alert-success alert-dismissible fade show";
+        alerta.innerHTML = `
+            ${mensagem}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        `;
+        document.getElementById("alert-container").appendChild(alerta);
+    }
 
-            congregacaoAtual = cong;
-            indexEdicao = index;
-            document.getElementById("congregacaoSelecionada").value = cong;
-            document.getElementById("dataColeta").value = "";
-            document.getElementById("irmaoNome").value = "";
-            
-            // Atualizar opções do tipo de agendamento
-            const tipoSelect = document.getElementById("tipoAgendamento");
-            tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
-            
-            // Adicionar opção de Reunião de Jovens apenas para congregações específicas
-            if (congregacoesComReuniaoJovens.includes(cong)) {
-                tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
-            }
-
-            tipoSelect.value = "";
-
-            if (index !== null) {
-                const ag = agendamentos[index];
-                document.getElementById("dataColeta").value = ag.data;
-                document.getElementById("irmaoNome").value = ag.irmao;
-                document.getElementById("tipoAgendamento").value = ag.tipo;
-            }
-
-            // Atualiza os horários exibidos
-            const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
-            horariosDiv.innerHTML = "";
-            const horarios = horariosCongregacoes[cong];
-            Object.entries(horarios).forEach(([tipo, lista]) => {
-                if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
-                    lista.forEach(h => {
-                        horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
-                    });
-                }
-            });
-
-            modal.show();
-        };
-
-        document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            console.log("Iniciando salvamento de agendamento...");
-            
-            const dataInput = document.getElementById("dataColeta");
-            const data = dataInput.value;
-            const irmao = document.getElementById("irmaoNome").value;
-            const tipo = document.getElementById("tipoAgendamento").value;
-            
-            console.log("Dados do formulário:", { data, irmao, tipo, congregacao: congregacaoAtual });
-
-            if (!tipo) {
-                alert("Por favor, selecione o tipo de agendamento.");
-                return;
-            }
-
-            if (data < new Date().toLocaleDateString('en-CA')) {
-                alert("Não é permitido agendar uma data passada.");
-                return;
-            }
-
-            // Ajuste para garantir que a data seja mantida corretamente
-            const [ano, mes, dia] = data.split('-');
-            const dataSelecionada = new Date(Date.UTC(ano, mes - 1, dia));
-            const diaSemana = dataSelecionada.getDay();
-
-            // Validação especial para Ituiutaba - Central
-            if (congregacaoAtual === "Ituiutaba - Central" && tipo === "Culto Oficial") {
-                const cultosItuiutaba = agendamentos.filter(a => {
-                    if (a.congregacao === "Ituiutaba - Central" && a.tipo === "Culto Oficial") {
-                        const [anoA, mesA, diaA] = a.data.split('-');
-                        const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
-                        return dataA.getUTCMonth() === dataSelecionada.getUTCMonth() &&
-                               dataA.getUTCFullYear() === dataSelecionada.getUTCFullYear() &&
-                               a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
-                    }
-                    return false;
-                });
-
-                if (cultosItuiutaba.length >= 2) {
-                    alert("A Congregação Central de Ituiutaba já possui dois cultos agendados neste mês.");
-                    return;
-                }
-
-                const temCultoQuinta = cultosItuiutaba.some(a => {
-                    const [anoA, mesA, diaA] = a.data.split('-');
-                    const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
-                    return dataA.getUTCDay() === 4;
-                });
-
-                if (cultosItuiutaba.length === 1 && !temCultoQuinta && diaSemana !== 4) {
-                    alert("O segundo culto deve ser obrigatoriamente na quinta-feira.");
-                    return;
-                }
-
-                if (cultosItuiutaba.length === 1 && temCultoQuinta && diaSemana === 4) {
-                    alert("Já existe um culto agendado para quinta-feira.");
-                    return;
-                }
-            } else {
-            const duplicado = agendamentos.some((a, i) => {
-                    if (a.congregacao === congregacaoAtual && a.tipo === tipo && i !== indexEdicao) {
-                        const [anoA, mesA, diaA] = a.data.split('-');
-                        const dataA = new Date(Date.UTC(anoA, mesA - 1, diaA));
-                        return dataA.getUTCMonth() === dataSelecionada.getUTCMonth() &&
-                               dataA.getUTCFullYear() === dataSelecionada.getUTCFullYear();
-                    }
-                    return false;
-            });
-
-            if (duplicado) {
-                alert(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
-                return;
-                }
-            }
-
-            const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
-            console.log("Tentando salvar agendamento:", novo);
-
-            try {
-            if (indexEdicao !== null && agendamentos[indexEdicao].id) {
-                const id = agendamentos[indexEdicao].id;
-                console.log("Atualizando agendamento existente:", id);
-                await set(ref(db, "agendamentos/" + id), novo);
-                console.log("Agendamento atualizado com sucesso");
-                mostrarAlerta("Agendamento atualizado com sucesso!", "success");
-            } else {
-                console.log("Criando novo agendamento");
-                const result = await push(ref(db, "agendamentos"), novo);
-                console.log("Novo agendamento criado com sucesso:", result.key);
-                mostrarAlerta("Novo agendamento criado com sucesso!", "success");
-            }
-            modal.hide();
-            } catch (error) {
-                console.error("Erro ao salvar agendamento:", error);
-                mostrarAlerta("Erro ao salvar o agendamento: " + error.message, "danger");
-            }
+    // Funções auxiliares
+    function formatarData(data) {
+        const d = new Date(data);
+        return d.toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long'
         });
+    }
 
-        function atualizarTabela() {
-            console.log("Iniciando atualização da tabela...");
-            const corpo = document.getElementById("lista-agendamentos");
+    function formatarHora(hora) {
+        return new Date(hora).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Função para gerar os botões das congregações
+    function gerarBotaoCongregacao(congregacao, agendamento) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-primary mb-2 me-2';
+        btn.style.width = '100%';
+        
+        // Verificar se há agendamento para essa congregação
+        const temAgendamento = agendamento ? 'text-success' : 'text-muted';
+        const icone = agendamento ? 'bi-check-circle-fill' : 'bi-circle';
+        
+        btn.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${icone} ${temAgendamento} me-2"></i>
+                <span>${congregacao}</span>
+            </div>
+        `;
+        
+        btn.onclick = () => abrirFormulario(congregacao);
+        return btn;
+    }
+
+    // Função para abrir formulário de agendamento
+    window.abrirFormulario = function (cong, index = null) {
+        if (index !== null) {
+            const agendamento = agendamentos[index];
+            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
             
-            if (!corpo) {
-                console.error("Elemento lista-agendamentos não encontrado!");
-                return;
+            const mensagem = `Deseja editar este agendamento?\n\n` +
+                `Congregação: ${agendamento.congregacao}\n` +
+                `Data: ${dataFormatada}\n` +
+                `Irmão: ${agendamento.irmao}\n` +
+                `Tipo: ${agendamento.tipo}`;
+
+            if (!confirm(mensagem)) {
+                return; // Se o usuário cancelar, não abre o modal
             }
-            
-            console.log("Agendamentos para exibir:", agendamentos);
-            corpo.innerHTML = "";
-
-            if (agendamentos.length === 0) {
-                corpo.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center py-4">
-                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
-                            <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            const hoje = new Date();
-
-            // Ordenar agendamentos por data
-            agendamentos.sort((a, b) => {
-                const [anoA, mesA, diaA] = a.data.split('-');
-                const [anoB, mesB, diaB] = b.data.split('-');
-                return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
-            });
-
-            agendamentos.forEach((a, index) => {
-                const [ano, mes, dia] = a.data.split('-');
-                const dataObj = new Date(ano, mes - 1, dia);
-                const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
-                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
-                const futura = dataObj >= new Date(hoje.toDateString());
-
-                const linha = `
-                    <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
-                        <td>
-                            <i class="bi bi-building me-2"></i>
-                            ${a.congregacao}
-                        </td>
-                        <td>
-                            <i class="bi bi-calendar3 me-1"></i>
-                            <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
-                        </td>
-                        <td>
-                            <i class="bi bi-person me-2"></i>
-                            ${a.irmao}
-                        </td>
-                        <td>
-                            <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
-                                <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
-                                ${a.tipo}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group" aria-label="Ações">
-                                <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                corpo.innerHTML += linha;
-            });
-
-            console.log("Tabela atualizada com sucesso");
-            
-            // Inicializar tooltips
-            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltips.forEach(t => new bootstrap.Tooltip(t));
         }
 
-        // Criar referências aos modais
-        const modalExclusao = new bootstrap.Modal(document.getElementById('modalConfirmacaoExclusao'));
+        congregacaoAtual = cong;
+        indexEdicao = index;
+        document.getElementById("congregacaoSelecionada").value = cong;
+        document.getElementById("dataColeta").value = "";
+        document.getElementById("irmaoNome").value = "";
+        
+        // Atualizar opções do tipo de agendamento
+        const tipoSelect = document.getElementById("tipoAgendamento");
+        tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
+        
+        // Adicionar opção de Reunião de Jovens apenas para congregações específicas
+        if (congregacoesComReuniaoJovens.includes(cong)) {
+            tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
+        }
 
-        // Função para excluir agendamento
-        window.excluirAgendamento = async function (id) {
-            const agendamento = agendamentos.find(a => a.id === id);
-            
-            if (!agendamento) {
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
-                return;
-            }
-            
-            // Formatar a data
-            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR", {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                weekday: 'long'
-            });
+        tipoSelect.value = "";
 
-            // Preencher os dados no modal
-            document.getElementById('congExclusao').textContent = agendamento.congregacao;
-            document.getElementById('dataExclusao').textContent = dataFormatada;
-            document.getElementById('irmaoExclusao').textContent = agendamento.irmao;
-            document.getElementById('tipoExclusao').textContent = agendamento.tipo;
+        if (index !== null) {
+            const ag = agendamentos[index];
+            document.getElementById("dataColeta").value = ag.data;
+            document.getElementById("irmaoNome").value = ag.irmao;
+            document.getElementById("tipoAgendamento").value = ag.tipo;
+        }
 
-            // Armazenar o agendamento e ID para exclusão
-            agendamentoParaExcluir = agendamento;
-            idParaExcluir = id;
-
-            // Mostrar o modal
-            modalExclusao.show();
-        };
-
-        // Evento para confirmação de exclusão
-        document.getElementById('btnPrimeiraConfirmacao').addEventListener('click', async () => {
-            if (!agendamentoParaExcluir || !idParaExcluir) {
-                mostrarAlerta("Erro: Agendamento não encontrado.", "danger");
-                modalExclusao.hide();
-                return;
-            }
-
-            try {
-                const agendamentoRef = ref(db, `agendamentos/${idParaExcluir}`);
-                await remove(agendamentoRef);
-                mostrarAlerta("Agendamento excluído com sucesso!", "success");
-                
-                // Atualizar a interface
-                await carregarAgendamentos();
-            } catch (error) {
-                console.error("Erro ao excluir:", error);
-                mostrarAlerta("Erro ao excluir o agendamento. Tente novamente.", "danger");
-            } finally {
-                modalExclusao.hide();
-                // Limpar as referências
-                agendamentoParaExcluir = null;
-                idParaExcluir = null;
+        // Atualiza os horários exibidos
+        const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+        horariosDiv.innerHTML = "";
+        const horarios = horariosCongregacoes[cong];
+        Object.entries(horarios).forEach(([tipo, lista]) => {
+            if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+                lista.forEach(h => {
+                    horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                });
             }
         });
 
-        function carregarAgendamentos() {
-            if (!db) {
-                console.error("Database não inicializado!");
-                mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
-                tentarReconectar();
+        modal.show();
+    };
+
+    // Função para abrir formulário de agendamento
+    window.abrirFormulario = function (cong, index = null) {
+        if (index !== null) {
+            const agendamento = agendamentos[index];
+            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
+            
+            const mensagem = `Deseja editar este agendamento?\n\n` +
+                `Congregação: ${agendamento.congregacao}\n` +
+                `Data: ${dataFormatada}\n` +
+                `Irmão: ${agendamento.irmao}\n` +
+                `Tipo: ${agendamento.tipo}`;
+
+            if (!confirm(mensagem)) {
                 return;
             }
 
-            console.log("Iniciando carregamento de agendamentos...");
-            const agRef = ref(db, "agendamentos");
-            
-            try {
+            document.getElementById("tipoAgendamento").value = agendamento.tipo;
+        }
+
+        congregacaoAtual = cong;
+        indexEdicao = index;
+        document.getElementById("congregacaoSelecionada").value = cong;
+        document.getElementById("dataColeta").value = "";
+        document.getElementById("irmaoNome").value = "";
+        
+        // Atualizar opções do tipo de agendamento
+        const tipoSelect = document.getElementById("tipoAgendamento");
+        tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
+        
+        // Adicionar opção de Reunião de Jovens apenas para congregações específicas
+        if (congregacoesComReuniaoJovens.includes(cong)) {
+            tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
+        }
+
+        tipoSelect.value = "";
+
+        if (index !== null) {
+            const ag = agendamentos[index];
+            document.getElementById("dataColeta").value = ag.data;
+            document.getElementById("irmaoNome").value = ag.irmao;
+            document.getElementById("tipoAgendamento").value = ag.tipo;
+        }
+
+        // Atualiza os horários exibidos
+        const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+        horariosDiv.innerHTML = "";
+        const horarios = horariosCongregacoes[cong];
+        Object.entries(horarios).forEach(([tipo, lista]) => {
+            if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+                lista.forEach(h => {
+                    horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                });
+            }
+        });
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+        if (modal) modal.show();
+    };
+
+    // Função para atualizar a tabela de agendamentos
+    function atualizarTabela() {
+        console.log("Iniciando atualização da tabela...");
+        const corpo = document.getElementById("lista-agendamentos");
+        
+        if (!corpo) {
+            console.error("Elemento lista-agendamentos não encontrado!");
+            return;
+        }
+        
+        console.log("Agendamentos para exibir:", agendamentos);
+        corpo.innerHTML = "";
+
+        if (agendamentos.length === 0) {
+            const linha = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
+                    </td>
+                </tr>
+            `;
+            corpo.innerHTML = linha;
+            return;
+        }
+
+        const hoje = new Date();
+
+        // Ordenar agendamentos por data
+        agendamentos.sort((a, b) => {
+            const [anoA, mesA, diaA] = a.data.split('-');
+            const [anoB, mesB, diaB] = b.data.split('-');
+            return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+        });
+
+        agendamentos.forEach((a, index) => {
+            const [ano, mes, dia] = a.data.split('-');
+            const dataObj = new Date(ano, mes - 1, dia);
+            const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+            const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            const futura = dataObj >= new Date(hoje.toDateString());
+
+            const linha = `
+                <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
+                    <td>
+                        <i class="bi bi-building me-2"></i>
+                        ${a.congregacao}
+                    </td>
+                    <td>
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                    </td>
+                    <td>
+                        <i class="bi bi-person me-2"></i>
+                        ${a.irmao}
+                    </td>
+                    <td>
+                        <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                            <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                            ${a.tipo}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Ações">
+                            <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            corpo.innerHTML += linha;
+        });
+        
+        // Inicializar tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(t => new bootstrap.Tooltip(t));
+    }
+
+    // Função para excluir agendamento
+    window.excluirAgendamento = async function (id) {
+        const agendamento = agendamentos.find(a => a.id === id);
+        if (!agendamento) {
+            mostrarErro("Agendamento não encontrado.");
+            return;
+        }
+
+        if (!confirm(`Tem certeza que deseja excluir o agendamento de "${agendamento.tipo}" na congregação "${agendamento.congregacao}"?`)) {
+            return;
+        }
+
+        try {
+            await remove(ref(db, `agendamentos/${id}`));
+            mostrarSucesso("Agendamento excluído com sucesso!");
+            atualizarTabela();
+        } catch (error) {
+            console.error("Erro ao excluir agendamento:", error);
+            mostrarErro("Erro ao excluir agendamento. Por favor, tente novamente.");
+        }
+    }
+
+    // Função para carregar agendamentos
+    function carregarAgendamentos() {
+        if (!db) {
+            console.error("Database não inicializado!");
+            mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+            tentarReconectar();
+            return;
+        }
+
+        console.log("Iniciando carregamento de agendamentos...");
+        const agRef = ref(db, "agendamentos");
+        
+        try {
             onValue(agRef, snapshot => {
                 console.log("Dados recebidos do Firebase:", snapshot.val());
                 agendamentos = [];
-                    
-                    if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                            const agendamento = { ...child.val(), id: child.key };
-                            console.log("Processando agendamento:", agendamento);
-                            agendamentos.push(agendamento);
-                });
-                    } else {
-                        console.log("Nenhum agendamento encontrado no Firebase");
-                    }
                 
-                    console.log("Total de agendamentos carregados:", agendamentos.length);
+                if (snapshot.exists()) {
+                    agendamentos = Object.values(snapshot.val());
+                }
+
                 atualizarTabela();
-                atualizarIconesCongregacoes();
-                atualizarTicker();
-            }, error => {
-                console.error("Erro ao carregar agendamentos:", error);
-                    mostrarAlerta("Erro ao carregar agendamentos. Tentando reconectar...", "danger");
-                    tentarReconectar();
             });
-            } catch (error) {
-                console.error("Erro ao inicializar carregamento:", error);
-                mostrarAlerta("Erro ao inicializar carregamento. Tentando reconectar...", "danger");
-                tentarReconectar();
-            }
+        } catch (error) {
+            console.error("Erro ao carregar agendamentos:", error);
+            mostrarAlerta("Erro ao carregar agendamentos!", "danger");
+        }
+    }
+
+    // Função para mostrar alertas
+    function mostrarAlerta(mensagem, tipo) {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        const icon = tipo === 'success' ? 'bi-check-circle' : 
+                     tipo === 'danger' ? 'bi-exclamation-circle' : 'bi-info-circle';
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi ${icon} me-2"></i>
+                    ${mensagem}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        `;
+        
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+        
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, {
+            delay: 3000
+        });
+        bsToast.show();
+    }
+
+    // Função para mostrar sucesso
+    function mostrarSucesso(mensagem) {
+        mostrarAlerta(mensagem, 'success');
+    }
+
+    // Função para mostrar erro
+    function mostrarErro(mensagem) {
+        mostrarAlerta(mensagem, 'danger');
+    }
+
+    // Função para tentar reconectar
+    function tentarReconectar() {
+        console.log("Tentando reconectar ao Firebase...");
+        inicializarFirebase();
+    }
+
+    // Evento de submit do formulário
+    document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        
+        const data = document.getElementById("dataColeta").value;
+        const irmao = document.getElementById("irmaoNome").value;
+        const tipo = document.getElementById("tipoAgendamento").value;
+        
+        if (!tipo) {
+            mostrarErro("Por favor, selecione o tipo de agendamento.");
+            return;
         }
 
-        function atualizarIconesCongregacoes() {
-            console.log("Atualizando ícones das congregações...");
-            const container = document.getElementById("congregacoes");
-            container.innerHTML = "";
+        if (!data) {
+            mostrarErro("Por favor, selecione uma data.");
+            return;
+        }
 
-            congregacoes.forEach(c => {
-                const col = document.createElement("div");
-                const botao = document.createElement("button");
+        if (!irmao) {
+            mostrarErro("Por favor, informe o nome do irmão.");
+            return;
+        }
+
+        try {
+            const dataSelecionada = new Date(data);
+            const dataAtual = new Date();
+            
+            if (dataSelecionada < dataAtual) {
+                mostrarErro("Não é permitido agendar uma data passada.");
+                return;
+            }
+
+            // Verificar duplicidade
+            const agendamentoDuplicado = agendamentos.some(a => {
+                if (a.congregacao === congregacaoAtual && a.tipo === tipo) {
+                    const dataA = new Date(a.data);
+                    return dataA.getMonth() === dataSelecionada.getMonth() &&
+                           dataA.getFullYear() === dataSelecionada.getFullYear() &&
+                           a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+                }
+                return false;
+            });
+
+            if (agendamentoDuplicado) {
+                mostrarErro(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                return;
+            }
+
+            // Criar novo agendamento
+            const novoAgendamento = {
+                id: indexEdicao !== null ? agendamentos[indexEdicao].id : Date.now().toString(),
+                data: data,
+                irmao: irmao,
+                tipo: tipo,
+                congregacao: congregacaoAtual,
+                status: "pendente"
+            };
+
+            // Salvar no Firebase
+            if (indexEdicao !== null) {
+                await set(ref(db, `agendamentos/${novoAgendamento.id}`), novoAgendamento);
+                mostrarSucesso("Agendamento atualizado com sucesso!");
+            } else {
+                const novoRef = push(ref(db, 'agendamentos'));
+                await set(novoRef, novoAgendamento);
+                mostrarSucesso("Agendamento adicionado com sucesso!");
+            }
+
+            // Limpar formulário e fechar modal
+            document.getElementById("formAgendamento").reset();
+            congregacaoAtual = "";
+            indexEdicao = null;
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+            if (modal) modal.hide();
+
+            // Atualizar tabela
+            atualizarTabela();
+
+        } catch (error) {
+            console.error("Erro ao salvar agendamento:", error);
+            mostrarErro("Erro ao salvar agendamento. Por favor, tente novamente.");
+        }
+    });
+
+    // Função para inicializar a página
+    function inicializarPagina() {
+        // Inicializar Firebase
+        inicializarFirebase();
+        
+        // Criar botões das congregações
+        const listaCongregacoes = document.getElementById('congregacoes');
+        if (listaCongregacoes) {
+            const todasCongregacoes = Object.keys(horariosCongregacoes);
+            todasCongregacoes.forEach(cong => {
+                const btn = gerarBotaoCongregacao(cong, null);
+                listaCongregacoes.appendChild(btn);
+            });
+        }
+    }
+
+    // Inicializar a página quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', inicializarPagina);
+
+    // Iniciar carregamento de agendamentos
+    carregarAgendamentos();            const dataAtual = new Date();
+            
+            if (dataSelecionada < dataAtual) {
+                mostrarErro("Não é permitido agendar uma data passada.");
+                return;
+            }
+
+            // Verificar duplicidade
+            const agendamentoDuplicado = agendamentos.some(a => {
+                if (a.congregacao === congregacaoAtual && a.tipo === tipo) {
+                    const dataA = new Date(a.data);
+                    return dataA.getMonth() === dataSelecionada.getMonth() &&
+                           dataA.getFullYear() === dataSelecionada.getFullYear() &&
+                           a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+                }
+                return false;
+            });
+
+            if (agendamentoDuplicado) {
+                mostrarErro(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                return;
+            }
+
+            // Criar novo agendamento
+            const novoAgendamento = {
+                id: indexEdicao !== null ? agendamentos[indexEdicao].id : Date.now().toString(),
+                data: data,
+                irmao: irmao,
+                tipo: tipo,
+                congregacao: congregacaoAtual,
+                status: "pendente"
+            };
+
+            // Salvar no Firebase
+            if (indexEdicao !== null) {
+                await set(ref(db, `agendamentos/${novoAgendamento.id}`), novoAgendamento);
+    }
+
+    // Atualiza os horários exibidos
+    const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+    horariosDiv.innerHTML = "";
+    const horarios = horariosCongregacoes[cong];
+    Object.entries(horarios).forEach(([tipo, lista]) => {
+        if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+            lista.forEach(h => {
+                horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+            });
+        }
+    });
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+    if (modal) modal.show();
+};
+
+// Função para atualizar a tabela de agendamentos
+function atualizarTabela() {
+    console.log("Iniciando atualização da tabela...");
+    const corpo = document.getElementById("lista-agendamentos");
+    
+    if (!corpo) {
+        console.error("Elemento lista-agendamentos não encontrado!");
+        return;
+    }
+    
+    console.log("Agendamentos para exibir:", agendamentos);
+    corpo.innerHTML = "";
+
+    if (agendamentos.length === 0) {
+        const linha = `
+            <tr>
+                <td colspan="5" class="text-center py-4">
+                    <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
+                </td>
+            </tr>
+        `;
+        corpo.innerHTML = linha;
+        return;
+    }
+
+    const hoje = new Date();
+
+    // Ordenar agendamentos por data
+    agendamentos.sort((a, b) => {
+        const [anoA, mesA, diaA] = a.data.split('-');
+        const [anoB, mesB, diaB] = b.data.split('-');
+        return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+    });
+
+    agendamentos.forEach((a, index) => {
+        const [ano, mes, dia] = a.data.split('-');
+        const dataObj = new Date(ano, mes - 1, dia);
+        const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+        const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+        const futura = dataObj >= new Date(hoje.toDateString());
+
+        const linha = `
+            <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
+                <td>
+                    <i class="bi bi-building me-2"></i>
+                    ${a.congregacao}
+                </td>
+                <td>
+                    <i class="bi bi-calendar3 me-1"></i>
+                    <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                </td>
+                <td>
+                    <i class="bi bi-person me-2"></i>
+                    ${a.irmao}
+                </td>
+                <td>
+                    <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                        <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                        ${a.tipo}
+                    </span>
+                </td>
+                <td>
+                    <div class="btn-group" role="group" aria-label="Ações">
+                        <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        corpo.innerHTML += linha;
+    });
+    
+    // Inicializar tooltips
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(t => new bootstrap.Tooltip(t));
+}
+
+// Evento de submit do formulário
+document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    
+    const data = document.getElementById("dataColeta").value;
+    const irmao = document.getElementById("irmaoNome").value;
+    const tipo = document.getElementById("tipoAgendamento").value;
+    
+    if (!tipo) {
+        mostrarErro("Por favor, selecione o tipo de agendamento.");
+        return;
+    }
+
+    if (!data) {
+        mostrarErro("Por favor, selecione uma data.");
+        return;
+    }
+
+    if (!irmao) {
+        mostrarErro("Por favor, informe o nome do irmão.");
+        return;
+    }
+
+    try {
+        const dataSelecionada = new Date(data);
+        const dataAtual = new Date();
+        
+        if (dataSelecionada < dataAtual) {
+            mostrarErro("Não é permitido agendar uma data passada.");
+            return;
+        }
+
+        // Verificar duplicidade
+        const agendamentoDuplicado = agendamentos.some(a => {
+            if (a.congregacao === congregacaoAtual && a.tipo === tipo) {
+                const dataA = new Date(a.data);
+                return dataA.getMonth() === dataSelecionada.getMonth() &&
+                       dataA.getFullYear() === dataSelecionada.getFullYear() &&
+                       a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+            }
+            return false;
+        });
+
+        if (agendamentoDuplicado) {
+            mostrarErro(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+            return;
+        }
+
+        // Criar novo agendamento
+        const novoAgendamento = {
+            id: indexEdicao !== null ? agendamentos[indexEdicao].id : Date.now().toString(),
+            data: data,
+            irmao: irmao,
+            tipo: tipo,
+            congregacao: congregacaoAtual,
+            status: "pendente"
+        };
+
+        // Salvar no Firebase
+        if (indexEdicao !== null) {
+            await set(ref(db, `agendamentos/${novoAgendamento.id}`), novoAgendamento);
+            mostrarSucesso("Agendamento atualizado com sucesso!");
+        } else {
+            const novoRef = push(ref(db, 'agendamentos'));
+            await set(novoRef, novoAgendamento);
+            mostrarSucesso("Agendamento adicionado com sucesso!");
+        }
+
+        // Limpar formulário e fechar modal
+        document.getElementById("formAgendamento").reset();
+        congregacaoAtual = "";
+        indexEdicao = null;
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+        if (modal) modal.hide();
+
+        // Atualizar tabela
+        atualizarTabela();
+
+    } catch (error) {
+        console.error("Erro ao salvar agendamento:", error);
+        mostrarErro("Erro ao salvar agendamento. Por favor, tente novamente.");
+    }
+};
+
+// Função para inicializar a página
+function inicializarPagina() {
+    // Inicializar Firebase
+    inicializarFirebase();
+    
+    // Criar botões das congregações
+    const listaCongregacoes = document.getElementById('congregacoes');
+    if (listaCongregacoes) {
+        const todasCongregacoes = Object.keys(horariosCongregacoes);
+        todasCongregacoes.forEach(cong => {
+            const btn = gerarBotaoCongregacao(cong, null);
+            listaCongregacoes.appendChild(btn);
+        });
+    }
+}
+
+// Inicializar a página quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', inicializarPagina);
+
+// Função para excluir agendamento
+window.excluirAgendamento = async function (id) {
+    const agendamento = agendamentos.find(a => a.id === id);
+    if (!agendamento) {
+        mostrarErro("Agendamento não encontrado.");
+        return;
+    }
+
+    if (!confirm(`Tem certeza que deseja excluir o agendamento de "${agendamento.tipo}" na congregação "${agendamento.congregacao}"?`)) {
+        return;
+    }
+
+    try {
+        await remove(ref(db, `agendamentos/${id}`));
+        mostrarSucesso("Agendamento excluído com sucesso!");
+        atualizarTabela();
+    } catch (error) {
+        console.error("Erro ao excluir agendamento:", error);
+        mostrarErro("Erro ao excluir agendamento. Por favor, tente novamente.");
+    }
+}
+
+// Função para carregar agendamentos
+function carregarAgendamentos() {
+    if (!db) {
+        console.error("Database não inicializado!");
+        mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+        tentarReconectar();
+        return;
+    }
+
+    console.log("Iniciando carregamento de agendamentos...");
+    const agRef = ref(db, "agendamentos");
+    
+    try {
+        onValue(agRef, snapshot => {
+            console.log("Dados recebidos do Firebase:", snapshot.val());
+            agendamentos = [];
+            
+            if (snapshot.exists()) {
+                agendamentos = Object.values(snapshot.val());
+            }
+
+            atualizarTabela();
                 botao.className = "btn btn-outline-primary w-100 botao-congregacao";
 
                 // Verificar se existe agendamento para esta congregação
@@ -1736,62 +1935,825 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
-<!-- Firebase configuration -->
-<script type="module">
-    // Firebase initialization
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
-    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js';
-
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+    // Configuração do Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyDAZekCEenSVQuYPB2jGqdXc3sllfDqg-M",
-        authDomain: "agendawebccb.firebaseapp.com",
-        databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
-        projectId: "agendawebccb",
-        storageBucket: "agendawebccb.appspot.com",
-        messagingSenderId: "1002090805726",
-        appId: "1:1002090805726:web:d9aab35124d174e85d454f"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
     };
 
-    let app;
-    let database;
-    let agendamentos = [];
+    // Inicializar Firebase
+    function inicializarFirebase() {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+    }
 
-    // Initialize Firebase with error handling
-    async function inicializarFirebase() {
-        try {
-            console.log("Iniciando conexão com Firebase...");
+    // Variáveis globais
+    let db;
+    let agendamentos = [];
+    let congregacaoAtual = "";
+    let indexEdicao = null;
+
+    // Dados das congregações
+    const congregacoesComReuniaoJovens = [
+        "Congregação 1",
+        "Congregação 2",
+        // Adicione outras congregações aqui
+    ];
+
+    const horariosCongregacoes = {
+        "Congregação 1": {
+            "Culto Oficial": [
+                { dia: "Domingo", hora: "19:00" }
+            ],
+            "Reunião de Jovens e Menores": [
+                { dia: "Sábado", hora: "19:00" }
+            ]
+        },
+        // Adicione outros horários aqui
+    };
+
+    // Função para abrir formulário de agendamento
+    window.abrirFormulario = function (cong, index = null) {
+        if (index !== null) {
+            const agendamento = agendamentos[index];
+            const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
             
-            // Check if Firebase instance already exists
-            if (!app) {
-                app = initializeApp(firebaseConfig);
-                database = getDatabase(app);
+            const mensagem = `Deseja editar este agendamento?\n\n` +
+                `Congregação: ${agendamento.congregacao}\n` +
+                `Data: ${dataFormatada}\n` +
+                `Irmão: ${agendamento.irmao}\n` +
+                `Tipo: ${agendamento.tipo}`;
+
+            if (!confirm(mensagem)) {
+                return;
             }
 
-            // Listen for data changes
-            const agendamentosRef = ref(database, 'agendamentos');
-            onValue(agendamentosRef, (snapshot) => {
-                agendamentos = snapshot.val() || [];
-                console.log("Agendamentos atualizados:", agendamentos);
-            });
+            document.getElementById("tipoAgendamento").value = agendamento.tipo;
+        }
 
-            console.log("Firebase inicializado com sucesso!");
+        congregacaoAtual = cong;
+        indexEdicao = index;
+        document.getElementById("congregacaoSelecionada").value = cong;
+        document.getElementById("dataColeta").value = "";
+        document.getElementById("irmaoNome").value = "";
+        
+        // Atualizar opções do tipo de agendamento
+        const tipoSelect = document.getElementById("tipoAgendamento");
+        tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
+        
+        // Adicionar opção de Reunião de Jovens apenas para congregações específicas
+        if (congregacoesComReuniaoJovens.includes(cong)) {
+            tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
+        }
+
+        tipoSelect.value = "";
+
+        if (index !== null) {
+            const ag = agendamentos[index];
+            document.getElementById("dataColeta").value = ag.data;
+            document.getElementById("irmaoNome").value = ag.irmao;
+            document.getElementById("tipoAgendamento").value = ag.tipo;
+        }
+
+        // Atualiza os horários exibidos
+        const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+        horariosDiv.innerHTML = "";
+        const horarios = horariosCongregacoes[cong];
+        Object.entries(horarios).forEach(([tipo, lista]) => {
+            if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+                lista.forEach(h => {
+                    horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                });
+            }
+        });
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+        if (modal) modal.show();
+    };
+
+    // Função para atualizar a tabela de agendamentos
+    function atualizarTabela() {
+        console.log("Iniciando atualização da tabela...");
+        const corpo = document.getElementById("lista-agendamentos");
+        
+        if (!corpo) {
+            console.error("Elemento lista-agendamentos não encontrado!");
+            return;
+        }
+        
+        console.log("Agendamentos para exibir:", agendamentos);
+        corpo.innerHTML = "";
+
+        if (agendamentos.length === 0) {
+            const linha = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
+                    </td>
+                </tr>
+            `;
+            corpo.innerHTML = linha;
+            return;
+        }
+
+        const hoje = new Date();
+
+        // Ordenar agendamentos por data
+        agendamentos.sort((a, b) => {
+            const [anoA, mesA, diaA] = a.data.split('-');
+            const [anoB, mesB, diaB] = b.data.split('-');
+            return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+        });
+
+        agendamentos.forEach((a, index) => {
+            const [ano, mes, dia] = a.data.split('-');
+            const dataObj = new Date(ano, mes - 1, dia);
+            const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+            const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+            const futura = dataObj >= new Date(hoje.toDateString());
+
+            const linha = `
+                <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
+                    <td>
+                        <i class="bi bi-building me-2"></i>
+                        ${a.congregacao}
+                    </td>
+                    <td>
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                    </td>
+                    <td>
+                        <i class="bi bi-person me-2"></i>
+                        ${a.irmao}
+                    </td>
+                    <td>
+                        <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                            <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                            ${a.tipo}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Ações">
+                            <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            corpo.innerHTML += linha;
+        });
+        
+        // Inicializar tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(t => new bootstrap.Tooltip(t));
+    }
+
+    // Função para excluir agendamento
+    window.excluirAgendamento = async function (id) {
+        const agendamento = agendamentos.find(a => a.id === id);
+        if (!agendamento) {
+            mostrarErro("Agendamento não encontrado.");
+            return;
+        }
+
+        if (!confirm(`Tem certeza que deseja excluir o agendamento de "${agendamento.tipo}" na congregação "${agendamento.congregacao}"?`)) {
+            return;
+        }
+
+        try {
+            await remove(ref(db, `agendamentos/${id}`));
+            mostrarSucesso("Agendamento excluído com sucesso!");
+            atualizarTabela();
         } catch (error) {
-            console.error("Erro ao inicializar Firebase:", error);
-            throw error;
+            console.error("Erro ao excluir agendamento:", error);
+            mostrarErro("Erro ao excluir agendamento. Por favor, tente novamente.");
         }
     }
-</script>
 
-<!-- App initialization -->
-<script type="module">
-    import { setupExportListeners, setupLoginListeners } from './app.js';
-    import { exportarPDF, exportarXLS, exportarPNG } from './export.js';
+    // Função para carregar agendamentos
+    function carregarAgendamentos() {
+        if (!db) {
+            console.error("Database não inicializado!");
+            mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+            tentarReconectar();
+            return;
+        }
 
-    // Initialize app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-        setupExportListeners();
-        setupLoginListeners();
+        console.log("Iniciando carregamento de agendamentos...");
+        const agRef = ref(db, "agendamentos");
+        
+        try {
+            onValue(agRef, snapshot => {
+                console.log("Dados recebidos do Firebase:", snapshot.val());
+                agendamentos = [];
+                
+                if (snapshot.exists()) {
+                    agendamentos = Object.values(snapshot.val());
+                }
+
+                atualizarTabela();
+            });
+        } catch (error) {
+            console.error("Erro ao carregar agendamentos:", error);
+            mostrarAlerta("Erro ao carregar agendamentos!", "danger");
+        }
+    }
+
+    // Função para mostrar alertas
+    function mostrarAlerta(mensagem, tipo) {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        const icon = tipo === 'success' ? 'bi-check-circle' : 
+                     tipo === 'danger' ? 'bi-exclamation-circle' : 'bi-info-circle';
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi ${icon} me-2"></i>
+                    ${mensagem}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+            </div>
+        `;
+        
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+        
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, {
+            delay: 3000
+        });
+        bsToast.show();
+    }
+
+    // Função para mostrar sucesso
+    function mostrarSucesso(mensagem) {
+        mostrarAlerta(mensagem, 'success');
+    }
+
+    // Função para mostrar erro
+    function mostrarErro(mensagem) {
+        mostrarAlerta(mensagem, 'danger');
+    }
+
+    // Função para tentar reconectar
+    function tentarReconectar() {
+        console.log("Tentando reconectar ao Firebase...");
+        inicializarFirebase();
+    }
+
+    // Evento de submit do formulário
+    document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        
+        const data = document.getElementById("dataColeta").value;
+        const irmao = document.getElementById("irmaoNome").value;
+        const tipo = document.getElementById("tipoAgendamento").value;
+        
+        if (!tipo) {
+            mostrarErro("Por favor, selecione o tipo de agendamento.");
+            return;
+        }
+
+        if (!data) {
+            mostrarErro("Por favor, selecione uma data.");
+            return;
+        }
+
+        if (!irmao) {
+            mostrarErro("Por favor, informe o nome do irmão.");
+            return;
+        }
+
+        try {
+            const dataSelecionada = new Date(data);
+            const dataAtual = new Date();
+            
+            if (dataSelecionada < dataAtual) {
+                mostrarErro("Não é permitido agendar uma data passada.");
+                return;
+            }
+
+            // Verificar duplicidade
+            const agendamentoDuplicado = agendamentos.some(a => {
+                if (a.congregacao === congregacaoAtual && a.tipo === tipo) {
+                    const dataA = new Date(a.data);
+                    return dataA.getMonth() === dataSelecionada.getMonth() &&
+                           dataA.getFullYear() === dataSelecionada.getFullYear() &&
+                           a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+                }
+                return false;
+            });
+
+            if (agendamentoDuplicado) {
+                mostrarErro(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                return;
+            }
+
+            // Criar novo agendamento
+            const novoAgendamento = {
+                id: indexEdicao !== null ? agendamentos[indexEdicao].id : Date.now().toString(),
+                data: data,
+                irmao: irmao,
+                tipo: tipo,
+                congregacao: congregacaoAtual,
+                status: "pendente"
+            };
+
+            // Salvar no Firebase
+            if (indexEdicao !== null) {
+                await set(ref(db, `agendamentos/${novoAgendamento.id}`), novoAgendamento);
+                mostrarSucesso("Agendamento atualizado com sucesso!");
+            } else {
+                const novoRef = push(ref(db, 'agendamentos'));
+                await set(novoRef, novoAgendamento);
+                mostrarSucesso("Agendamento adicionado com sucesso!");
+            }
+
+            // Limpar formulário e fechar modal
+            document.getElementById("formAgendamento").reset();
+            congregacaoAtual = "";
+            indexEdicao = null;
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+            if (modal) modal.hide();
+
+            // Atualizar tabela
+            atualizarTabela();
+
+        } catch (error) {
+            console.error("Erro ao salvar agendamento:", error);
+            mostrarErro("Erro ao salvar agendamento. Por favor, tente novamente.");
+        }
     });
+
+    // Função para inicializar a página
+    function inicializarPagina() {
+        // Inicializar Firebase
+        inicializarFirebase();
+        
+        // Criar botões das congregações
+        const listaCongregacoes = document.getElementById('congregacoes');
+        if (listaCongregacoes) {
+            const todasCongregacoes = Object.keys(horariosCongregacoes);
+            todasCongregacoes.forEach(cong => {
+                const btn = gerarBotaoCongregacao(cong, null);
+                listaCongregacoes.appendChild(btn);
+            });
+        }
+    }
+
+    // Inicializar a página quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', inicializarPagina);
+
+    // Iniciar carregamento de agendamentos
+    carregarAgendamentos();
 </script>
+    <!-- Scripts necessários -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <!-- Configuração do Firebase -->
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Inicializar Firebase
+        function inicializarFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+            }
+        }
+
+        // Variáveis globais
+        let db;
+        let agendamentos = [];
+        let congregacaoAtual = "";
+        let indexEdicao = null;
+
+        // Dados das congregações
+        const congregacoesComReuniaoJovens = [
+            "Congregação 1",
+            "Congregação 2",
+            // Adicione outras congregações aqui
+        ];
+
+        const horariosCongregacoes = {
+            "Congregação 1": {
+                "Culto Oficial": [
+                    { dia: "Domingo", hora: "19:00" }
+                ],
+                "Reunião de Jovens e Menores": [
+                    { dia: "Sábado", hora: "19:00" }
+                ]
+            },
+            // Adicione outros horários aqui
+        };
+
+        // Função para abrir formulário de agendamento
+        window.abrirFormulario = function (cong, index = null) {
+            if (index !== null) {
+                const agendamento = agendamentos[index];
+                const dataFormatada = new Date(agendamento.data).toLocaleDateString("pt-BR");
+                
+                const mensagem = `Deseja editar este agendamento?\n\n` +
+                    `Congregação: ${agendamento.congregacao}\n` +
+                    `Data: ${dataFormatada}\n` +
+                    `Irmão: ${agendamento.irmao}\n` +
+                    `Tipo: ${agendamento.tipo}`;
+
+                if (!confirm(mensagem)) {
+                    return;
+                }
+
+                document.getElementById("tipoAgendamento").value = agendamento.tipo;
+            }
+
+            congregacaoAtual = cong;
+            indexEdicao = index;
+            document.getElementById("congregacaoSelecionada").value = cong;
+            document.getElementById("dataColeta").value = "";
+            document.getElementById("irmaoNome").value = "";
+            
+            // Atualizar opções do tipo de agendamento
+            const tipoSelect = document.getElementById("tipoAgendamento");
+            tipoSelect.innerHTML = '<option value="">Selecione</option><option value="Culto Oficial">Culto Oficial</option>';
+            
+            // Adicionar opção de Reunião de Jovens apenas para congregações específicas
+            if (congregacoesComReuniaoJovens.includes(cong)) {
+                tipoSelect.innerHTML += '<option value="Reunião de Jovens e Menores">Reunião de Jovens e Menores</option>';
+            }
+
+            tipoSelect.value = "";
+
+            if (index !== null) {
+                const ag = agendamentos[index];
+                document.getElementById("dataColeta").value = ag.data;
+                document.getElementById("irmaoNome").value = ag.irmao;
+                document.getElementById("tipoAgendamento").value = ag.tipo;
+            }
+
+            // Atualiza os horários exibidos
+            const horariosDiv = document.querySelector("#modalAgendamento .alert-info ul");
+            horariosDiv.innerHTML = "";
+            const horarios = horariosCongregacoes[cong];
+            Object.entries(horarios).forEach(([tipo, lista]) => {
+                if (tipo === "Culto Oficial" || (tipo === "Reunião de Jovens e Menores" && congregacoesComReuniaoJovens.includes(cong))) {
+                    lista.forEach(h => {
+                        horariosDiv.innerHTML += `<li><strong>${tipo}:</strong> ${h.dia} às ${h.hora}</li>`;
+                    });
+                }
+            });
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+            if (modal) modal.show();
+        };
+
+        // Função para atualizar a tabela de agendamentos
+        function atualizarTabela() {
+            console.log("Iniciando atualização da tabela...");
+            const corpo = document.getElementById("lista-agendamentos");
+            
+            if (!corpo) {
+                console.error("Elemento lista-agendamentos não encontrado!");
+                return;
+            }
+            
+            console.log("Agendamentos para exibir:", agendamentos);
+            corpo.innerHTML = "";
+
+            if (agendamentos.length === 0) {
+                const linha = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">Nenhum agendamento encontrado</p>
+                        </td>
+                    </tr>
+                `;
+                corpo.innerHTML = linha;
+                return;
+            }
+
+            const hoje = new Date();
+
+            // Ordenar agendamentos por data
+            agendamentos.sort((a, b) => {
+                const [anoA, mesA, diaA] = a.data.split('-');
+                const [anoB, mesB, diaB] = b.data.split('-');
+                return new Date(anoA, mesA - 1, diaA) - new Date(anoB, mesB - 1, diaB);
+            });
+
+            agendamentos.forEach((a, index) => {
+                const [ano, mes, dia] = a.data.split('-');
+                const dataObj = new Date(ano, mes - 1, dia);
+                const diaAbreviado = dataObj.toLocaleDateString("pt-BR", { weekday: "short" }).toLowerCase();
+                const dataFormatada = dataObj.toLocaleDateString("pt-BR");
+                const futura = dataObj >= new Date(hoje.toDateString());
+
+                const linha = `
+                    <tr class="${futura ? 'agendamento-futuro' : ''}" data-bs-toggle="tooltip" title="Clique nos botões para editar ou excluir">
+                        <td>
+                            <i class="bi bi-building me-2"></i>
+                            ${a.congregacao}
+                        </td>
+                        <td>
+                            <i class="bi bi-calendar3 me-1"></i>
+                            <span class="text-capitalize">${diaAbreviado}</span> - ${dataFormatada}
+                        </td>
+                        <td>
+                            <i class="bi bi-person me-2"></i>
+                            ${a.irmao}
+                        </td>
+                        <td>
+                            <span class="badge ${a.tipo === 'Culto Oficial' ? 'bg-primary' : 'bg-success'}">
+                                <i class="bi ${a.tipo === 'Culto Oficial' ? 'bi-book' : 'bi-people'} me-1"></i>
+                                ${a.tipo}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Ações">
+                                <button class="btn btn-sm btn-warning" onclick="abrirFormulario('${a.congregacao}', ${index})" data-bs-toggle="tooltip" title="Editar agendamento">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirAgendamento('${a.id}')" data-bs-toggle="tooltip" title="Excluir agendamento">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                corpo.innerHTML += linha;
+            });
+            
+            // Inicializar tooltips
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(t => new bootstrap.Tooltip(t));
+        }
+
+        // Função para excluir agendamento
+        window.excluirAgendamento = async function (id) {
+            const agendamento = agendamentos.find(a => a.id === id);
+            if (!agendamento) {
+                mostrarErro("Agendamento não encontrado.");
+                return;
+            }
+
+            if (!confirm(`Tem certeza que deseja excluir o agendamento de "${agendamento.tipo}" na congregação "${agendamento.congregacao}"?`)) {
+                return;
+            }
+
+            try {
+                await firebase.database().ref(`agendamentos/${id}`).remove();
+                mostrarSucesso("Agendamento excluído com sucesso!");
+                atualizarTabela();
+            } catch (error) {
+                console.error("Erro ao excluir agendamento:", error);
+                mostrarErro("Erro ao excluir agendamento. Por favor, tente novamente.");
+            }
+        }
+
+        // Função para carregar agendamentos
+        function carregarAgendamentos() {
+            if (!firebase.apps.length) {
+                console.error("Firebase não inicializado!");
+                mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+                tentarReconectar();
+                return;
+            }
+
+            console.log("Iniciando carregamento de agendamentos...");
+            
+            try {
+                firebase.database().ref('agendamentos').on('value', snapshot => {
+                    console.log("Dados recebidos do Firebase:", snapshot.val());
+                    agendamentos = [];
+                    
+                    if (snapshot.exists()) {
+                        agendamentos = Object.values(snapshot.val());
+                    }
+
+                    atualizarTabela();
+                });
+            } catch (error) {
+                console.error("Erro ao carregar agendamentos:", error);
+                mostrarAlerta("Erro ao carregar agendamentos!", "danger");
+            }
+        }
+
+        // Função para mostrar alertas
+        function mostrarAlerta(mensagem, tipo) {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${tipo} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            const icon = tipo === 'success' ? 'bi-check-circle' : 
+                         tipo === 'danger' ? 'bi-exclamation-circle' : 'bi-info-circle';
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi ${icon} me-2"></i>
+                        ${mensagem}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+                </div>
+            `;
+            
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, {
+                delay: 3000
+            });
+            bsToast.show();
+        }
+
+        // Função para mostrar sucesso
+        function mostrarSucesso(mensagem) {
+            mostrarAlerta(mensagem, 'success');
+        }
+
+        // Função para mostrar erro
+        function mostrarErro(mensagem) {
+            mostrarAlerta(mensagem, 'danger');
+        }
+
+        // Função para tentar reconectar
+        function tentarReconectar() {
+            console.log("Tentando reconectar ao Firebase...");
+            inicializarFirebase();
+        }
+
+        // Evento de submit do formulário
+        document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            
+            const data = document.getElementById("dataColeta").value;
+            const irmao = document.getElementById("irmaoNome").value;
+            const tipo = document.getElementById("tipoAgendamento").value;
+            
+            if (!tipo) {
+                mostrarErro("Por favor, selecione o tipo de agendamento.");
+                return;
+            }
+
+            if (!data) {
+                mostrarErro("Por favor, selecione uma data.");
+                return;
+            }
+
+            if (!irmao) {
+                mostrarErro("Por favor, informe o nome do irmão.");
+                return;
+            }
+
+            try {
+                const dataSelecionada = new Date(data);
+                const dataAtual = new Date();
+                
+                if (dataSelecionada < dataAtual) {
+                    mostrarErro("Não é permitido agendar uma data passada.");
+                    return;
+                }
+
+                // Verificar duplicidade
+                const agendamentoDuplicado = agendamentos.some(a => {
+                    if (a.congregacao === congregacaoAtual && a.tipo === tipo) {
+                        const dataA = new Date(a.data);
+                        return dataA.getMonth() === dataSelecionada.getMonth() &&
+                               dataA.getFullYear() === dataSelecionada.getFullYear() &&
+                               a.id !== (indexEdicao !== null ? agendamentos[indexEdicao].id : null);
+                    }
+                    return false;
+                });
+
+                if (agendamentoDuplicado) {
+                    mostrarErro(`Já existe um agendamento de "${tipo}" para essa congregação neste mês.`);
+                    return;
+                }
+
+                // Criar novo agendamento
+                const novoAgendamento = {
+                    id: indexEdicao !== null ? agendamentos[indexEdicao].id : Date.now().toString(),
+                    data: data,
+                    irmao: irmao,
+                    tipo: tipo,
+                    congregacao: congregacaoAtual,
+                    status: "pendente"
+                };
+
+                // Salvar no Firebase
+                if (indexEdicao !== null) {
+                    await firebase.database().ref(`agendamentos/${novoAgendamento.id}`).set(novoAgendamento);
+                    mostrarSucesso("Agendamento atualizado com sucesso!");
+                } else {
+                    const novoRef = firebase.database().ref('agendamentos').push();
+                    await novoRef.set(novoAgendamento);
+                    mostrarSucesso("Agendamento adicionado com sucesso!");
+                }
+
+                // Limpar formulário e fechar modal
+                document.getElementById("formAgendamento").reset();
+                congregacaoAtual = "";
+                indexEdicao = null;
+                const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgendamento"));
+                if (modal) modal.hide();
+
+                // Atualizar tabela
+                atualizarTabela();
+
+            } catch (error) {
+                console.error("Erro ao salvar agendamento:", error);
+                mostrarErro("Erro ao salvar agendamento. Por favor, tente novamente.");
+            }
+        });
+
+        // Função para gerar botão de congregação
+        function gerarBotaoCongregacao(congregacao, data) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline-primary mb-2 me-2';
+            btn.style.width = '100%';
+            btn.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-building me-2"></i>
+                    ${congregacao}
+                </div>
+            `;
+            btn.onclick = () => abrirFormulario(congregacao);
+            return btn;
+        }
+
+        // Função para inicializar a página
+        function inicializarPagina() {
+            // Inicializar Firebase
+            inicializarFirebase();
+            
+            // Criar botões das congregações
+            const listaCongregacoes = document.getElementById('congregacoes');
+            if (listaCongregacoes) {
+                const todasCongregacoes = Object.keys(horariosCongregacoes);
+                todasCongregacoes.forEach(cong => {
+                    const btn = gerarBotaoCongregacao(cong, null);
+                    listaCongregacoes.appendChild(btn);
+                });
+            }
+
+            // Carregar agendamentos
+            carregarAgendamentos();
+        }
+
+        // Inicializar a página quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', inicializarPagina);
+
+        // Iniciar carregamento de agendamentos
+        carregarAgendamentos();
+
+        // Inicializar a página quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', inicializarPagina);
+    </script>
 </body>
 </html>
