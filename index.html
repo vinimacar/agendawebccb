@@ -1305,7 +1305,6 @@
                 botao.className = "btn btn-outline-primary w-100 botao-congregacao";
 
                 // Verificar se existe agendamento para esta congregação
-                const temAgendamento = agendamentos.some(a => a.congregacao === c);
                 const agendamentosCulto = agendamentos.filter(a => 
                     a.congregacao === c && 
                     a.tipo === "Culto Oficial"
@@ -1682,5 +1681,4 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
-
 
