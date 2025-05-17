@@ -1047,18 +1047,21 @@
 
         document.getElementById("formAgendamento").addEventListener("submit", async function (e) {
             e.preventDefault();
+            console.log("Iniciando salvamento de agendamento...");
+            
             const dataInput = document.getElementById("dataColeta");
             const data = dataInput.value;
             const irmao = document.getElementById("irmaoNome").value;
             const tipo = document.getElementById("tipoAgendamento").value;
-            const hoje = new Date().toLocaleDateString('en-CA');
+            
+            console.log("Dados do formulário:", { data, irmao, tipo, congregacao: congregacaoAtual });
 
             if (!tipo) {
                 alert("Por favor, selecione o tipo de agendamento.");
                 return;
             }
 
-            if (data < hoje) {
+            if (data < new Date().toLocaleDateString('en-CA')) {
                 alert("Não é permitido agendar uma data passada.");
                 return;
             }
@@ -1119,19 +1122,25 @@
             }
 
             const novo = { congregacao: congregacaoAtual, data, irmao, tipo };
+            console.log("Tentando salvar agendamento:", novo);
 
             try {
             if (indexEdicao !== null && agendamentos[indexEdicao].id) {
                 const id = agendamentos[indexEdicao].id;
+                console.log("Atualizando agendamento existente:", id);
                 await set(ref(db, "agendamentos/" + id), novo);
-                    mostrarAlerta("Agendamento atualizado com sucesso!", "success");
+                console.log("Agendamento atualizado com sucesso");
+                mostrarAlerta("Agendamento atualizado com sucesso!", "success");
             } else {
-                await push(ref(db, "agendamentos"), novo);
-                    mostrarAlerta("Novo agendamento criado com sucesso!", "success");
+                console.log("Criando novo agendamento");
+                const result = await push(ref(db, "agendamentos"), novo);
+                console.log("Novo agendamento criado com sucesso:", result.key);
+                mostrarAlerta("Novo agendamento criado com sucesso!", "success");
             }
             modal.hide();
             } catch (error) {
-                mostrarAlerta("Erro ao salvar o agendamento. Tente novamente.", "danger");
+                console.error("Erro ao salvar agendamento:", error);
+                mostrarAlerta("Erro ao salvar o agendamento: " + error.message, "danger");
             }
         });
 
@@ -1258,16 +1267,36 @@
         });
 
         function carregarAgendamentos() {
+            console.log("Iniciando carregamento de agendamentos...");
             const agRef = ref(db, "agendamentos");
-            onValue(agRef, snapshot => {
-                agendamentos = [];
-                snapshot.forEach(child => {
-                    agendamentos.push({ ...child.val(), id: child.key });
+            
+            // Primeiro, vamos tentar ler os dados uma vez
+            get(agRef)
+                .then((snapshot) => {
+                    console.log("Dados iniciais do Firebase:", snapshot.val());
+                })
+                .catch((error) => {
+                    console.error("Erro ao ler dados iniciais:", error);
                 });
-                atualizarTabela();
-                atualizarIconesCongregacoes();
-                atualizarTicker();
-            });
+
+            // Depois, configuramos o listener
+            onValue(agRef, 
+                (snapshot) => {
+                    console.log("Dados recebidos do Firebase:", snapshot.val());
+                    agendamentos = [];
+                    snapshot.forEach(child => {
+                        agendamentos.push({ ...child.val(), id: child.key });
+                    });
+                    console.log("Agendamentos processados:", agendamentos);
+                    atualizarTabela();
+                    atualizarIconesCongregacoes();
+                    atualizarTicker();
+                }, 
+                (error) => {
+                    console.error("Erro no listener do Firebase:", error);
+                    mostrarAlerta("Erro ao carregar agendamentos: " + error.message, "danger");
+                }
+            );
         }
 
         function atualizarIconesCongregacoes() {
@@ -1649,4 +1678,3 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
-
