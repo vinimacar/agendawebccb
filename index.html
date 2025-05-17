@@ -1731,18 +1731,15 @@
                     return y + 10; // Retorna a posição Y final
                 }
 
-                // Adiciona as seções
-                let yAtual = 45;
-                yAtual = adicionarSecao("Cultos Oficiais", cultosOficiais, yAtual);
-                
-                // Adiciona nova página para Reuniões de Jovens
-                doc.addPage();
-                yAtual = adicionarSecao("Reuniões de Jovens e Menores", reunioesJovens, 20);
+</script>
 
-                // Adiciona data e hora da geração do PDF
-                const dataAtual = new Date().toLocaleDateString("pt-BR");
-                const horaAtual = new Date().toLocaleTimeString("pt-BR");
-                doc.setFontSize(8);
+<!-- External libraries -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+</html>
                 doc.setFont("helvetica", "italic");
                 doc.text(`Gerado em: ${dataAtual} às ${horaAtual}`, 20, 285);
 
@@ -1835,4 +1832,3 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
-
