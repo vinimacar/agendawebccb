@@ -803,38 +803,44 @@
             authDomain: "agendawebccb.firebaseapp.com",
             databaseURL: "https://agendawebccb-default-rtdb.firebaseio.com",
             projectId: "agendawebccb",
-            storageBucket: "agendawebccb.firebasestorage.app",
+            storageBucket: "agendawebccb.appspot.com",
             messagingSenderId: "1002090805726",
-            appId: "1:1002090805726:web:d9aab35124d174e85d454f",
-            cors: {
-                origin: ["https://vinimacar.github.io", "http://localhost:*", "http://127.0.0.1:*"]
-            }
+            appId: "1:1002090805726:web:d9aab35124d174e85d454f"
         };
 
-        // Inicializar Firebase com configurações de CORS
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        // Configurar CORS para o Firebase
-        const corsOptions = {
-            origin: true,
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization'],
-            credentials: true
-        };
+        // Inicializar Firebase com tratamento de erro
+        let app;
+        let db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+            console.log("Firebase inicializado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+            mostrarAlerta("Erro ao conectar com o banco de dados. Por favor, recarregue a página.", "danger");
+        }
 
         // Função para verificar conexão com Firebase
         function verificarConexaoFirebase() {
+            if (!db) {
+                console.error("Database não inicializado!");
+                mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+                return;
+            }
+
             console.log("Verificando conexão com Firebase...");
             const connectedRef = ref(db, ".info/connected");
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     console.log("Conectado ao Firebase!");
-                    mostrarAlerta("Conectado ao Firebase com sucesso!", "success");
+                    mostrarAlerta("Conectado ao banco de dados com sucesso!", "success");
                 } else {
                     console.log("Desconectado do Firebase!");
-                    mostrarAlerta("Erro de conexão com o Firebase!", "danger");
+                    mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
                 }
+            }, (error) => {
+                console.error("Erro ao verificar conexão:", error);
+                mostrarAlerta("Erro ao verificar conexão com o banco de dados!", "danger");
             });
         }
 
@@ -1334,27 +1340,45 @@
         });
 
         function carregarAgendamentos() {
+            if (!db) {
+                console.error("Database não inicializado!");
+                mostrarAlerta("Erro de conexão com o banco de dados!", "danger");
+                return;
+            }
+
             console.log("Iniciando carregamento de agendamentos...");
             const agRef = ref(db, "agendamentos");
             
-            onValue(agRef, snapshot => {
-                console.log("Dados recebidos do Firebase:", snapshot.val());
-                agendamentos = [];
-                if (snapshot.exists()) {
-                    snapshot.forEach(child => {
-                        agendamentos.push({ ...child.val(), id: child.key });
-                    });
-                }
-                console.log("Agendamentos processados:", agendamentos);
-                
-                // Forçar atualização da tabela
-                atualizarTabela();
-                atualizarIconesCongregacoes();
-                atualizarTicker();
-            }, error => {
-                console.error("Erro ao carregar agendamentos:", error);
-                mostrarAlerta("Erro ao carregar agendamentos: " + error.message, "danger");
-            });
+            try {
+                onValue(agRef, snapshot => {
+                    console.log("Dados recebidos do Firebase:", snapshot.val());
+                    agendamentos = [];
+                    
+                    if (snapshot.exists()) {
+                        snapshot.forEach(child => {
+                            const agendamento = { ...child.val(), id: child.key };
+                            console.log("Processando agendamento:", agendamento);
+                            agendamentos.push(agendamento);
+                        });
+                    } else {
+                        console.log("Nenhum agendamento encontrado no Firebase");
+                    }
+                    
+                    console.log("Total de agendamentos carregados:", agendamentos.length);
+                    console.log("Agendamentos processados:", agendamentos);
+                    
+                    // Forçar atualização da tabela
+                    atualizarTabela();
+                    atualizarIconesCongregacoes();
+                    atualizarTicker();
+                }, error => {
+                    console.error("Erro ao carregar agendamentos:", error);
+                    mostrarAlerta("Erro ao carregar agendamentos: " + error.message, "danger");
+                });
+            } catch (error) {
+                console.error("Erro ao inicializar carregamento:", error);
+                mostrarAlerta("Erro ao inicializar carregamento: " + error.message, "danger");
+            }
         }
 
         function atualizarIconesCongregacoes() {
@@ -1749,3 +1773,4 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
+
