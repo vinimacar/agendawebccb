@@ -1400,29 +1400,29 @@
             const agRef = ref(db, "agendamentos");
             
             try {
-                onValue(agRef, snapshot => {
-                    console.log("Dados recebidos do Firebase:", snapshot.val());
-                    agendamentos = [];
+            onValue(agRef, snapshot => {
+                console.log("Dados recebidos do Firebase:", snapshot.val());
+                agendamentos = [];
                     
                     if (snapshot.exists()) {
-                        snapshot.forEach(child => {
+                snapshot.forEach(child => {
                             const agendamento = { ...child.val(), id: child.key };
                             console.log("Processando agendamento:", agendamento);
                             agendamentos.push(agendamento);
-                        });
+                });
                     } else {
                         console.log("Nenhum agendamento encontrado no Firebase");
                     }
-                    
+                
                     console.log("Total de agendamentos carregados:", agendamentos.length);
-                    atualizarTabela();
-                    atualizarIconesCongregacoes();
-                    atualizarTicker();
-                }, error => {
-                    console.error("Erro ao carregar agendamentos:", error);
+                atualizarTabela();
+                atualizarIconesCongregacoes();
+                atualizarTicker();
+            }, error => {
+                console.error("Erro ao carregar agendamentos:", error);
                     mostrarAlerta("Erro ao carregar agendamentos. Tentando reconectar...", "danger");
                     tentarReconectar();
-                });
+            });
             } catch (error) {
                 console.error("Erro ao inicializar carregamento:", error);
                 mostrarAlerta("Erro ao inicializar carregamento. Tentando reconectar...", "danger");
@@ -1620,8 +1620,8 @@
                 console.log("Iniciando conexão com Firebase...");
                 await inicializarFirebase();
                 console.log("Firebase inicializado, carregando dados...");
-                carregarAgendamentos();
-                atualizarIconesCongregacoes();
+        carregarAgendamentos();
+        atualizarIconesCongregacoes();
             } catch (error) {
                 console.error("Erro na inicialização:", error);
                 mostrarAlerta("Erro ao conectar com o banco de dados. Tentando reconectar...", "danger");
