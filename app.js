@@ -123,3 +123,4 @@ export function setupLoginListeners() {
         document.getElementById("senha").value = "";
     });
 }
+
