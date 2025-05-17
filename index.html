@@ -1295,6 +1295,7 @@
         }
 
         function atualizarIconesCongregacoes() {
+            console.log("Atualizando ícones das congregações...");
             const container = document.getElementById("congregacoes");
             container.innerHTML = "";
 
@@ -1303,6 +1304,8 @@
                 const botao = document.createElement("button");
                 botao.className = "btn btn-outline-primary w-100 botao-congregacao";
 
+                // Verificar se existe agendamento para esta congregação
+                const temAgendamento = agendamentos.some(a => a.congregacao === c);
                 const agendamentosCulto = agendamentos.filter(a => 
                     a.congregacao === c && 
                     a.tipo === "Culto Oficial"
@@ -1314,6 +1317,8 @@
                 );
 
                 let statusHtml = '';
+                
+                // Lógica para Ituiutaba - Central (caso especial)
                 if (c === "Ituiutaba - Central") {
                     const cultosQuinta = agendamentosCulto.filter(a => new Date(a.data).getDay() === 4);
                     if (agendamentosCulto.length === 2 && cultosQuinta.length > 0 && agendamentoJovens) {
@@ -1325,17 +1330,21 @@
                         if (agendamentoJovens) badges.push('<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>');
                         statusHtml = badges.join(' ') || '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
                     }
-                } else if (temReuniaoJovens) {
+                } 
+                // Lógica para congregações com reunião de jovens
+                else if (temReuniaoJovens) {
                     if (agendamentosCulto.length > 0 && agendamentoJovens) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-double"></i> Todos Agendados</span>';
                     } else if (agendamentosCulto.length > 0) {
                         statusHtml = '<span class="badge bg-primary"><i class="bi bi-check-circle-fill"></i> Culto</span>';
-                } else if (agendamentoJovens) {
+                    } else if (agendamentoJovens) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Jovens</span>';
                     } else {
                         statusHtml = '<span class="badge bg-secondary"><i class="bi bi-circle"></i> Disponível</span>';
                     }
-                } else {
+                } 
+                // Lógica para outras congregações
+                else {
                     if (agendamentosCulto.length > 0) {
                         statusHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Agendado</span>';
                     } else {
@@ -1673,4 +1682,5 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>
+
 
